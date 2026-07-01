@@ -33,7 +33,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
       <div className="bg-[#111] p-8 rounded-xl shadow-2xl w-full max-w-md border border-[#222]">
-        <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold mb-6 text-center text-purple-600">
           ASTROJOURNAL
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -43,7 +43,7 @@ const LoginPage: React.FC = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-[#333] rounded p-2 focus:border-blue-500 outline-none"
+              className="w-full bg-[#1a1a1a] border border-[#333] rounded p-2 focus:border-purple-500 outline-none"
               required
             />
           </div>
@@ -53,7 +53,7 @@ const LoginPage: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-[#333] rounded p-2 focus:border-blue-500 outline-none"
+              className="w-full bg-[#1a1a1a] border border-[#333] rounded p-2 focus:border-purple-500 outline-none"
               required
             />
           </div>
@@ -72,7 +72,7 @@ const LoginPage: React.FC = () => {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition-colors"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded transition-colors"
           >
             {isRegistering ? 'Sign Up' : 'Log In'}
           </button>
@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
           {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
           <button
             onClick={() => setIsRegistering(!isRegistering)}
-            className="text-blue-400 hover:underline"
+            className="text-purple-600 hover:underline"
           >
             {isRegistering ? 'Log In' : 'Sign Up'}
           </button>

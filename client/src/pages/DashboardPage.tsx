@@ -112,11 +112,11 @@ const DashboardPage: React.FC = () => {
 
       {/* Persistent Top Navigation & Input Bar */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
-        <header className="flex justify-between items-center p-6 bg-gradient-to-b from-black/80 to-transparent pointer-events-auto">
+        <header className="flex justify-between items-center p-6 from-black/80 to-transparent pointer-events-auto">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-black tracking-tighter text-blue-400">ASTROJOURNAL</h1>
+            <h1 className="text-2xl font-black tracking-tighter text-purple-600">ASTROJOURNAL</h1>
             {userData?.role === 'admin' && (
-              <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-500/30 font-bold uppercase">
+              <span className="bg-blue-500/20 text-purple-600 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-bold uppercase">
                 Admin
               </span>
             )}
@@ -129,12 +129,12 @@ const DashboardPage: React.FC = () => {
               value={newEntry}
               onChange={(e) => setNewEntry(e.target.value)}
               placeholder="Reflect on your day across the universe..."
-              className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-blue-500 transition-all backdrop-blur-md text-sm"
+              className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm"
             />
             <button
               type="submit"
               disabled={!newEntry.trim()}
-              className="absolute right-2 top-1.5 p-2 bg-blue-600 rounded-full hover:bg-blue-500 disabled:opacity-30 disabled:hover:bg-blue-600 transition-colors"
+              className="absolute right-2 top-1.5 p-2 bg-purple-600 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:bg-purple-600 transition-colors"
             >
               <Send size={16} />
             </button>
@@ -143,7 +143,7 @@ const DashboardPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
               <div className="flex items-center gap-1.5 border-r border-white/10 pr-3">
-                <Globe size={16} className="text-blue-400" />
+                <Globe size={16} className="text-purple-600" />
                 <span className="text-sm font-bold">{planetsData.length}</span>
               </div>
               <div className="flex items-center gap-1.5 border-r border-white/10 pr-3">
