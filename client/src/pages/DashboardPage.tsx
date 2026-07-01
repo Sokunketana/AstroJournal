@@ -1,0 +1,269 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../services/api';
+import SkyBackground from '../components/SkyBackground';
+import { Star, Flame, Send, Trash2, Rocket, Globe, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const DashboardPage: React.FC = () => {
+  const { logout } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+  const [journals, setJournals] = useState<any[]>([]);
+  const [planets, setPlanets] = useState<any[]>([]);
+  const [newEntry, setNewEntry] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [selectedJournal, setSelectedJournal] = useState<any>(null);
+  const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<any[] | null>(null);
+
+  // Group journals into planets and loose stars based on explicit planetId
+  const looseJournals = journals.filter(j => !j.planetId);
+  const planetsData = planets.map(planet => ({
+    ...planet,
+    journals: journals.filter(j => j.planetId === planet._id)
+  }));
+
+  const fetchData = async () => {
+    try {
+      const [uData, jData, pData] = await Promise.all([
+        apiFetch('/users/me'),
+        apiFetch('/journals'),
+        apiFetch('/planets')
+      ]);
+      setUserData(uData);
+      setJournals(jData);
+      setPlanets(pData);
+    } catch (err: any) {
+      console.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newEntry.trim()) return;
+    try {
+      await apiFetch('/journals', {
+        method: 'POST',
+        body: JSON.stringify({ content: newEntry }),
+      });
+      setNewEntry('');
+      fetchData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this entry? Your star and streak will be reverted.')) return;
+    try {
+      await apiFetch(`/journals/${id}`, { method: 'DELETE' });
+      setSelectedJournal(null);
+      setSelectedPlanetJournals(null); // Close planet modal if open to refresh cleanly
+      fetchData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleJournalPositionUpdate = async (id: string, pos: { x: number, y: number, z: number }) => {
+    try {
+      await apiFetch(`/journals/${id}/position`, {
+        method: 'PUT',
+        body: JSON.stringify(pos),
+      });
+      // Update local state to avoid a full re-fetch if possible, 
+      // but SkyBackground is using memoized props, so we should update state.
+      setJournals(prev => prev.map(j => j._id === id ? { ...j, position: pos } : j));
+    } catch (err: any) {
+      console.error('Failed to update journal position', err);
+    }
+  };
+
+  const handlePlanetPositionUpdate = async (id: string, pos: { x: number, y: number, z: number }) => {
+    try {
+      await apiFetch(`/planets/${id}/position`, {
+        method: 'PUT',
+        body: JSON.stringify(pos),
+      });
+      setPlanets(prev => prev.map(p => p._id === id ? { ...p, position: pos } : p));
+    } catch (err: any) {
+      console.error('Failed to update planet position', err);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
+
+  return (
+    <div className="relative min-h-screen text-white overflow-hidden font-sans">
+      <SkyBackground
+        totalStars={userData?.totalStars || 0}
+        planetsData={planetsData}
+        looseJournals={looseJournals}
+        onStarClick={(journal) => setSelectedJournal(journal)}
+        onPlanetClick={(pJournals) => setSelectedPlanetJournals(pJournals)}
+        onJournalPositionUpdate={handleJournalPositionUpdate}
+        onPlanetPositionUpdate={handlePlanetPositionUpdate}
+      />
+
+      {/* Persistent Top Navigation & Input Bar */}
+      <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
+        <header className="flex justify-between items-center p-6 bg-gradient-to-b from-black/80 to-transparent pointer-events-auto">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-black tracking-tighter text-blue-400">ASTROJOURNAL</h1>
+            {userData?.role === 'admin' && (
+              <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-500/30 font-bold uppercase">
+                Admin
+              </span>
+            )}
+          </div>
+          
+          {/* Main Input Bar */}
+          <form onSubmit={handleSubmit} className="flex-1 max-w-xl mx-8 relative group">
+            <input
+              type="text"
+              value={newEntry}
+              onChange={(e) => setNewEntry(e.target.value)}
+              placeholder="Reflect on your day across the universe..."
+              className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-blue-500 transition-all backdrop-blur-md text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!newEntry.trim()}
+              className="absolute right-2 top-1.5 p-2 bg-blue-600 rounded-full hover:bg-blue-500 disabled:opacity-30 disabled:hover:bg-blue-600 transition-colors"
+            >
+              <Send size={16} />
+            </button>
+          </form>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
+              <div className="flex items-center gap-1.5 border-r border-white/10 pr-3">
+                <Globe size={16} className="text-blue-400" />
+                <span className="text-sm font-bold">{planetsData.length}</span>
+              </div>
+              <div className="flex items-center gap-1.5 border-r border-white/10 pr-3">
+                <Flame size={16} className="text-orange-500" />
+                <span className="text-sm font-bold">{userData?.currentStreak || 0}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Star size={16} className="text-yellow-500" />
+                <span className="text-sm font-bold">{userData?.totalStars || 0}</span>
+              </div>
+            </div>
+            <button onClick={logout} className="text-xs text-gray-500 hover:text-white transition-colors">Logout</button>
+          </div>
+        </header>
+      </div>
+
+      {/* Journal Entry Viewer (Modal) */}
+      <AnimatePresence>
+        {selectedJournal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-[#111] border border-white/10 p-8 rounded-3xl max-w-lg w-full relative shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+              
+              <button
+                onClick={() => setSelectedJournal(null)}
+                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="mb-6">
+                <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Stellar Archive</p>
+                <h3 className="text-gray-400 text-sm font-medium">
+                  {new Date(selectedJournal.createdAt).toLocaleDateString(undefined, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </h3>
+              </div>
+
+              <p className="text-xl text-white leading-relaxed font-light mb-8 italic">
+                "{selectedJournal.content}"
+              </p>
+
+              <div className="flex justify-between items-center pt-6 border-t border-white/5">
+                <div className="flex items-center gap-2 text-yellow-500/80">
+                  <Star size={14} />
+                  <span className="text-xs font-bold uppercase">Star Earned</span>
+                </div>
+                <button
+                  onClick={() => handleDelete(selectedJournal._id)}
+                  className="flex items-center gap-2 px-4 py-2 text-red-400/50 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all text-xs font-bold uppercase"
+                >
+                  <Trash2 size={14} />
+                  Delete Entry
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Planet Journals Viewer (Modal) */}
+      <AnimatePresence>
+        {selectedPlanetJournals && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-[#111] border border-white/10 p-6 rounded-3xl max-w-2xl w-full relative shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+              
+              <button
+                onClick={() => setSelectedPlanetJournals(null)}
+                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="mb-4 flex-shrink-0">
+                <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Planet Archive</p>
+                <h3 className="text-gray-400 text-sm font-medium">
+                  {selectedPlanetJournals.length} Journals Contained
+                </h3>
+              </div>
+
+              <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 space-y-4">
+                {selectedPlanetJournals.map((journal: any) => (
+                  <div key={journal._id} className="bg-white/5 p-4 rounded-xl border border-white/5 relative group">
+                    <p className="text-sm text-gray-400 mb-2">
+                      {new Date(journal.createdAt).toLocaleDateString(undefined, {
+                        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                      })}
+                    </p>
+                    <p className="text-white font-light italic">"{journal.content}"</p>
+                    <button
+                      onClick={() => handleDelete(journal._id)}
+                      className="absolute top-4 right-4 text-red-400/0 group-hover:text-red-400/50 hover:!text-red-400 transition-all"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+    </div>
+  );
+};
+
+export default DashboardPage;
