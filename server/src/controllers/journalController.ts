@@ -224,3 +224,30 @@ export const updateJournalPosition = async (req: AuthRequest, res: Response) => 
     res.status(500).json({ message: 'Error updating journal position', error });
   }
 };
+
+export const updateJournalContent = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Content cannot be empty' });
+    }
+
+    const journal = await Journal.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id as string), userId: new mongoose.Types.ObjectId(userId) },
+      { content: content.trim() },
+      { new: true }
+    );
+
+    if (!journal) {
+      return res.status(404).json({ message: 'Journal not found' });
+    }
+
+    res.json(journal);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating journal content', error });
+  }
+};

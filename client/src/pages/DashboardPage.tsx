@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
 import SkyBackground from '../components/SkyBackground';
-import { Star, Flame, Send, Trash2, Rocket, Globe, X } from 'lucide-react';
+import { Star, Flame, Send, Trash2, Rocket, Globe, X, Pencil, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DashboardPage: React.FC = () => {
@@ -14,6 +14,8 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedJournal, setSelectedJournal] = useState<any>(null);
   const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<any[] | null>(null);
+  const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
 
   // Group journals into planets and loose stars based on explicit planetId
   const looseJournals = journals.filter(j => !j.planetId);
@@ -68,6 +70,41 @@ const DashboardPage: React.FC = () => {
     } catch (err: any) {
       alert(err.message);
     }
+  };
+
+  const handleEdit = async (id: string, content: string) => {
+    if (!content.trim()) return;
+    try {
+      const updated = await apiFetch(`/journals/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ content }),
+      });
+      // Update the selected journal if it's the one being edited
+      if (selectedJournal && selectedJournal._id === id) {
+        setSelectedJournal({ ...selectedJournal, content: updated.content });
+      }
+      // Update planet journals if viewing planet modal
+      if (selectedPlanetJournals) {
+        setSelectedPlanetJournals(prev =>
+          prev ? prev.map(j => j._id === id ? { ...j, content: updated.content } : j) : null
+        );
+      }
+      setEditingJournalId(null);
+      setEditContent('');
+      fetchData();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const startEditing = (journal: any) => {
+    setEditingJournalId(journal._id);
+    setEditContent(journal.content);
+  };
+
+  const cancelEditing = () => {
+    setEditingJournalId(null);
+    setEditContent('');
   };
 
   const handleJournalPositionUpdate = async (id: string, pos: { x: number, y: number, z: number }) => {
@@ -191,22 +228,62 @@ const DashboardPage: React.FC = () => {
                 </h3>
               </div>
 
-              <p className="text-xl text-white leading-relaxed font-light mb-8 italic">
-                "{selectedJournal.content}"
-              </p>
+              {editingJournalId === selectedJournal._id ? (
+                <div className="mb-8">
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-lg font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-[120px]"
+                    autoFocus
+                  />
+                </div>
+              ) : (
+                <p className="text-xl text-white leading-relaxed font-light mb-8 italic">
+                  "{selectedJournal.content}"
+                </p>
+              )}
 
               <div className="flex justify-between items-center pt-6 border-t border-white/5">
                 <div className="flex items-center gap-2 text-yellow-500/80">
                   <Star size={14} />
                   <span className="text-xs font-bold uppercase">Star Earned</span>
                 </div>
-                <button
-                  onClick={() => handleDelete(selectedJournal._id)}
-                  className="flex items-center gap-2 px-4 py-2 text-red-400/50 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all text-xs font-bold uppercase"
-                >
-                  <Trash2 size={14} />
-                  Delete Entry
-                </button>
+                {editingJournalId === selectedJournal._id ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEdit(selectedJournal._id, editContent)}
+                      disabled={!editContent.trim()}
+                      className="flex items-center gap-2 px-4 py-2 text-green-400/80 hover:text-green-400 hover:bg-green-400/10 rounded-xl transition-all text-xs font-bold uppercase disabled:opacity-30"
+                    >
+                      <Check size={14} />
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEditing}
+                      className="flex items-center gap-2 px-4 py-2 text-gray-400/50 hover:text-gray-400 hover:bg-white/5 rounded-xl transition-all text-xs font-bold uppercase"
+                    >
+                      <X size={14} />
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => startEditing(selectedJournal)}
+                      className="flex items-center gap-2 px-4 py-2 text-purple-400/50 hover:text-purple-400 hover:bg-purple-400/10 rounded-xl transition-all text-xs font-bold uppercase"
+                    >
+                      <Pencil size={14} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(selectedJournal._id)}
+                      className="flex items-center gap-2 px-4 py-2 text-red-400/50 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all text-xs font-bold uppercase"
+                    >
+                      <Trash2 size={14} />
+                      Delete Entry
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
@@ -247,13 +324,51 @@ const DashboardPage: React.FC = () => {
                         weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
                       })}
                     </p>
-                    <p className="text-white font-light italic">"{journal.content}"</p>
-                    <button
-                      onClick={() => handleDelete(journal._id)}
-                      className="absolute top-4 right-4 text-red-400/0 group-hover:text-red-400/50 hover:!text-red-400 transition-all"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {editingJournalId === journal._id ? (
+                      <div>
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-[80px]"
+                          autoFocus
+                        />
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() => handleEdit(journal._id, editContent)}
+                            disabled={!editContent.trim()}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-green-400/80 hover:text-green-400 hover:bg-green-400/10 rounded-lg transition-all text-xs font-bold uppercase disabled:opacity-30"
+                          >
+                            <Check size={12} />
+                            Save
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-gray-400/50 hover:text-gray-400 hover:bg-white/5 rounded-lg transition-all text-xs font-bold uppercase"
+                          >
+                            <X size={12} />
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-white font-light italic">"{journal.content}"</p>
+                    )}
+                    {editingJournalId !== journal._id && (
+                      <div className="absolute top-4 right-4 flex items-center gap-1">
+                        <button
+                          onClick={() => startEditing(journal)}
+                          className="text-purple-400/0 group-hover:text-purple-400/50 hover:!text-purple-400 transition-all"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(journal._id)}
+                          className="text-red-400/0 group-hover:text-red-400/50 hover:!text-red-400 transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
