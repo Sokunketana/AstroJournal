@@ -1,0 +1,5 @@
+- [x] change atrojournal name's text color
+- [ ] add edit to archive entries feature
+- [ ] create a delete confirmation dialog
+- [ ] create a log out confirmation dialog
+- [ ] for the error if user already exist use a toast or smth
