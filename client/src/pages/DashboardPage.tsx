@@ -5,6 +5,7 @@ import { useUserData, useJournals, usePlanets } from '../hooks/useDashboardData'
 import SkyBackground from '../components/SkyBackground';
 import { Star, Flame, Send, Trash2, Rocket, Globe, X, Pencil, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const DashboardPage: React.FC = () => {
   const { logout } = useAuth();
@@ -17,6 +18,7 @@ const DashboardPage: React.FC = () => {
   const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<any[] | null>(null);
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const loading = userLoading || journalsLoading || planetsLoading;
 
@@ -48,8 +50,14 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this entry? Your star and streak will be reverted.')) return;
+  const handleDelete = (id: string) => {
+    setDeleteTargetId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
+    const id = deleteTargetId;
+    setDeleteTargetId(null);
     try {
       // Optimistic update: remove the journal from the local cache immediately
       mutateJournals(
@@ -388,6 +396,12 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteTargetId}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
 
     </div>
   );
