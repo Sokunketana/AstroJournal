@@ -1,6 +1,0 @@
-- [x] change atrojournal name's text color
-- [x] add edit to archive entries feature
-- [ ] create a delete confirmation dialog
-- [ ] create a log out confirmation dialog
-- [ ] for the error if user already exist use a toast or smth
-- [ ] change astrojounal text in the dashboard page to the color white
