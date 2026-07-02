@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
 import { useUserData, useJournals, usePlanets } from '../hooks/useDashboardData';
 import SkyBackground from '../components/SkyBackground';
-import { Star, Flame, Send, Trash2, Rocket, Globe, X, Pencil, Check } from 'lucide-react';
+import { Star, Flame, Send, Trash2, Globe, X, Pencil, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ConfirmDialog from '../components/ConfirmDialog';
 
