@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, memo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stars, Float, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
@@ -38,6 +38,7 @@ const Planet: React.FC<{
 }> = ({ id, position, color, size, journals, onClick, onDragEnd }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const hasDragged = useRef(false);
   const { viewport, camera } = useThree();
 
   return (
@@ -54,23 +55,25 @@ const Planet: React.FC<{
         onPointerDown={(e) => {
           e.stopPropagation();
           (e.target as any).setPointerCapture(e.pointerId);
+          hasDragged.current = false;
           setIsDragging(true);
         }}
         onPointerUp={(e) => {
           e.stopPropagation();
           (e.target as any).releasePointerCapture(e.pointerId);
           setIsDragging(false);
-          if (meshRef.current) {
+          if (hasDragged.current && meshRef.current) {
             onDragEnd(id, { 
               x: meshRef.current.position.x, 
               y: meshRef.current.position.y, 
               z: meshRef.current.position.z 
             });
           }
+          hasDragged.current = false;
         }}
         onPointerMove={(e) => {
           if (isDragging && meshRef.current) {
-            // Project pointer to world coordinates at the object's depth
+            hasDragged.current = true;
             const vector = new THREE.Vector3(
               (e.clientX / window.innerWidth) * 2 - 1,
               -(e.clientY / window.innerHeight) * 2 + 1,
@@ -107,16 +110,19 @@ interface SkyBackgroundProps {
   onPlanetClick: (journals: any[]) => void;
   onJournalPositionUpdate: (id: string, pos: { x: number, y: number, z: number }) => void;
   onPlanetPositionUpdate: (id: string, pos: { x: number, y: number, z: number }) => void;
+  paused?: boolean;
 }
 
 const JournalStar: React.FC<{ 
   position: [number, number, number], 
   journal: any, 
   onClick: (journal: any) => void,
-  onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void 
-}> = ({ position, journal, onClick, onDragEnd }) => {
+  onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void,
+  paused?: boolean 
+}> = ({ position, journal, onClick, onDragEnd, paused }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const hasDragged = useRef(false);
   const { camera } = useThree();
 
   const seed = useMemo(() => 
@@ -151,7 +157,7 @@ const JournalStar: React.FC<{
   };
 
   useFrame((state) => {
-    if (!meshRef.current || isDragging) return;
+    if (!meshRef.current || isDragging || paused) return;
     const t = state.clock.elapsedTime;
     
     // Combine multiple sine waves to create an organic, random-looking wander
@@ -182,22 +188,25 @@ const JournalStar: React.FC<{
       onPointerDown={(e) => {
         e.stopPropagation();
         (e.target as any).setPointerCapture(e.pointerId);
+        hasDragged.current = false;
         setIsDragging(true);
       }}
       onPointerUp={(e) => {
         e.stopPropagation();
         (e.target as any).releasePointerCapture(e.pointerId);
         setIsDragging(false);
-        if (meshRef.current) {
+        if (hasDragged.current && meshRef.current) {
           onDragEnd(journal._id, { 
             x: meshRef.current.position.x, 
             y: meshRef.current.position.y, 
             z: meshRef.current.position.z 
           });
         }
+        hasDragged.current = false;
       }}
       onPointerMove={(e) => {
         if (isDragging && meshRef.current) {
+          hasDragged.current = true;
           const vector = new THREE.Vector3(
             (e.clientX / window.innerWidth) * 2 - 1,
             -(e.clientY / window.innerHeight) * 2 + 1,
@@ -227,7 +236,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   onStarClick, 
   onPlanetClick,
   onJournalPositionUpdate,
-  onPlanetPositionUpdate
+  onPlanetPositionUpdate,
+  paused
 }) => {
   const planets = useMemo(() => {
     return planetsData.map((planet) => {
@@ -280,7 +290,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
 
   return (
     <div className="fixed inset-0 z-0">
-      <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
+      <Canvas camera={{ position: [0, 0, 10], fov: 60 }} frameloop={paused ? 'demand' : 'always'}>
         <color attach="background" args={['#020205']} />
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
@@ -295,6 +305,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
             journal={star.journal}
             onClick={onStarClick}
             onDragEnd={onJournalPositionUpdate}
+            paused={paused}
           />
         ))}
 
@@ -315,4 +326,4 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   );
 };
 
-export default SkyBackground;
+export default memo(SkyBackground);

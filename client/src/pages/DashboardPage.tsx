@@ -1,49 +1,37 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
+import { useUserData, useJournals, usePlanets } from '../hooks/useDashboardData';
 import SkyBackground from '../components/SkyBackground';
 import { Star, Flame, Send, Trash2, Rocket, Globe, X, Pencil, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DashboardPage: React.FC = () => {
   const { logout } = useAuth();
-  const [userData, setUserData] = useState<any>(null);
-  const [journals, setJournals] = useState<any[]>([]);
-  const [planets, setPlanets] = useState<any[]>([]);
+  const { data: userData, isLoading: userLoading, mutate: mutateUser } = useUserData();
+  const { data: journals = [], isLoading: journalsLoading, mutate: mutateJournals } = useJournals();
+  const { data: planets = [], isLoading: planetsLoading, mutate: mutatePlanets } = usePlanets();
+
   const [newEntry, setNewEntry] = useState('');
-  const [loading, setLoading] = useState(true);
   const [selectedJournal, setSelectedJournal] = useState<any>(null);
   const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<any[] | null>(null);
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
 
-  // Group journals into planets and loose stars based on explicit planetId
-  const looseJournals = journals.filter(j => !j.planetId);
-  const planetsData = planets.map(planet => ({
+  const loading = userLoading || journalsLoading || planetsLoading;
+
+  // Memoize derived data so SkyBackground only re-renders when journals/planets actually change
+  const looseJournals = useMemo(() => journals.filter((j: any) => !j.planetId), [journals]);
+  const planetsData = useMemo(() => planets.map((planet: any) => ({
     ...planet,
-    journals: journals.filter(j => j.planetId === planet._id)
-  }));
+    journals: journals.filter((j: any) => j.planetId === planet._id)
+  })), [planets, journals]);
 
-  const fetchData = async () => {
-    try {
-      const [uData, jData, pData] = await Promise.all([
-        apiFetch('/users/me'),
-        apiFetch('/journals'),
-        apiFetch('/planets')
-      ]);
-      setUserData(uData);
-      setJournals(jData);
-      setPlanets(pData);
-    } catch (err: any) {
-      console.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const mutateAll = useCallback(() => {
+    mutateUser();
+    mutateJournals();
+    mutatePlanets();
+  }, [mutateUser, mutateJournals, mutatePlanets]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +42,7 @@ const DashboardPage: React.FC = () => {
         body: JSON.stringify({ content: newEntry }),
       });
       setNewEntry('');
-      fetchData();
+      mutateAll();
     } catch (err: any) {
       alert(err.message);
     }
@@ -63,12 +51,19 @@ const DashboardPage: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this entry? Your star and streak will be reverted.')) return;
     try {
-      await apiFetch(`/journals/${id}`, { method: 'DELETE' });
+      // Optimistic update: remove the journal from the local cache immediately
+      mutateJournals(
+        (current: any[]) => current ? current.filter((j: any) => j._id !== id) : [],
+        false
+      );
       setSelectedJournal(null);
-      setSelectedPlanetJournals(null); // Close planet modal if open to refresh cleanly
-      fetchData();
+      setSelectedPlanetJournals(null);
+
+      await apiFetch(`/journals/${id}`, { method: 'DELETE' });
+      mutateAll();
     } catch (err: any) {
       alert(err.message);
+      mutateAll(); // Revert on error
     }
   };
 
@@ -91,7 +86,7 @@ const DashboardPage: React.FC = () => {
       }
       setEditingJournalId(null);
       setEditContent('');
-      fetchData();
+      mutateJournals();
     } catch (err: any) {
       alert(err.message);
     }
@@ -107,31 +102,47 @@ const DashboardPage: React.FC = () => {
     setEditContent('');
   };
 
-  const handleJournalPositionUpdate = async (id: string, pos: { x: number, y: number, z: number }) => {
+  const handleJournalPositionUpdate = useCallback(async (id: string, pos: { x: number, y: number, z: number }) => {
     try {
+      // Optimistic update: update position in local cache without revalidating
+      mutateJournals(
+        (current: any[]) => current ? current.map((j: any) => j._id === id ? { ...j, position: pos } : j) : [],
+        false
+      );
       await apiFetch(`/journals/${id}/position`, {
         method: 'PUT',
         body: JSON.stringify(pos),
       });
-      // Update local state to avoid a full re-fetch if possible, 
-      // but SkyBackground is using memoized props, so we should update state.
-      setJournals(prev => prev.map(j => j._id === id ? { ...j, position: pos } : j));
     } catch (err: any) {
       console.error('Failed to update journal position', err);
+      mutateJournals(); // Revert on error
     }
-  };
+  }, [mutateJournals]);
 
-  const handlePlanetPositionUpdate = async (id: string, pos: { x: number, y: number, z: number }) => {
+  const handlePlanetPositionUpdate = useCallback(async (id: string, pos: { x: number, y: number, z: number }) => {
     try {
+      // Optimistic update
+      mutatePlanets(
+        (current: any[]) => current ? current.map((p: any) => p._id === id ? { ...p, position: pos } : p) : [],
+        false
+      );
       await apiFetch(`/planets/${id}/position`, {
         method: 'PUT',
         body: JSON.stringify(pos),
       });
-      setPlanets(prev => prev.map(p => p._id === id ? { ...p, position: pos } : p));
     } catch (err: any) {
       console.error('Failed to update planet position', err);
+      mutatePlanets(); // Revert on error
     }
-  };
+  }, [mutatePlanets]);
+
+  const handleStarClick = useCallback((journal: any) => {
+    setSelectedJournal(journal);
+  }, []);
+
+  const handlePlanetClick = useCallback((pJournals: any[]) => {
+    setSelectedPlanetJournals(pJournals);
+  }, []);
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
 
@@ -141,10 +152,11 @@ const DashboardPage: React.FC = () => {
         totalStars={userData?.totalStars || 0}
         planetsData={planetsData}
         looseJournals={looseJournals}
-        onStarClick={(journal) => setSelectedJournal(journal)}
-        onPlanetClick={(pJournals) => setSelectedPlanetJournals(pJournals)}
+        onStarClick={handleStarClick}
+        onPlanetClick={handlePlanetClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
         onPlanetPositionUpdate={handlePlanetPositionUpdate}
+        paused={!!selectedJournal || !!selectedPlanetJournals}
       />
 
       {/* Persistent Top Navigation & Input Bar */}
@@ -200,7 +212,7 @@ const DashboardPage: React.FC = () => {
       {/* Journal Entry Viewer (Modal) */}
       <AnimatePresence>
         {selectedJournal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -293,7 +305,7 @@ const DashboardPage: React.FC = () => {
       {/* Planet Journals Viewer (Modal) */}
       <AnimatePresence>
         {selectedPlanetJournals && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
