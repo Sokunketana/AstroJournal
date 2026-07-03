@@ -20,6 +20,7 @@ const DashboardPage: React.FC = () => {
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const loading = userLoading || journalsLoading || planetsLoading;
 
@@ -182,7 +183,7 @@ const DashboardPage: React.FC = () => {
               </span>
             )}
           </div>
-          
+
           {/* Main Input Bar */}
           <form onSubmit={handleSubmit} className="flex-1 max-w-xl mx-8 relative group">
             <input
@@ -216,7 +217,7 @@ const DashboardPage: React.FC = () => {
                 <span className="text-sm font-bold">{userData?.totalStars || 0}</span>
               </div>
             </div>
-            <button onClick={logout} className="text-xs text-gray-500 hover:text-white transition-colors">Logout</button>
+            <button onClick={() => setShowLogoutConfirm(true)} className="text-xs text-gray-500 hover:text-white transition-colors">Logout</button>
           </div>
         </header>
       </div>
@@ -224,15 +225,15 @@ const DashboardPage: React.FC = () => {
       {/* Journal Entry Viewer (Modal) */}
       <AnimatePresence>
         {selectedJournal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-black/80">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="bg-[#111] border border-white/10 p-8 rounded-3xl max-w-lg w-full relative shadow-2xl overflow-hidden"
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
-              
+              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500" />
+
               <button
                 onClick={() => setSelectedJournal(null)}
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
@@ -257,7 +258,7 @@ const DashboardPage: React.FC = () => {
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-lg font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-[120px]"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-lg font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-30"
                     autoFocus
                   />
                 </div>
@@ -317,15 +318,15 @@ const DashboardPage: React.FC = () => {
       {/* Planet Journals Viewer (Modal) */}
       <AnimatePresence>
         {selectedPlanetJournals && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-black/80">
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="bg-[#111] border border-white/10 p-6 rounded-3xl max-w-2xl w-full relative shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
             >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
-              
+              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500" />
+
               <button
                 onClick={() => setSelectedPlanetJournals(null)}
                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
@@ -333,7 +334,7 @@ const DashboardPage: React.FC = () => {
                 <X size={20} />
               </button>
 
-              <div className="mb-4 flex-shrink-0">
+              <div className="mb-4 shrink-0">
                 <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Planet Archive</p>
                 <h3 className="text-gray-400 text-sm font-medium">
                   {selectedPlanetJournals.length} Journals Contained
@@ -353,7 +354,7 @@ const DashboardPage: React.FC = () => {
                         <textarea
                           value={editContent}
                           onChange={(e) => setEditContent(e.target.value)}
-                          className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-[80px]"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-20"
                           autoFocus
                         />
                         <div className="flex items-center gap-2 mt-2">
@@ -381,13 +382,13 @@ const DashboardPage: React.FC = () => {
                       <div className="absolute top-4 right-4 flex items-center gap-1">
                         <button
                           onClick={() => startEditing(journal)}
-                          className="text-purple-400/0 group-hover:text-purple-400/50 hover:!text-purple-400 transition-all"
+                          className="text-purple-400/0 group-hover:text-purple-400/50 hover:text-purple-400! transition-all"
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => handleDelete(journal._id)}
-                          className="text-red-400/0 group-hover:text-red-400/50 hover:!text-red-400 transition-all"
+                          className="text-red-400/0 group-hover:text-red-400/50 hover:text-red-400! transition-all"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -405,6 +406,16 @@ const DashboardPage: React.FC = () => {
         isOpen={!!deleteTargetId}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTargetId(null)}
+      />
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        confirmLabel="Logout"
+        cancelLabel="Cancel"
+        onConfirm={() => { setShowLogoutConfirm(false); logout(); }}
+        onCancel={() => setShowLogoutConfirm(false)}
       />
 
     </div>
