@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
     setError('');
     try {
       const endpoint = isRegistering ? '/auth/register' : '/auth/login';
-      const payload: any = { username, password };
+      const payload: Record<string, string> = { username, password };
       if (isRegistering && isAdmin) {
         payload.role = 'admin';
       }
@@ -25,8 +25,12 @@ const LoginPage: React.FC = () => {
         body: JSON.stringify(payload),
       });
       login(data.token, data.user);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err));
+      }
     }
   };
 
