@@ -25,7 +25,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80"
+          className="fixed inset-0 z-200 flex items-center justify-center p-6 bg-black/80"
           onClick={(e) => {
             if (e.target === e.currentTarget) onCancel();
           }}
@@ -41,7 +41,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             className="bg-[#111] border border-white/10 p-8 rounded-3xl max-w-sm w-full relative shadow-2xl overflow-hidden"
           >
             {/* Top gradient bar */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500" />
 
             {/* Close button */}
             <button

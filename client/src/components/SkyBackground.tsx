@@ -2,14 +2,15 @@ import React, { useMemo, useRef, useState, memo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Stars, Float, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+import type { Journal, PlanetData } from '../types';
 
 const StarField: React.FC<{ count: number }> = ({ count }) => {
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 50;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 50;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 50;
+      pos[i * 3] = THREE.MathUtils.randFloatSpread(50);
+      pos[i * 3 + 1] = THREE.MathUtils.randFloatSpread(50);
+      pos[i * 3 + 2] = THREE.MathUtils.randFloatSpread(50);
     }
     return pos;
   }, [count]);
@@ -32,14 +33,14 @@ const Planet: React.FC<{
   position: [number, number, number], 
   color: string, 
   size: number, 
-  journals: any[], 
-  onClick: (journals: any[]) => void,
+  journals: Journal[], 
+  onClick: (journals: Journal[]) => void,
   onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void 
 }> = ({ id, position, color, size, journals, onClick, onDragEnd }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
-  const { viewport, camera } = useThree();
+  const { camera } = useThree();
 
   return (
     <Float speed={isDragging ? 0 : 2} rotationIntensity={isDragging ? 0 : 1} floatIntensity={isDragging ? 0 : 1}>
@@ -54,13 +55,13 @@ const Planet: React.FC<{
         }}
         onPointerDown={(e) => {
           e.stopPropagation();
-          (e.target as any).setPointerCapture(e.pointerId);
+          (e.target as HTMLElement).setPointerCapture(e.pointerId);
           hasDragged.current = false;
           setIsDragging(true);
         }}
         onPointerUp={(e) => {
           e.stopPropagation();
-          (e.target as any).releasePointerCapture(e.pointerId);
+          (e.target as HTMLElement).releasePointerCapture(e.pointerId);
           setIsDragging(false);
           if (hasDragged.current && meshRef.current) {
             onDragEnd(id, { 
@@ -104,10 +105,10 @@ const Planet: React.FC<{
 
 interface SkyBackgroundProps {
   totalStars: number;
-  planetsData: any[];
-  looseJournals: any[];
-  onStarClick: (journal: any) => void;
-  onPlanetClick: (journals: any[]) => void;
+  planetsData: PlanetData[];
+  looseJournals: Journal[];
+  onStarClick: (journal: Journal) => void;
+  onPlanetClick: (journals: Journal[]) => void;
   onJournalPositionUpdate: (id: string, pos: { x: number, y: number, z: number }) => void;
   onPlanetPositionUpdate: (id: string, pos: { x: number, y: number, z: number }) => void;
   paused?: boolean;
@@ -115,8 +116,8 @@ interface SkyBackgroundProps {
 
 const JournalStar: React.FC<{ 
   position: [number, number, number], 
-  journal: any, 
-  onClick: (journal: any) => void,
+  journal: Journal, 
+  onClick: (journal: Journal) => void,
   onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void,
   paused?: boolean 
 }> = ({ position, journal, onClick, onDragEnd, paused }) => {
@@ -187,13 +188,13 @@ const JournalStar: React.FC<{
       }}
       onPointerDown={(e) => {
         e.stopPropagation();
-        (e.target as any).setPointerCapture(e.pointerId);
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
         hasDragged.current = false;
         setIsDragging(true);
       }}
       onPointerUp={(e) => {
         e.stopPropagation();
-        (e.target as any).releasePointerCapture(e.pointerId);
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
         setIsDragging(false);
         if (hasDragged.current && meshRef.current) {
           onDragEnd(journal._id, { 
