@@ -28,14 +28,14 @@ const StarField: React.FC<{ count: number }> = ({ count }) => {
   );
 };
 
-const Planet: React.FC<{ 
+const Planet: React.FC<{
   id: string,
-  position: [number, number, number], 
-  color: string, 
-  size: number, 
-  journals: Journal[], 
+  position: [number, number, number],
+  color: string,
+  size: number,
+  journals: Journal[],
   onClick: (journals: Journal[]) => void,
-  onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void 
+  onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void
 }> = ({ id, position, color, size, journals, onClick, onDragEnd }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -44,13 +44,13 @@ const Planet: React.FC<{
 
   return (
     <Float speed={isDragging ? 0 : 2} rotationIntensity={isDragging ? 0 : 1} floatIntensity={isDragging ? 0 : 1}>
-      <mesh 
+      <mesh
         ref={meshRef}
         position={position}
-        onClick={(e) => { 
+        onClick={(e) => {
           if (e.delta <= 5) {
-            e.stopPropagation(); 
-            onClick(journals); 
+            e.stopPropagation();
+            onClick(journals);
           }
         }}
         onPointerDown={(e) => {
@@ -64,10 +64,10 @@ const Planet: React.FC<{
           (e.target as HTMLElement).releasePointerCapture(e.pointerId);
           setIsDragging(false);
           if (hasDragged.current && meshRef.current) {
-            onDragEnd(id, { 
-              x: meshRef.current.position.x, 
-              y: meshRef.current.position.y, 
-              z: meshRef.current.position.z 
+            onDragEnd(id, {
+              x: meshRef.current.position.x,
+              y: meshRef.current.position.y,
+              z: meshRef.current.position.z
             });
           }
           hasDragged.current = false;
@@ -114,21 +114,21 @@ interface SkyBackgroundProps {
   paused?: boolean;
 }
 
-const JournalStar: React.FC<{ 
-  position: [number, number, number], 
-  journal: Journal, 
+const JournalStar: React.FC<{
+  position: [number, number, number],
+  journal: Journal,
   onClick: (journal: Journal) => void,
   onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void,
-  paused?: boolean 
+  paused?: boolean
 }> = ({ position, journal, onClick, onDragEnd, paused }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
   const { camera } = useThree();
 
-  const seed = useMemo(() => 
+  const seed = useMemo(() =>
     journal._id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
-  , [journal._id]);
+    , [journal._id]);
 
   const starShape = useMemo(() => {
     const shape = new THREE.Shape();
@@ -160,24 +160,24 @@ const JournalStar: React.FC<{
   useFrame((state) => {
     if (!meshRef.current || isDragging || paused) return;
     const t = state.clock.elapsedTime;
-    
+
     // Combine multiple sine waves to create an organic, random-looking wander
     const dx = Math.sin(t * 0.15 + seed) * 0.3 + Math.cos(t * 0.22 + seed * 2) * 0.2;
     const dy = Math.cos(t * 0.18 + seed * 3) * 0.3 + Math.sin(t * 0.25 + seed * 4) * 0.2;
     const dz = Math.sin(t * 0.1 + seed * 5) * 0.1;
-    
+
     meshRef.current.position.set(
-      position[0] + dx, 
-      position[1] + dy, 
+      position[0] + dx,
+      position[1] + dy,
       position[2] + dz
     );
-    
+
     meshRef.current.rotation.x = t * 0.3 + seed;
     meshRef.current.rotation.y = t * 0.2 + seed;
   });
 
   return (
-    <mesh 
+    <mesh
       ref={meshRef}
       position={position}
       onClick={(e) => {
@@ -197,10 +197,10 @@ const JournalStar: React.FC<{
         (e.target as HTMLElement).releasePointerCapture(e.pointerId);
         setIsDragging(false);
         if (hasDragged.current && meshRef.current) {
-          onDragEnd(journal._id, { 
-            x: meshRef.current.position.x, 
-            y: meshRef.current.position.y, 
-            z: meshRef.current.position.z 
+          onDragEnd(journal._id, {
+            x: meshRef.current.position.x,
+            y: meshRef.current.position.y,
+            z: meshRef.current.position.z
           });
         }
         hasDragged.current = false;
@@ -230,11 +230,11 @@ const JournalStar: React.FC<{
   );
 };
 
-const SkyBackground: React.FC<SkyBackgroundProps> = ({ 
-  totalStars, 
-  planetsData, 
-  looseJournals, 
-  onStarClick, 
+const SkyBackground: React.FC<SkyBackgroundProps> = ({
+  totalStars,
+  planetsData,
+  looseJournals,
+  onStarClick,
   onPlanetClick,
   onJournalPositionUpdate,
   onPlanetPositionUpdate,
@@ -273,10 +273,10 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
     return looseJournals.map((journal) => {
       // Use saved position if available
       if (journal.position) {
-        return { 
-          id: journal._id, 
-          position: [journal.position.x, journal.position.y, journal.position.z] as [number, number, number], 
-          journal 
+        return {
+          id: journal._id,
+          position: [journal.position.x, journal.position.y, journal.position.z] as [number, number, number],
+          journal
         };
       }
 
@@ -295,14 +295,14 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
         <color attach="background" args={['#020205']} />
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
-        
+
         <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
         <StarField count={totalStars * 10} />
 
         {journalStars.map((star) => (
-          <JournalStar 
-            key={star.id} 
-            position={star.position} 
+          <JournalStar
+            key={star.id}
+            position={star.position}
             journal={star.journal}
             onClick={onStarClick}
             onDragEnd={onJournalPositionUpdate}
