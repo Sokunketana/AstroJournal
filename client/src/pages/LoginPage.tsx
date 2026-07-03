@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../services/api';
+import Toast from '../components/Toast';
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -8,11 +9,13 @@ const LoginPage: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
+  const [showToast, setShowToast] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setShowToast(false);
     try {
       const endpoint = isRegistering ? '/auth/register' : '/auth/login';
       const payload: Record<string, string> = { username, password };
@@ -26,11 +29,9 @@ const LoginPage: React.FC = () => {
       });
       login(data.token, data.user);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(String(err));
-      }
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg);
+      setShowToast(true);
     }
   };
 
@@ -91,6 +92,11 @@ const LoginPage: React.FC = () => {
           </button>
         </p>
       </div>
+      <Toast
+        isOpen={showToast}
+        message={error}
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 };
