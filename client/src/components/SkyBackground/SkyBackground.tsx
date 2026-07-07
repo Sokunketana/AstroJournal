@@ -1,10 +1,15 @@
-import React, { useMemo, useRef, useState, memo } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Stars, Float, MeshDistortMaterial } from '@react-three/drei';
-import * as THREE from 'three';
-import type { Journal, PlanetData } from '../types';
+import React, { useMemo, useRef, useState, memo } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Stars, Float, MeshDistortMaterial } from "@react-three/drei";
+import * as THREE from "three";
+import type {
+  StarFieldProps,
+  PlanetProps,
+  JournalStarProps,
+  SkyBackgroundProps,
+} from "./SkyBackground.types";
 
-const StarField: React.FC<{ count: number }> = ({ count }) => {
+const StarField: React.FC<StarFieldProps> = ({ count }) => {
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -18,32 +23,25 @@ const StarField: React.FC<{ count: number }> = ({ count }) => {
   return (
     <points>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial size={0.05} color="#ffffff" transparent opacity={0.8} />
     </points>
   );
 };
 
-const Planet: React.FC<{
-  id: string,
-  position: [number, number, number],
-  color: string,
-  size: number,
-  journals: Journal[],
-  onClick: (journals: Journal[]) => void,
-  onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void
-}> = ({ id, position, color, size, journals, onClick, onDragEnd }) => {
+const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, onClick, onDragEnd }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
   const { camera } = useThree();
 
   return (
-    <Float speed={isDragging ? 0 : 2} rotationIntensity={isDragging ? 0 : 1} floatIntensity={isDragging ? 0 : 1}>
+    <Float
+      speed={isDragging ? 0 : 2}
+      rotationIntensity={isDragging ? 0 : 1}
+      floatIntensity={isDragging ? 0 : 1}
+    >
       <mesh
         ref={meshRef}
         position={position}
@@ -67,7 +65,7 @@ const Planet: React.FC<{
             onDragEnd(id, {
               x: meshRef.current.position.x,
               y: meshRef.current.position.y,
-              z: meshRef.current.position.z
+              z: meshRef.current.position.z,
             });
           }
           hasDragged.current = false;
@@ -78,57 +76,42 @@ const Planet: React.FC<{
             const vector = new THREE.Vector3(
               (e.clientX / window.innerWidth) * 2 - 1,
               -(e.clientY / window.innerHeight) * 2 + 1,
-              0.5
+              0.5,
             );
             vector.unproject(camera);
             const dir = vector.sub(camera.position).normalize();
-            const distance = (meshRef.current.position.z - camera.position.z) / dir.z;
-            const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+            const distance =
+              (meshRef.current.position.z - camera.position.z) / dir.z;
+            const pos = camera.position
+              .clone()
+              .add(dir.multiplyScalar(distance));
             meshRef.current.position.x = pos.x;
             meshRef.current.position.y = pos.y;
           }
         }}
-        onPointerOver={() => (document.body.style.cursor = 'grab')}
-        onPointerOut={() => (document.body.style.cursor = 'auto')}
+        onPointerOver={() => (document.body.style.cursor = "grab")}
+        onPointerOut={() => (document.body.style.cursor = "auto")}
       >
         <sphereGeometry args={[size, 32, 32]} />
-        <MeshDistortMaterial
-          color={color}
-          speed={2}
-          distort={0.3}
-          radius={1}
-        />
+        <MeshDistortMaterial color={color} speed={2} distort={0.3} radius={1} />
       </mesh>
     </Float>
   );
 };
 
-interface SkyBackgroundProps {
-  totalStars: number;
-  planetsData: PlanetData[];
-  looseJournals: Journal[];
-  onStarClick: (journal: Journal) => void;
-  onPlanetClick: (journals: Journal[]) => void;
-  onJournalPositionUpdate: (id: string, pos: { x: number, y: number, z: number }) => void;
-  onPlanetPositionUpdate: (id: string, pos: { x: number, y: number, z: number }) => void;
-  paused?: boolean;
-}
-
-const JournalStar: React.FC<{
-  position: [number, number, number],
-  journal: Journal,
-  onClick: (journal: Journal) => void,
-  onDragEnd: (id: string, pos: { x: number, y: number, z: number }) => void,
-  paused?: boolean
-}> = ({ position, journal, onClick, onDragEnd, paused }) => {
+const JournalStar: React.FC<JournalStarProps> = ({ position, journal, onClick, onDragEnd, paused }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
   const { camera } = useThree();
 
-  const seed = useMemo(() =>
-    journal._id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
-    , [journal._id]);
+  const seed = useMemo(
+    () =>
+      journal._id
+        .split("")
+        .reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0),
+    [journal._id],
+  );
 
   const starShape = useMemo(() => {
     const shape = new THREE.Shape();
@@ -154,7 +137,7 @@ const JournalStar: React.FC<{
     bevelThickness: 0.02,
     bevelSize: 0.02,
     bevelOffset: 0,
-    bevelSegments: 1
+    bevelSegments: 1,
   };
 
   useFrame((state) => {
@@ -162,14 +145,16 @@ const JournalStar: React.FC<{
     const t = state.clock.elapsedTime;
 
     // Combine multiple sine waves to create an organic, random-looking wander
-    const dx = Math.sin(t * 0.15 + seed) * 0.3 + Math.cos(t * 0.22 + seed * 2) * 0.2;
-    const dy = Math.cos(t * 0.18 + seed * 3) * 0.3 + Math.sin(t * 0.25 + seed * 4) * 0.2;
+    const dx =
+      Math.sin(t * 0.15 + seed) * 0.3 + Math.cos(t * 0.22 + seed * 2) * 0.2;
+    const dy =
+      Math.cos(t * 0.18 + seed * 3) * 0.3 + Math.sin(t * 0.25 + seed * 4) * 0.2;
     const dz = Math.sin(t * 0.1 + seed * 5) * 0.1;
 
     meshRef.current.position.set(
       position[0] + dx,
       position[1] + dy,
-      position[2] + dz
+      position[2] + dz,
     );
 
     meshRef.current.rotation.x = t * 0.3 + seed;
@@ -200,7 +185,7 @@ const JournalStar: React.FC<{
           onDragEnd(journal._id, {
             x: meshRef.current.position.x,
             y: meshRef.current.position.y,
-            z: meshRef.current.position.z
+            z: meshRef.current.position.z,
           });
         }
         hasDragged.current = false;
@@ -211,21 +196,27 @@ const JournalStar: React.FC<{
           const vector = new THREE.Vector3(
             (e.clientX / window.innerWidth) * 2 - 1,
             -(e.clientY / window.innerHeight) * 2 + 1,
-            0.5
+            0.5,
           );
           vector.unproject(camera);
           const dir = vector.sub(camera.position).normalize();
-          const distance = (meshRef.current.position.z - camera.position.z) / dir.z;
+          const distance =
+            (meshRef.current.position.z - camera.position.z) / dir.z;
           const pos = camera.position.clone().add(dir.multiplyScalar(distance));
           meshRef.current.position.x = pos.x;
           meshRef.current.position.y = pos.y;
         }
       }}
-      onPointerOver={() => (document.body.style.cursor = 'grab')}
-      onPointerOut={() => (document.body.style.cursor = 'auto')}
+      onPointerOver={() => (document.body.style.cursor = "grab")}
+      onPointerOut={() => (document.body.style.cursor = "auto")}
     >
       <extrudeGeometry args={[starShape, extrudeSettings]} />
-      <meshStandardMaterial color="#fff" emissive="#fff" emissiveIntensity={4} toneMapped={false} />
+      <meshStandardMaterial
+        color="#fff"
+        emissive="#fff"
+        emissiveIntensity={4}
+        toneMapped={false}
+      />
     </mesh>
   );
 };
@@ -238,7 +229,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   onPlanetClick,
   onJournalPositionUpdate,
   onPlanetPositionUpdate,
-  paused
+  paused,
 }) => {
   const planets = useMemo(() => {
     return planetsData.map((planet) => {
@@ -247,14 +238,20 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
         return {
           id: planet._id,
           journals: planet.journals,
-          position: [planet.position.x, planet.position.y, planet.position.z] as [number, number, number],
-          color: planet.color || '#4a90e2',
-          size: 0.6 + (planet.journals.length * 0.05)
+          position: [
+            planet.position.x,
+            planet.position.y,
+            planet.position.z,
+          ] as [number, number, number],
+          color: planet.color || "#4a90e2",
+          size: 0.6 + planet.journals.length * 0.05,
         };
       }
 
       // Deterministic position based on planet ID
-      const seed = planet._id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+      const seed = planet._id
+        .split("")
+        .reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
       const x = ((seed * 7.5) % 20) - 10;
       const y = ((seed * 11.5) % 12) - 6;
       const z = ((seed * 13.5) % 4) - 2;
@@ -263,8 +260,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
         id: planet._id,
         journals: planet.journals,
         position: [x, y, z] as [number, number, number],
-        color: planet.color || '#4a90e2',
-        size: 0.6 + (planet.journals.length * 0.05)
+        color: planet.color || "#4a90e2",
+        size: 0.6 + planet.journals.length * 0.05,
       };
     });
   }, [planetsData]);
@@ -275,28 +272,49 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
       if (journal.position) {
         return {
           id: journal._id,
-          position: [journal.position.x, journal.position.y, journal.position.z] as [number, number, number],
-          journal
+          position: [
+            journal.position.x,
+            journal.position.y,
+            journal.position.z,
+          ] as [number, number, number],
+          journal,
         };
       }
 
       // Deterministic position based on journal ID
-      const seed = journal._id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+      const seed = journal._id
+        .split("")
+        .reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
       const x = ((seed * 1.5) % 12) - 6;
       const y = ((seed * 2.5) % 8) - 4;
       const z = ((seed * 3.5) % 4) - 2;
-      return { id: journal._id, position: [x, y, z] as [number, number, number], journal };
+      return {
+        id: journal._id,
+        position: [x, y, z] as [number, number, number],
+        journal,
+      };
     });
   }, [looseJournals]);
 
   return (
     <div className="fixed inset-0 z-0">
-      <Canvas camera={{ position: [0, 0, 10], fov: 60 }} frameloop={paused ? 'demand' : 'always'}>
-        <color attach="background" args={['#020205']} />
+      <Canvas
+        camera={{ position: [0, 0, 10], fov: 60 }}
+        frameloop={paused ? "demand" : "always"}
+      >
+        <color attach="background" args={["#020205"]} />
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
 
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+        <Stars
+          radius={100}
+          depth={50}
+          count={5000}
+          factor={4}
+          saturation={0}
+          fade
+          speed={1}
+        />
         <StarField count={totalStars * 10} />
 
         {journalStars.map((star) => (

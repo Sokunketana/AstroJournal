@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../services/api';
-import Toast from '../components/Toast';
+import { useAuth } from '../../context/AuthContext';
+import { apiFetch } from '../../services/api';
+import Toast from '../../components/Toast';
+import InputField from '../../components/InputField';
+import Button from '../../components/Button';
+import type { LoginPageProps } from './LoginPage.types';
 
-const LoginPage: React.FC = () => {
+const LoginPage: React.FC<LoginPageProps> = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -42,26 +45,20 @@ const LoginPage: React.FC = () => {
           ASTROJOURNAL
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-[#333] rounded p-2 focus:border-purple-500 outline-none"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-[#333] rounded p-2 focus:border-purple-500 outline-none"
-              required
-            />
-          </div>
+          <InputField
+            label="Username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <InputField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           {isRegistering && (
             <div className="flex items-center space-x-2">
               <input
@@ -75,12 +72,9 @@ const LoginPage: React.FC = () => {
             </div>
           )}
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded transition-colors"
-          >
+          <Button type="submit" fullWidth>
             {isRegistering ? 'Sign Up' : 'Log In'}
-          </button>
+          </Button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-400">
           {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
