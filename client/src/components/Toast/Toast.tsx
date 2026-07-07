@@ -1,13 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, X } from 'lucide-react';
-
-interface ToastProps {
-  message: string;
-  isOpen: boolean;
-  onClose: () => void;
-  duration?: number;
-}
+import type { ToastProps } from './Toast.types';
 
 const Toast: React.FC<ToastProps> = ({
   message,
