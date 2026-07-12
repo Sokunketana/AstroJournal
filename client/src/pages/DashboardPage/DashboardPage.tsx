@@ -17,6 +17,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
 import StatBadge from "../../components/StatBadge";
+import Logo from "../../components/Logo";
 import {
   Star,
   Flame,
@@ -129,9 +130,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
         <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
           <div className="flex items-center gap-4 h-11.5">
-            <h1 className="text-2xl font-black tracking-tighter text-purple-600">
-              ASTROJOURNAL
-            </h1>
+            <Logo className="text-2xl" />
             {userData?.role === "admin" && (
               <span className="bg-blue-500/20 text-purple-600 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-bold uppercase">
                 Admin
