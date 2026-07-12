@@ -59,6 +59,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          {/*TODO: remove when done */}
           {isRegistering && (
             <div className="flex items-center space-x-2">
               <input

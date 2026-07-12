@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { apiFetch } from "../../services/api";
 import {
@@ -26,16 +26,22 @@ import type { DashboardPageProps } from "./DashboardPage.types";
 
 const DashboardPage: React.FC<DashboardPageProps> = () => {
   const { logout } = useAuth();
+
+  // fetch user data
   const {
     data: userData,
     isLoading: userLoading,
     mutate: mutateUser,
   } = useUserData();
+
+  // fetch journals data
   const {
     data: journals = [],
     isLoading: journalsLoading,
     mutate: mutateJournals,
   } = useJournals();
+
+  // fetch planets data
   const {
     data: planets = [],
     isLoading: planetsLoading,
@@ -52,6 +58,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [newEntry]);
+
   const loading = userLoading || journalsLoading || planetsLoading;
 
   // Memoize derived data so SkyBackground only re-renders when journals/planets actually change
@@ -59,6 +74,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     () => journals.filter((j: Journal) => !j.planetId),
     [journals],
   );
+
   const planetsData = useMemo(
     () =>
       planets.map((planet: Planet) => ({
@@ -237,8 +253,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
       {/* Persistent Top Navigation & Input Bar */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
-        <header className="flex justify-between items-center p-6 from-black/80 to-transparent pointer-events-auto">
-          <div className="flex items-center gap-4">
+        <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
+          <div className="flex items-center gap-4 h-[46px]">
             <h1 className="text-2xl font-black tracking-tighter text-purple-600">
               ASTROJOURNAL
             </h1>
@@ -254,23 +270,30 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             onSubmit={handleSubmit}
             className="flex-1 max-w-xl mx-8 relative group"
           >
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
               value={newEntry}
               onChange={(e) => setNewEntry(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e as unknown as React.FormEvent);
+                }
+              }}
               placeholder="Reflect on your day across the universe..."
-              className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm resize-none max-h-48 overflow-y-auto custom-scrollbar"
+              rows={1}
             />
             <button
               type="submit"
               disabled={!newEntry.trim()}
-              className="absolute right-2 top-1.5 p-2 bg-purple-600 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:bg-purple-600 transition-colors"
+              className="absolute right-2 bottom-2 p-2 bg-purple-600 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:bg-purple-600 transition-colors"
             >
               <Send size={16} />
             </button>
           </form>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 h-[46px]">
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
               <StatBadge icon={Globe} value={planetsData.length} colorClass="text-purple-600" />
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" />
