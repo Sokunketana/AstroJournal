@@ -57,6 +57,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [editContent, setEditContent] = useState("");
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -92,7 +93,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEntry.trim()) return;
+    if (!newEntry.trim() || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       await apiFetch("/journals", {
         method: "POST",
@@ -103,6 +105,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     } catch (err: unknown) {
       if (err instanceof Error) alert(err.message);
       else alert(String(err));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -281,12 +285,13 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 }
               }}
               placeholder="Reflect on your day across the universe..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm resize-none max-h-48 overflow-y-auto custom-scrollbar"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm resize-none max-h-48 overflow-y-auto disabled:opacity-50 no-scrollbar"
               rows={1}
+              disabled={isSubmitting}
             />
             <button
               type="submit"
-              disabled={!newEntry.trim()}
+              disabled={!newEntry.trim() || isSubmitting}
               className="absolute right-2 bottom-2 p-2 bg-purple-600 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:bg-purple-600 transition-colors"
             >
               <Send size={16} />
