@@ -1,7 +1,12 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { apiFetch } from "../../services/api";
+import { useCreateJournal } from "../../hooks/dashboard/useCreateJournal";
+import { useDeleteJournal } from "../../hooks/dashboard/useDeleteJournal";
+import { useUpdateJournal } from "../../hooks/dashboard/useUpdateJournal";
+import { useUpdateJournalPosition } from "../../hooks/dashboard/useUpdateJournalPosition";
+import { useUpdatePlanetPosition } from "../../hooks/dashboard/useUpdatePlanetPosition";
 import {
+
   useUserData,
   useJournals,
   usePlanets,
@@ -48,16 +53,23 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     mutate: mutatePlanets,
   } = usePlanets();
 
-  const [newEntry, setNewEntry] = useState("");
   const [selectedJournal, setSelectedJournal] = useState<Journal | null>(null);
   const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<
     Journal[] | null
   >(null);
-  const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState("");
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const mutateAll = useCallback(() => {
+    mutateUser();
+    mutateJournals();
+    mutatePlanets();
+  }, [mutateUser, mutateJournals, mutatePlanets]);
+
+  const { newEntry, setNewEntry, isSubmitting, handleSubmit } = useCreateJournal(mutateAll);
+  const { deleteTargetId, setDeleteTargetId, handleDelete, confirmDelete } = useDeleteJournal(mutateJournals, mutateAll, setSelectedJournal, setSelectedPlanetJournals);
+  const { editingJournalId, editContent, setEditContent, handleEdit, startEditing, cancelEditing } = useUpdateJournal(mutateJournals, selectedJournal, setSelectedJournal, selectedPlanetJournals, setSelectedPlanetJournals);
+  const { handleJournalPositionUpdate } = useUpdateJournalPosition(mutateJournals);
+  const { handlePlanetPositionUpdate } = useUpdatePlanetPosition(mutatePlanets);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -83,148 +95,6 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         journals: journals.filter((j: Journal) => j.planetId === planet._id),
       })),
     [planets, journals],
-  );
-
-  const mutateAll = useCallback(() => {
-    mutateUser();
-    mutateJournals();
-    mutatePlanets();
-  }, [mutateUser, mutateJournals, mutatePlanets]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEntry.trim() || isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      await apiFetch("/journals", {
-        method: "POST",
-        body: JSON.stringify({ content: newEntry }),
-      });
-      setNewEntry("");
-      mutateAll();
-    } catch (err: unknown) {
-      if (err instanceof Error) alert(err.message);
-      else alert(String(err));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    setDeleteTargetId(id);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTargetId) return;
-    const id = deleteTargetId;
-    setDeleteTargetId(null);
-    try {
-      // Optimistic update: remove the journal from the local cache immediately
-      mutateJournals(
-        (current: Journal[]) =>
-          current ? current.filter((j: Journal) => j._id !== id) : [],
-        false,
-      );
-      setSelectedJournal(null);
-      setSelectedPlanetJournals(null);
-
-      await apiFetch(`/journals/${id}`, { method: "DELETE" });
-      mutateAll();
-    } catch (err: unknown) {
-      if (err instanceof Error) alert(err.message);
-      else alert(String(err));
-      mutateAll(); // Revert on error
-    }
-  };
-
-  const handleEdit = async (id: string, content: string) => {
-    if (!content.trim()) return;
-    try {
-      const updated = await apiFetch(`/journals/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ content }),
-      });
-      // Update the selected journal if it's the one being edited
-      if (selectedJournal && selectedJournal._id === id) {
-        setSelectedJournal({ ...selectedJournal, content: updated.content });
-      }
-      // Update planet journals if viewing planet modal
-      if (selectedPlanetJournals) {
-        setSelectedPlanetJournals((prev) =>
-          prev
-            ? prev.map((j) =>
-                j._id === id ? { ...j, content: updated.content } : j,
-              )
-            : null,
-        );
-      }
-      setEditingJournalId(null);
-      setEditContent("");
-      mutateJournals();
-    } catch (err: unknown) {
-      if (err instanceof Error) alert(err.message);
-      else alert(String(err));
-    }
-  };
-
-  const startEditing = (journal: Journal) => {
-    setEditingJournalId(journal._id);
-    setEditContent(journal.content);
-  };
-
-  const cancelEditing = () => {
-    setEditingJournalId(null);
-    setEditContent("");
-  };
-
-  const handleJournalPositionUpdate = useCallback(
-    async (id: string, pos: { x: number; y: number; z: number }) => {
-      try {
-        // Optimistic update: update position in local cache without revalidating
-        mutateJournals(
-          (current: Journal[]) =>
-            current
-              ? current.map((j: Journal) =>
-                  j._id === id ? { ...j, position: pos } : j,
-                )
-              : [],
-          false,
-        );
-        await apiFetch(`/journals/${id}/position`, {
-          method: "PUT",
-          body: JSON.stringify(pos),
-        });
-      } catch (err: unknown) {
-        console.error("Failed to update journal position", err);
-        mutateJournals(); // Revert on error
-      }
-    },
-    [mutateJournals],
-  );
-
-  const handlePlanetPositionUpdate = useCallback(
-    async (id: string, pos: { x: number; y: number; z: number }) => {
-      try {
-        // Optimistic update
-        mutatePlanets(
-          (current: Planet[]) =>
-            current
-              ? current.map((p: Planet) =>
-                  p._id === id ? { ...p, position: pos } : p,
-                )
-              : [],
-          false,
-        );
-        await apiFetch(`/planets/${id}/position`, {
-          method: "PUT",
-          body: JSON.stringify(pos),
-        });
-      } catch (err: unknown) {
-        console.error("Failed to update planet position", err);
-        mutatePlanets(); // Revert on error
-      }
-    },
-    [mutatePlanets],
   );
 
   const handleStarClick = useCallback((journal: Journal) => {
@@ -258,7 +128,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       {/* Persistent Top Navigation & Input Bar */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
         <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
-          <div className="flex items-center gap-4 h-[46px]">
+          <div className="flex items-center gap-4 h-11.5">
             <h1 className="text-2xl font-black tracking-tighter text-purple-600">
               ASTROJOURNAL
             </h1>
@@ -298,7 +168,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             </button>
           </form>
 
-          <div className="flex items-center gap-4 h-[46px]">
+          <div className="flex items-center gap-4 h-11.5">
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
               <StatBadge icon={Globe} value={planetsData.length} colorClass="text-purple-600" />
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" />
