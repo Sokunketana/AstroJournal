@@ -5,30 +5,24 @@ import { useDeleteJournal } from "../../hooks/dashboard/useDeleteJournal";
 import { useUpdateJournal } from "../../hooks/dashboard/useUpdateJournal";
 import { useUpdateJournalPosition } from "../../hooks/dashboard/useUpdateJournalPosition";
 import { useUpdatePlanetPosition } from "../../hooks/dashboard/useUpdatePlanetPosition";
-import {
-
-  useUserData,
-  useJournals,
-  usePlanets,
-} from "../../hooks/useDashboardData";
+import { useUserData, useJournals, usePlanets } from "../../hooks/useDashboardData";
 import type { Journal, Planet } from "../../types";
 import SkyBackground from "../../components/SkyBackground";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Modal from "../../components/Modal";
-import Button from "../../components/Button";
 import StatBadge from "../../components/StatBadge";
+import EditableContent from "../../components/EditableContent";
+import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
-import {
-  Star,
-  Flame,
-  Send,
-  Trash2,
-  Globe,
-  X,
-  Pencil,
-  Check,
-} from "lucide-react";
+import { formatLongDate, formatShortDate } from "../../utils/dateUtils";
 import type { DashboardPageProps } from "./DashboardPage.types";
+import { 
+  Star, 
+  Flame, 
+  Send, 
+  Globe,
+} from "lucide-react";
+
 
 const DashboardPage: React.FC<DashboardPageProps> = () => {
   const { logout } = useAuth();
@@ -192,32 +186,19 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 Stellar Archive
               </p>
               <h3 className="text-gray-400 text-sm font-medium">
-                {new Date(selectedJournal.createdAt).toLocaleDateString(
-                  undefined,
-                  {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  },
-                )}
+                {formatLongDate(selectedJournal.createdAt)}
               </h3>
             </div>
 
-            {editingJournalId === selectedJournal._id ? (
-              <div className="mb-8">
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white text-lg font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-30"
-                  autoFocus
-                />
-              </div>
-            ) : (
-              <p className="text-xl text-white leading-relaxed font-light mb-8 italic">
-                "{selectedJournal.content}"
-              </p>
-            )}
+            <EditableContent
+              isEditing={editingJournalId === selectedJournal._id}
+              value={editContent}
+              onValueChange={setEditContent}
+              displayContent={selectedJournal.content}
+              containerClassName="mb-8"
+              textareaClassName="rounded-xl p-4 text-lg min-h-30"
+              displayClassName="text-xl leading-relaxed mb-8"
+            />
 
             <div className="flex justify-between items-center pt-6 border-t border-white/5">
               <div className="flex items-center gap-2 text-yellow-500/80">
@@ -226,25 +207,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                   Star Earned
                 </span>
               </div>
-              {editingJournalId === selectedJournal._id ? (
-                <div className="flex items-center gap-2">
-                  <Button variant="success" icon={Check} onClick={() => handleEdit(selectedJournal._id, editContent)} disabled={!editContent.trim()}>
-                    Save
-                  </Button>
-                  <Button variant="ghost" icon={X} onClick={cancelEditing}>
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" icon={Pencil} onClick={() => startEditing(selectedJournal)} className="text-purple-400/50! hover:text-purple-400! hover:bg-purple-400/10!">
-                    Edit
-                  </Button>
-                  <Button variant="danger" icon={Trash2} onClick={() => handleDelete(selectedJournal._id)}>
-                    Delete Entry
-                  </Button>
-                </div>
-              )}
+              <EditableActions
+                isEditing={editingJournalId === selectedJournal._id}
+                onSave={() => handleEdit(selectedJournal._id, editContent)}
+                onCancel={cancelEditing}
+                onEdit={() => startEditing(selectedJournal)}
+                onDelete={() => handleDelete(selectedJournal._id)}
+                isSaveDisabled={!editContent.trim()}
+                editButtonClassName="text-purple-400/50! hover:text-purple-400! hover:bg-purple-400/10!"
+              />
             </div>
           </>
         )}
@@ -270,43 +241,35 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                   className="bg-white/5 p-4 rounded-xl border border-white/5 relative group"
                 >
                   <p className="text-sm text-gray-400 mb-2">
-                    {new Date(journal.createdAt).toLocaleDateString(
-                      undefined,
-                      {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )}
+                    {formatShortDate(journal.createdAt)}
                   </p>
-                  {editingJournalId === journal._id ? (
-                    <div>
-                      <textarea
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none min-h-20"
-                        autoFocus
-                      />
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button variant="success" icon={Check} onClick={() => handleEdit(journal._id, editContent)} disabled={!editContent.trim()} className="py-1.5! px-3!">
-                          Save
-                        </Button>
-                        <Button variant="ghost" icon={X} onClick={cancelEditing} className="py-1.5! px-3!">
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-white font-light italic">
-                      "{journal.content}"
-                    </p>
-                  )}
+                  <EditableContent
+                    isEditing={editingJournalId === journal._id}
+                    value={editContent}
+                    onValueChange={setEditContent}
+                    displayContent={journal.content}
+                    textareaClassName="rounded-lg p-3 min-h-20"
+                  >
+                    <EditableActions
+                      isEditing={true}
+                      onSave={() => handleEdit(journal._id, editContent)}
+                      onCancel={cancelEditing}
+                      isSaveDisabled={!editContent.trim()}
+                      editContainerClassName="flex items-center gap-2 mt-2"
+                      saveButtonClassName="py-1.5! px-3!"
+                      cancelButtonClassName="py-1.5! px-3!"
+                    />
+                  </EditableContent>
                   {editingJournalId !== journal._id && (
-                    <div className="absolute top-4 right-4 flex items-center gap-1">
-                      <Button variant="icon" icon={Pencil} onClick={() => startEditing(journal)} className="text-purple-400/0 group-hover:text-purple-400/50 hover:text-purple-400! hover:bg-transparent!" />
-                      <Button variant="icon" icon={Trash2} onClick={() => handleDelete(journal._id)} className="text-red-400/0 group-hover:text-red-400/50 hover:text-red-400! hover:bg-transparent!" />
-                    </div>
+                    <EditableActions
+                      isEditing={false}
+                      onEdit={() => startEditing(journal)}
+                      onDelete={() => handleDelete(journal._id)}
+                      viewVariant="icon"
+                      viewContainerClassName="absolute top-4 right-4 flex items-center gap-1"
+                      editButtonClassName="text-purple-400/0 group-hover:text-purple-400/50 hover:text-purple-400! hover:bg-transparent!"
+                      deleteButtonClassName="text-red-400/0 group-hover:text-red-400/50 hover:text-red-400! hover:bg-transparent!"
+                    />
                   )}
                 </div>
               ))}
