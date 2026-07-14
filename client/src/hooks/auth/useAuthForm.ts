@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
+import { useRouter } from '@tanstack/react-router';
 
 export const useAuthForm = () => {
   const [username, setUsername] = useState('');
@@ -10,6 +11,7 @@ export const useAuthForm = () => {
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +31,7 @@ export const useAuthForm = () => {
         : await authService.login(payload);
         
       login(data.token, data.user);
+      await router.navigate({ to: '/' });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(msg);
