@@ -9,7 +9,7 @@ export const useUpdateJournalPosition = (mutateJournals: KeyedMutator<Journal[]>
       try {
         // Optimistic update: update position in local cache without revalidating
         mutateJournals(
-          (current: Journal[]) =>
+          (current?: Journal[]) =>
             current
               ? current.map((j: Journal) =>
                 j._id === id ? { ...j, position: pos } : j,

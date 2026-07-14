@@ -9,7 +9,7 @@ export const useUpdatePlanetPosition = (mutatePlanets: KeyedMutator<Planet[]>) =
       try {
         // Optimistic update
         mutatePlanets(
-          (current: Planet[]) =>
+          (current?: Planet[]) =>
             current
               ? current.map((p: Planet) =>
                 p._id === id ? { ...p, position: pos } : p,

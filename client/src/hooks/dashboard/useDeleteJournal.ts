@@ -22,7 +22,7 @@ export const useDeleteJournal = (
     try {
       // Optimistic update: remove the journal from the local cache immediately
       mutateJournals(
-        (current: Journal[]) =>
+        (current?: Journal[]) =>
           current ? current.filter((j: Journal) => j._id !== id) : [],
         false,
       );
