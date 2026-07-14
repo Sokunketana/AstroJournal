@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext } from 'react';
 import type { User } from '../types';
 
-interface AuthContextType {
+export interface AuthContextType {
   token: string | null;
   user: User | null;
   login: (token: string, user: User) => void;

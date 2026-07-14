@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useRouter } from '@tanstack/react-router';
 import { useAuth } from "../../context/AuthContext";
 import { useCreateJournal } from "../../hooks/dashboard/useCreateJournal";
 import { useDeleteJournal } from "../../hooks/dashboard/useDeleteJournal";
@@ -26,6 +27,7 @@ import {
 
 const DashboardPage: React.FC<DashboardPageProps> = () => {
   const { logout } = useAuth();
+  const router = useRouter();
 
   // fetch user data
   const {
@@ -291,9 +293,10 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         message="Are you sure you want to log out?"
         confirmLabel="Logout"
         cancelLabel="Cancel"
-        onConfirm={() => {
+        onConfirm={async () => {
           setShowLogoutConfirm(false);
           logout();
+          await router.navigate({ to: '/login' });
         }}
         onCancel={() => setShowLogoutConfirm(false)}
       />
