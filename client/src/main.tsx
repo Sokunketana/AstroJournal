@@ -5,6 +5,7 @@ import { RouterProvider } from '@tanstack/react-router'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { router } from './router'
 
+// eslint-disable-next-line react-refresh/only-export-components
 function InnerApp() {
   const auth = useAuth();
   return <RouterProvider router={router} context={{ auth }} />;

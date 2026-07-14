@@ -4,7 +4,6 @@ import { routeTree } from './routeTree.gen';
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
-  scrollRestoration: true,
   context: {
     // This will be set by the RouterProvider in main.tsx
     auth: undefined!,
