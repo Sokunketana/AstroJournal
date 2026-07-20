@@ -127,11 +127,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
           <div className="flex items-center gap-4 h-11.5">
             <Logo className="text-2xl" />
-            {userData?.role === "admin" && (
-              <span className="bg-blue-500/20 text-purple-600 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-bold uppercase">
-                Admin
-              </span>
-            )}
+
           </div>
 
           {/* Main Input Bar */}

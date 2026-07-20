@@ -6,7 +6,6 @@ import { useRouter } from '@tanstack/react-router';
 export const useAuthForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
@@ -18,13 +17,10 @@ export const useAuthForm = () => {
     setError('');
     setShowToast(false);
     try {
-      const payload: { username: string; password: string; role?: string } = { 
+      const payload: { username: string; password: string } = { 
         username, 
         password 
       };
-      if (isRegistering && isAdmin) {
-        payload.role = 'admin';
-      }
       
       const data = isRegistering 
         ? await authService.register(payload)
@@ -42,7 +38,6 @@ export const useAuthForm = () => {
   return {
     username, setUsername,
     password, setPassword,
-    isAdmin, setIsAdmin,
     isRegistering, setIsRegistering,
     error, setError,
     showToast, setShowToast,

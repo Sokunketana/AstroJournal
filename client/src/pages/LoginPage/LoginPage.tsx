@@ -10,7 +10,6 @@ const LoginPage: React.FC<LoginPageProps> = () => {
   const {
     username, setUsername,
     password, setPassword,
-    isAdmin, setIsAdmin,
     isRegistering, setIsRegistering,
     error,
     showToast, setShowToast,
@@ -35,19 +34,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {/*TODO: remove when done */}
-          {isRegistering && (
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isAdmin"
-                checked={isAdmin}
-                onChange={(e) => setIsAdmin(e.target.checked)}
-                className="w-4 h-4 bg-[#1a1a1a] border border-[#333] rounded focus:ring-blue-500"
-              />
-              <label htmlFor="isAdmin" className="text-sm font-medium">Register as Admin (Unlimited Journals)</label>
-            </div>
-          )}
+
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" fullWidth>
             {isRegistering ? 'Sign Up' : 'Log In'}

@@ -29,7 +29,7 @@ export interface CelestialItem {
 export interface User {
   _id: string;
   username: string;
-  role: 'user' | 'admin';
+  role: 'user';
   currentStreak: number;
   totalStars: number;
   celestialInventory: CelestialItem[];
