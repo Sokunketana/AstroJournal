@@ -5,4 +5,5 @@ export interface StatBadgeProps {
   value: string | number;
   colorClass: string;
   showBorder?: boolean;
+  tooltip?: string;
 }
