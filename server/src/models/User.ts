@@ -8,7 +8,7 @@ export interface ICelestialItem {
 export interface IUser extends Document {
   username: string;
   password: string;
-  role: 'user';
+  role: string;
   currentStreak: number;
   totalStars: number;
   celestialInventory: ICelestialItem[];
@@ -18,7 +18,7 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user'], default: 'user' },
+  role: { type: String, default: 'user' },
   currentStreak: { type: Number, default: 0 },
   totalStars: { type: Number, default: 0 },
   celestialInventory: [{
