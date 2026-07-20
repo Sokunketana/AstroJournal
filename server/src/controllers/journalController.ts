@@ -9,7 +9,7 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
   try {
     const { content } = req.body;
     const userId = req.user?.userId;
-    const userRole = req.user?.role;
+
 
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
@@ -18,16 +18,17 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (userRole !== 'admin') {
-      const existingEntry = await Journal.findOne({
-        userId: new mongoose.Types.ObjectId(userId),
-        createdAt: { $gte: today, $lt: tomorrow }
-      });
+    // TODO: implement 1 journal per day after testing
+    /*
+    const existingEntry = await Journal.findOne({
+      userId: new mongoose.Types.ObjectId(userId),
+      createdAt: { $gte: today, $lt: tomorrow }
+    });
 
-      if (existingEntry) {
-        return res.status(400).json({ message: 'You have already written a journal today.' });
-      }
+    if (existingEntry) {
+      return res.status(400).json({ message: 'You have already written a journal today.' });
     }
+    */
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -47,11 +48,11 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
       if (lastEntryDate.getTime() === yesterday.getTime()) {
         newStreak = user.currentStreak + 1;
       } else if (lastEntryDate.getTime() === today.getTime()) {
-        if (userRole === 'admin') {
-          newStreak = user.currentStreak;
-        } else {
-          return res.status(400).json({ message: 'Already posted today.' });
-        }
+        // TODO: implement 1 journal per day after testing
+        /*
+        return res.status(400).json({ message: 'Already posted today.' });
+        */
+        newStreak = user.currentStreak;
       } else {
         newStreak = 1;
       }
