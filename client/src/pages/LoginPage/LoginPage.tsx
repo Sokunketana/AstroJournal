@@ -34,8 +34,6 @@ const LoginPage: React.FC<LoginPageProps> = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" fullWidth>
             {isRegistering ? 'Sign Up' : 'Log In'}
           </Button>
