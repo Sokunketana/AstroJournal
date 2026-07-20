@@ -161,9 +161,9 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
           <div className="flex items-center gap-4 h-11.5">
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
-              <StatBadge icon={Globe} value={planetsData.length} colorClass="text-purple-600" />
-              <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" />
-              <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} />
+              <StatBadge icon={Globe} value={planetsData.length} colorClass="text-purple-600" tooltip="Total Planets Created" />
+              <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
+              <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} tooltip="Total Stars Earned" />
             </div>
             <button
               onClick={() => setShowLogoutConfirm(true)}
