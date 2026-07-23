@@ -70,9 +70,24 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    const el = textareaRef.current;
+    if (el) {
+      const prevTransition = el.style.transition;
+      el.style.transition = 'none';
+
+      el.style.minHeight = '0px';
+      el.style.height = "auto";
+      
+      void el.offsetHeight; 
+      
+      const trueHeight = el.scrollHeight;
+      
+      el.style.minHeight = '';
+      el.style.height = `${trueHeight}px`;
+      
+      void el.offsetHeight; 
+      
+      el.style.transition = prevTransition;
     }
   }, [newEntry]);
 
@@ -132,7 +147,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           {/* Main Input Bar */}
           <form
             onSubmit={handleSubmit}
-            className="flex-1 max-w-xl mx-8 relative group"
+            className="flex-1 max-w-xl mx-8 relative group transition-all duration-300 ease-in-out"
           >
             <textarea
               ref={textareaRef}
@@ -145,14 +160,20 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 }
               }}
               placeholder="Reflect on your day across the universe..."
-              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm resize-none max-h-48 overflow-y-auto disabled:opacity-50 no-scrollbar"
+              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 focus:min-h-[96px] transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-96 overflow-y-auto disabled:opacity-50 no-scrollbar"
               rows={1}
               disabled={isSubmitting}
             />
             <button
               type="submit"
-              disabled={!newEntry.trim() || isSubmitting}
-              className="absolute right-2 top-2/4 -translate-y-1/2 p-2 bg-purple-600 group-focus-within:bg-purple-500 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:opacity-100 disabled:group-focus-within:opacity-100 transition-all flex items-center justify-center"
+              onClick={(e) => {
+                if (!newEntry.trim() || isSubmitting) e.preventDefault();
+              }}
+              className={`absolute right-2 top-[7px] p-2 rounded-full transition-all flex items-center justify-center cursor-pointer ${
+                !newEntry.trim() || isSubmitting
+                  ? "bg-purple-600 opacity-30 hover:opacity-100 group-focus-within:opacity-100"
+                  : "bg-purple-600 hover:bg-purple-500 group-focus-within:bg-purple-500"
+              }`}
             >
               <img src="/Send Button.svg" alt="Send" className="w-4 h-4 object-contain translate-x-0.5 pointer-events-none" />
             </button>
