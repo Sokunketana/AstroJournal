@@ -17,10 +17,9 @@ import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
 import { formatLongDate, formatShortDate } from "../../utils/dateUtils";
 import type { DashboardPageProps } from "./DashboardPage.types";
-import { 
-  Star, 
-  Flame, 
-  Send, 
+import {
+  Star,
+  Flame,
   Globe,
 } from "lucide-react";
 
@@ -146,16 +145,16 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 }
               }}
               placeholder="Reflect on your day across the universe..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm resize-none max-h-48 overflow-y-auto disabled:opacity-50 no-scrollbar"
+              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 transition-all backdrop-blur-md text-sm resize-none max-h-48 overflow-y-auto disabled:opacity-50 no-scrollbar"
               rows={1}
               disabled={isSubmitting}
             />
             <button
               type="submit"
               disabled={!newEntry.trim() || isSubmitting}
-              className="absolute right-2 bottom-2 p-2 bg-purple-600 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:bg-purple-600 transition-colors"
+              className="absolute right-2 top-2/4 -translate-y-1/2 p-2 bg-purple-600 group-focus-within:bg-purple-500 rounded-full hover:bg-purple-500 disabled:opacity-30 disabled:hover:opacity-100 disabled:group-focus-within:opacity-100 transition-all flex items-center justify-center"
             >
-              <Send size={16} />
+              <img src="/Send Button.svg" alt="Send" className="w-4 h-4 object-contain translate-x-0.5 pointer-events-none" />
             </button>
           </form>
 
