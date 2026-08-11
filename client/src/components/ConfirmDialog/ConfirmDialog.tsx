@@ -17,8 +17,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     <Modal isOpen={isOpen} onClose={onCancel} maxWidth="sm">
       {/* Icon */}
       <div className="flex justify-center mb-5">
-        <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl">
-          <AlertTriangle size={28} className="text-purple-400" />
+        <div className="p-3 bg-white/5 border border-white/10 rounded-2xl">
+          <AlertTriangle size={28} className="text-gray-300" />
         </div>
       </div>
 

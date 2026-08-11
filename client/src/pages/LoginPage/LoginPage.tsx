@@ -42,7 +42,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
           {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
           <button
             onClick={() => setIsRegistering(!isRegistering)}
-            className="text-purple-600 hover:underline"
+            className="text-white hover:underline"
           >
             {isRegistering ? 'Log In' : 'Sign Up'}
           </button>

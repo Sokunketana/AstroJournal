@@ -73,7 +73,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
       className="max-h-[85vh]"
     >
       <div className="mb-5 shrink-0">
-        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">
+        <p className="text-xs font-bold text-white uppercase tracking-widest mb-1">
           Celestial Archive
         </p>
         <h3 className="text-gray-400 text-sm font-medium">
@@ -88,14 +88,14 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
           <Search
             size={17}
             strokeWidth={2.5}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none z-10"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10"
           />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search entries by content..."
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all backdrop-blur-md"
+            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-white/40 focus:bg-white/10 transition-all backdrop-blur-md"
           />
         </div>
 
@@ -106,7 +106,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
               title="From date"
-              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-purple-500 [color-scheme:dark]"
+              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-white/40 [color-scheme:dark]"
             />
             <span className="text-xs text-gray-500 shrink-0">to</span>
             <input
@@ -114,7 +114,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
               title="To date"
-              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-purple-500 [color-scheme:dark]"
+              className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-white/40 [color-scheme:dark]"
             />
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -124,7 +124,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
                 onClick={() => setEmotionFilter(emotion)}
                 className={`text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
                   emotionFilter === emotion
-                    ? "bg-purple-600 border-purple-500 text-white"
+                    ? "bg-white border-white text-black"
                     : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white"
                 }`}
               >
@@ -158,7 +158,8 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
           <button
             key={journal._id}
             onClick={() => onSelect(journal)}
-            className="w-full text-left bg-white/5 p-4 rounded-xl border border-white/5 hover:border-purple-500/50 hover:bg-white/10 transition-all group cursor-pointer"
+            className="w-full text-left bg-white/5 p-4 rounded-xl border border-white/5 hover:border-white/30 hover:bg-white/10 transition-all group cursor-pointer"
+            style={{ borderLeft: `2px solid ${emotionColor(journal.emotion)}` }}
           >
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-sm font-semibold text-white">
@@ -168,7 +169,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
                 {formatShortDate(journal.createdAt)}
               </span>
               {journal.planetId ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-purple-500/40 text-purple-400 bg-purple-500/10 shrink-0">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-teal-500/40 text-teal-400 bg-teal-500/10 shrink-0">
                   <Globe size={10} />
                   Planet
                 </span>
