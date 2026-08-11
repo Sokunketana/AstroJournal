@@ -1,8 +1,11 @@
+export type Emotion = 'happy' | 'sad' | 'angry' | 'calm' | 'neutral';
+
 export interface Journal {
   _id: string;
   userId: string;
   planetId?: string | null;
   content: string;
+  emotion?: Emotion;
   starsEarned: number;
   streakBeforeEntry: number;
   position?: { x: number; y: number; z: number };

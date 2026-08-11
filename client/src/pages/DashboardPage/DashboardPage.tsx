@@ -16,6 +16,7 @@ import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
 import { formatLongDate, formatShortDate } from "../../utils/dateUtils";
+import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
 import {
   Star,
@@ -199,13 +200,30 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       <Modal isOpen={!!selectedJournal} onClose={() => setSelectedJournal(null)} maxWidth="lg">
         {selectedJournal && (
           <>
-            <div className="mb-6">
-              <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">
-                Stellar Archive
-              </p>
-              <h3 className="text-gray-400 text-sm font-medium">
-                {formatLongDate(selectedJournal.createdAt)}
-              </h3>
+            <div className="mb-6 flex items-start justify-between gap-4 pr-12">
+              <div>
+                <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">
+                  Stellar Archive
+                </p>
+                <h3 className="text-gray-400 text-sm font-medium">
+                  {formatLongDate(selectedJournal.createdAt)}
+                </h3>
+              </div>
+              {selectedJournal.emotion && (
+                <span
+                  className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border bg-black/30"
+                  style={{
+                    color: emotionColor(selectedJournal.emotion),
+                    borderColor: `${emotionColor(selectedJournal.emotion)}66`,
+                  }}
+                >
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: emotionColor(selectedJournal.emotion) }}
+                  />
+                  {selectedJournal.emotion}
+                </span>
+              )}
             </div>
 
             <EditableContent
@@ -258,9 +276,26 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                   key={journal._id}
                   className="bg-white/5 p-4 rounded-xl border border-white/5 relative group"
                 >
-                  <p className="text-sm text-gray-400 mb-2">
-                    {formatShortDate(journal.createdAt)}
-                  </p>
+                  <div className="flex items-center gap-2 mb-2 pr-14">
+                    <p className="text-sm text-gray-400 shrink-0">
+                      {formatShortDate(journal.createdAt)}
+                    </p>
+                    {journal.emotion && (
+                      <span
+                        className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border bg-black/30 shrink-0"
+                        style={{
+                          color: emotionColor(journal.emotion),
+                          borderColor: `${emotionColor(journal.emotion)}66`,
+                        }}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: emotionColor(journal.emotion) }}
+                        />
+                        {journal.emotion}
+                      </span>
+                    )}
+                  </div>
                   <EditableContent
                     isEditing={editingJournalId === journal._id}
                     value={editContent}
