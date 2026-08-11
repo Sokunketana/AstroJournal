@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import Journal from '../models/Journal.js';
 import User from '../models/User.js';
 import Planet from '../models/Planet.js';
+import { detectEmotion } from '../utils/emotion.js';
 import mongoose from 'mongoose';
 
 export const createJournal = async (req: AuthRequest, res: Response) => {
@@ -60,9 +61,12 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
 
     const starsEarned = 1;
 
+    const emotion = await detectEmotion(content);
+
     const journal = new Journal({
       userId: new mongoose.Types.ObjectId(userId),
       content,
+      emotion,
       starsEarned,
       streakBeforeEntry,
       createdAt: new Date()
@@ -237,9 +241,11 @@ export const updateJournalContent = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Content cannot be empty' });
     }
 
+    const emotion = await detectEmotion(content);
+
     const journal = await Journal.findOneAndUpdate(
       { _id: new mongoose.Types.ObjectId(id as string), userId: new mongoose.Types.ObjectId(userId) },
-      { content: content.trim() },
+      { content: content.trim(), emotion },
       { new: true }
     );
 

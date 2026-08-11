@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState, memo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars, Float, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
+import { emotionColor } from "../../utils/emotion";
 import type {
   StarFieldProps,
   PlanetProps,
@@ -212,8 +213,8 @@ const JournalStar: React.FC<JournalStarProps> = ({ position, journal, onClick, o
     >
       <extrudeGeometry args={[starShape, extrudeSettings]} />
       <meshStandardMaterial
-        color="#fff"
-        emissive="#fff"
+        color={emotionColor(journal.emotion)}
+        emissive={emotionColor(journal.emotion)}
         emissiveIntensity={4}
         toneMapped={false}
       />
