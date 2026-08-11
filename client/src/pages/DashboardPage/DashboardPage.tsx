@@ -11,6 +11,7 @@ import type { Journal, Planet } from "../../types";
 import SkyBackground from "../../components/SkyBackground";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Modal from "../../components/Modal";
+import ArchiveModal from "../../components/ArchiveModal";
 import StatBadge from "../../components/StatBadge";
 import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
@@ -22,6 +23,7 @@ import {
   Star,
   Flame,
   Globe,
+  Search,
 } from "lucide-react";
 
 
@@ -54,6 +56,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<
     Journal[] | null
   >(null);
+  const [showArchive, setShowArchive] = useState(false);
+  const [planetHighlightId, setPlanetHighlightId] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const mutateAll = useCallback(() => {
@@ -117,6 +121,26 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     setSelectedPlanetJournals(pJournals);
   }, []);
 
+  const closePlanetModal = useCallback(() => {
+    setSelectedPlanetJournals(null);
+    setPlanetHighlightId(null);
+  }, []);
+
+  const handleArchiveSelect = useCallback(
+    (journal: Journal) => {
+      if (journal.planetId) {
+        setPlanetHighlightId(journal._id);
+        setSelectedPlanetJournals(
+          journals.filter((j: Journal) => j.planetId === journal.planetId),
+        );
+      } else {
+        setSelectedJournal(journal);
+      }
+      setShowArchive(false);
+    },
+    [journals],
+  );
+
   if (loading)
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -134,7 +158,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onPlanetClick={handlePlanetClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
         onPlanetPositionUpdate={handlePlanetPositionUpdate}
-        paused={!!selectedJournal || !!selectedPlanetJournals}
+        paused={!!selectedJournal || !!selectedPlanetJournals || showArchive}
       />
 
       {/* Persistent Top Navigation & Input Bar */}
@@ -181,6 +205,14 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           </form>
 
           <div className="flex items-center gap-4 h-11.5">
+            <button
+              onClick={() => setShowArchive(true)}
+              className="p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              aria-label="Search entries"
+              title="Search Entries"
+            >
+              <Search size={18} />
+            </button>
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
               <StatBadge icon={Globe} value={planetsData.length} colorClass="text-purple-600" tooltip="Total Planets Created" />
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
@@ -258,7 +290,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       </Modal>
 
       {/* Planet Journals Viewer (Modal) */}
-      <Modal isOpen={!!selectedPlanetJournals} onClose={() => setSelectedPlanetJournals(null)} maxWidth="2xl" className="max-h-[80vh]">
+      <Modal isOpen={!!selectedPlanetJournals} onClose={closePlanetModal} maxWidth="2xl" className="max-h-[80vh]">
         {selectedPlanetJournals && (
           <>
             <div className="mb-4 shrink-0">
@@ -274,7 +306,16 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               {selectedPlanetJournals.map((journal: Journal) => (
                 <div
                   key={journal._id}
-                  className="bg-white/5 p-4 rounded-xl border border-white/5 relative group"
+                  ref={(el) => {
+                    if (el && planetHighlightId === journal._id) {
+                      el.scrollIntoView({ block: "center", behavior: "smooth" });
+                    }
+                  }}
+                  className={`bg-white/5 p-4 rounded-xl border relative group ${
+                    planetHighlightId === journal._id
+                      ? "border-purple-500 ring-2 ring-purple-500/40"
+                      : "border-white/5"
+                  }`}
                 >
                   <div className="flex items-center gap-2 mb-2 pr-14">
                     <p className="text-sm text-gray-400 shrink-0">
@@ -330,6 +371,14 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           </>
         )}
       </Modal>
+
+      {/* Search / Archive Modal */}
+      <ArchiveModal
+        isOpen={showArchive}
+        onClose={() => setShowArchive(false)}
+        journals={journals}
+        onSelect={handleArchiveSelect}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
