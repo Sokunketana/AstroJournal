@@ -3,12 +3,38 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars, Float, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import { emotionColor } from "../../utils/emotion";
+import { formatShortDate } from "../../utils/dateUtils";
 import type {
   StarFieldProps,
   PlanetProps,
   JournalStarProps,
   SkyBackgroundProps,
+  SkyTooltipData,
 } from "./SkyBackground.types";
+
+const SkyTooltip: React.FC<{ tooltip: SkyTooltipData | null }> = ({ tooltip }) => {
+  if (!tooltip) return null;
+  return (
+    <div
+      className="fixed z-10 pointer-events-none bg-black/80 border border-white/10 rounded-xl px-4 py-2.5 backdrop-blur-md shadow-xl max-w-xs"
+      style={{
+        left: Math.min(tooltip.x, window.innerWidth - 300),
+        top: Math.min(tooltip.y + 16, window.innerHeight - 90),
+      }}
+    >
+      <div className="flex items-center gap-2 mb-0.5">
+        <span
+          className="w-2 h-2 rounded-full shrink-0"
+          style={{ backgroundColor: tooltip.color }}
+        />
+        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: tooltip.color }}>
+          {tooltip.title}
+        </p>
+      </div>
+      <p className="text-sm text-gray-300 font-medium truncate">{tooltip.subtitle}</p>
+    </div>
+  );
+};
 
 const StarField: React.FC<StarFieldProps> = ({ count }) => {
   const positions = useMemo(() => {
@@ -31,7 +57,7 @@ const StarField: React.FC<StarFieldProps> = ({ count }) => {
   );
 };
 
-const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, onClick, onDragEnd }) => {
+const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, onClick, onDragEnd, onHover }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
@@ -90,8 +116,22 @@ const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, on
             meshRef.current.position.y = pos.y;
           }
         }}
-        onPointerOver={() => (document.body.style.cursor = "grab")}
-        onPointerOut={() => (document.body.style.cursor = "auto")}
+        onPointerOver={(e) => {
+          document.body.style.cursor = "grab";
+          onHover({
+            title: "Planet",
+            subtitle: `${journals.length} journal${journals.length === 1 ? "" : "s"}${
+              journals.length ? ` · ${formatShortDate(journals[0].createdAt)}` : ""
+            }`,
+            color,
+            x: e.clientX,
+            y: e.clientY,
+          });
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "auto";
+          onHover(null);
+        }}
       >
         <sphereGeometry args={[size, 32, 32]} />
         <MeshDistortMaterial color={color} speed={2} distort={0.3} radius={1} />
@@ -100,7 +140,7 @@ const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, on
   );
 };
 
-const JournalStar: React.FC<JournalStarProps> = ({ position, journal, onClick, onDragEnd, paused }) => {
+const JournalStar: React.FC<JournalStarProps> = ({ position, journal, onClick, onDragEnd, onHover, paused }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isDragging, setIsDragging] = useState(false);
   const hasDragged = useRef(false);
@@ -208,8 +248,20 @@ const JournalStar: React.FC<JournalStarProps> = ({ position, journal, onClick, o
           meshRef.current.position.y = pos.y;
         }
       }}
-      onPointerOver={() => (document.body.style.cursor = "grab")}
-      onPointerOut={() => (document.body.style.cursor = "auto")}
+      onPointerOver={(e) => {
+        document.body.style.cursor = "grab";
+        onHover({
+          title: formatShortDate(journal.createdAt),
+          subtitle: journal.content,
+          color: emotionColor(journal.emotion),
+          x: e.clientX,
+          y: e.clientY,
+        });
+      }}
+      onPointerOut={() => {
+        document.body.style.cursor = "auto";
+        onHover(null);
+      }}
     >
       <extrudeGeometry args={[starShape, extrudeSettings]} />
       <meshStandardMaterial
@@ -232,6 +284,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   onPlanetPositionUpdate,
   paused,
 }) => {
+  const [tooltip, setTooltip] = useState<SkyTooltipData | null>(null);
+
   const planets = useMemo(() => {
     return planetsData.map((planet) => {
       // Use saved position if available
@@ -325,6 +379,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
             journal={star.journal}
             onClick={onStarClick}
             onDragEnd={onJournalPositionUpdate}
+            onHover={setTooltip}
             paused={paused}
           />
         ))}
@@ -339,9 +394,11 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
             journals={planet.journals}
             onClick={onPlanetClick}
             onDragEnd={onPlanetPositionUpdate}
+            onHover={setTooltip}
           />
         ))}
       </Canvas>
+      <SkyTooltip tooltip={tooltip} />
     </div>
   );
 };

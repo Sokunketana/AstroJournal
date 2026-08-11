@@ -4,6 +4,14 @@ export interface StarFieldProps {
   count: number;
 }
 
+export interface SkyTooltipData {
+  title: string;
+  subtitle: string;
+  color: string;
+  x: number;
+  y: number;
+}
+
 export interface PlanetProps {
   id: string;
   position: [number, number, number];
@@ -12,6 +20,7 @@ export interface PlanetProps {
   journals: Journal[];
   onClick: (journals: Journal[]) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
+  onHover: (tooltip: SkyTooltipData | null) => void;
 }
 
 export interface JournalStarProps {
@@ -19,6 +28,7 @@ export interface JournalStarProps {
   journal: Journal;
   onClick: (journal: Journal) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
+  onHover: (tooltip: SkyTooltipData | null) => void;
   paused?: boolean;
 }
 
