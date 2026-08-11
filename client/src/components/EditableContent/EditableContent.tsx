@@ -27,7 +27,7 @@ const EditableContent: React.FC<EditableContentProps> = ({
         <textarea
           value={value}
           onChange={(e) => onValueChange(e.target.value)}
-          className={`w-full bg-white/5 border border-white/10 text-white font-light italic focus:outline-none focus:border-purple-500 transition-colors resize-none ${textareaClassName}`}
+          className={`w-full bg-white/5 border border-white/10 text-white font-light italic focus:outline-none focus:border-white/40 transition-colors resize-none ${textareaClassName}`}
           autoFocus
         />
         {children}

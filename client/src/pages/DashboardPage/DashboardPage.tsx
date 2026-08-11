@@ -185,7 +185,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 }
               }}
               placeholder="Reflect on your day across the universe..."
-              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-purple-500 focus:min-h-[96px] transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-96 overflow-y-auto disabled:opacity-50 no-scrollbar"
+              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-white/40 focus:min-h-[96px] transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-96 overflow-y-auto disabled:opacity-50 no-scrollbar"
               rows={1}
               disabled={isSubmitting}
             />
@@ -196,11 +196,11 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               }}
               className={`absolute right-2 top-[7px] p-2 rounded-full transition-all flex items-center justify-center cursor-pointer ${
                 !newEntry.trim() || isSubmitting
-                  ? "bg-purple-600 opacity-30 hover:opacity-100 group-focus-within:opacity-100"
-                  : "bg-purple-600 hover:bg-purple-500 group-focus-within:bg-purple-500"
+                  ? "bg-white opacity-30 hover:opacity-100 group-focus-within:opacity-100"
+                  : "bg-white hover:bg-gray-200 group-focus-within:bg-gray-200"
               }`}
             >
-              <img src="/Send Button.svg" alt="Send" className="w-4 h-4 object-contain translate-x-0.5 pointer-events-none" />
+              <img src="/Send Button.svg" alt="Send" className="w-4 h-4 object-contain translate-x-0.5 pointer-events-none invert" />
             </button>
           </form>
 
@@ -214,7 +214,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               <Search size={18} />
             </button>
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
-              <StatBadge icon={Globe} value={planetsData.length} colorClass="text-purple-600" tooltip="Total Planets Created" />
+              <StatBadge icon={Globe} value={planetsData.length} colorClass="text-gray-400" tooltip="Total Planets Created" />
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
               <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} tooltip="Total Stars Earned" />
             </div>
@@ -234,7 +234,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           <>
             <div className="mb-6 flex items-start justify-between gap-4 pr-12">
               <div>
-                <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">
+                <p className="text-xs font-bold text-white uppercase tracking-widest mb-1">
                   Stellar Archive
                 </p>
                 <h3 className="text-gray-400 text-sm font-medium">
@@ -258,15 +258,20 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               )}
             </div>
 
-            <EditableContent
-              isEditing={editingJournalId === selectedJournal._id}
-              value={editContent}
-              onValueChange={setEditContent}
-              displayContent={selectedJournal.content}
-              containerClassName="mb-8"
-              textareaClassName="rounded-xl p-4 text-lg min-h-30"
-              displayClassName="text-xl leading-relaxed mb-8"
-            />
+            <div
+              className="mb-8 rounded-xl border border-white/10 bg-white/5 p-5"
+              style={{ borderLeft: `2px solid ${emotionColor(selectedJournal.emotion)}` }}
+            >
+              <EditableContent
+                isEditing={editingJournalId === selectedJournal._id}
+                value={editContent}
+                onValueChange={setEditContent}
+                displayContent={selectedJournal.content}
+                containerClassName=""
+                textareaClassName="rounded-lg p-3 min-h-30"
+                displayClassName="text-xl leading-relaxed"
+              />
+            </div>
 
             <div className="flex justify-between items-center pt-6 border-t border-white/5">
               <div className="flex items-center gap-2 text-yellow-500/80">
@@ -282,7 +287,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 onEdit={() => startEditing(selectedJournal)}
                 onDelete={() => handleDelete(selectedJournal._id)}
                 isSaveDisabled={!editContent.trim()}
-                editButtonClassName="text-purple-400/50! hover:text-purple-400! hover:bg-purple-400/10!"
+                editButtonClassName="text-gray-400/50! hover:text-white! hover:bg-white/10!"
               />
             </div>
           </>
@@ -294,7 +299,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         {selectedPlanetJournals && (
           <>
             <div className="mb-4 shrink-0">
-              <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">
+              <p className="text-xs font-bold text-white uppercase tracking-widest mb-1">
                 Planet Archive
               </p>
               <h3 className="text-gray-400 text-sm font-medium">
@@ -313,9 +318,10 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                   }}
                   className={`bg-white/5 p-4 rounded-xl border relative group ${
                     planetHighlightId === journal._id
-                      ? "border-purple-500 ring-2 ring-purple-500/40"
+                      ? "border-white/60 ring-2 ring-white/30"
                       : "border-white/5"
                   }`}
+                  style={{ borderLeft: `2px solid ${emotionColor(journal.emotion)}` }}
                 >
                   <div className="flex items-center gap-2 mb-2 pr-14">
                     <p className="text-sm text-gray-400 shrink-0">
@@ -361,7 +367,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                       onDelete={() => handleDelete(journal._id)}
                       viewVariant="icon"
                       viewContainerClassName="absolute top-4 right-4 flex items-center gap-1"
-                      editButtonClassName="text-purple-400/0 group-hover:text-purple-400/50 hover:text-purple-400! hover:bg-transparent!"
+                      editButtonClassName="text-gray-400/0 group-hover:text-gray-400/50 hover:text-white! hover:bg-transparent!"
                       deleteButtonClassName="text-red-400/0 group-hover:text-red-400/50 hover:text-red-400! hover:bg-transparent!"
                     />
                   )}

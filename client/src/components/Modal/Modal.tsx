@@ -51,9 +51,6 @@ const Modal: React.FC<ModalProps> = ({
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={`bg-[#111] border border-white/10 p-8 rounded-3xl w-full relative shadow-2xl overflow-hidden flex flex-col ${maxWidthClass} ${className}`}
           >
-            {/* Top gradient bar */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-purple-500" />
-
             {/* Close button */}
             <button
               onClick={onClose}
