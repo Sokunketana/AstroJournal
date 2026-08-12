@@ -1,9 +1,5 @@
 import type { Journal, PlanetData } from "../../types";
 
-export interface StarFieldProps {
-  count: number;
-}
-
 export interface SkyTooltipData {
   title: string;
   subtitle: string;
@@ -21,6 +17,7 @@ export interface PlanetProps {
   onClick: (journals: Journal[]) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
   onHover: (tooltip: SkyTooltipData | null) => void;
+  paused?: boolean;
 }
 
 export interface JournalStarProps {
