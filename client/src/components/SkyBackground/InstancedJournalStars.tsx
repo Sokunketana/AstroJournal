@@ -54,7 +54,10 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     time: number;
     vel: THREE.Vector3;
   } | null>(null);
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
+  const cameraRef = useRef(camera);
+  const raycasterRef = useRef(new THREE.Raycaster());
+  const ndcRef = useRef(new THREE.Vector2());
 
   useEffect(() => {
     const now = clockRef.current ? clockRef.current.elapsedTime : 0;
@@ -80,6 +83,35 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     hoverIndexRef.current = -1;
   }, [stars]);
 
+  // Native pointerdown + manual raycast: starts drags without depending on
+  // r3f's event system, which is unreliable right after a hard refresh
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const onPointerDown = (ev: PointerEvent) => {
+      const mesh = meshRef.current;
+      if (!mesh) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      ndcRef.current.set(
+        ((ev.clientX - rect.left) / rect.width) * 2 - 1,
+        -((ev.clientY - rect.top) / rect.height) * 2 + 1,
+      );
+      raycasterRef.current.setFromCamera(ndcRef.current, cameraRef.current);
+      const hits = raycasterRef.current.intersectObject(mesh);
+      if (hits.length === 0) return;
+      const index = hits[0].instanceId ?? -1;
+      if (index < 0 || !entriesRef.current[index]) return;
+      dragRef.current = {
+        index,
+        last: entriesRef.current[index].pos.clone(),
+        time: performance.now(),
+        vel: new THREE.Vector3(),
+      };
+    };
+    canvas.addEventListener("pointerdown", onPointerDown);
+    return () => canvas.removeEventListener("pointerdown", onPointerDown);
+  }, [gl]);
+
   // Window-level drag: pointer capture on the object is unreliable across
   // browsers/touch, so movement and release are tracked globally instead
   useEffect(() => {
@@ -88,15 +120,16 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       if (!drag) return;
       const entry = entriesRef.current[drag.index];
       if (!entry) return;
+      const cam = cameraRef.current;
       const vector = new THREE.Vector3(
         (ev.clientX / window.innerWidth) * 2 - 1,
         -(ev.clientY / window.innerHeight) * 2 + 1,
         0.5,
       );
-      vector.unproject(camera);
-      const dir = vector.sub(camera.position).normalize();
-      const distance = (entry.pos.z - camera.position.z) / dir.z;
-      const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+      vector.unproject(cam);
+      const dir = vector.sub(cam.position).normalize();
+      const distance = (entry.pos.z - cam.position.z) / dir.z;
+      const pos = cam.position.clone().add(dir.multiplyScalar(distance));
       const now = performance.now();
       const dt = Math.max((now - drag.time) / 1000, 0.001);
       drag.vel
@@ -107,7 +140,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       entry.pos.copy(pos);
     };
 
-    const onWindowUp = () => {
+    const finalizeDrag = () => {
       const drag = dragRef.current;
       if (!drag) return;
       dragRef.current = null;
@@ -119,16 +152,19 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     };
 
     window.addEventListener("pointermove", onWindowMove);
-    window.addEventListener("pointerup", onWindowUp);
+    window.addEventListener("pointerup", finalizeDrag);
+    window.addEventListener("pointercancel", finalizeDrag);
     return () => {
       window.removeEventListener("pointermove", onWindowMove);
-      window.removeEventListener("pointerup", onWindowUp);
+      window.removeEventListener("pointerup", finalizeDrag);
+      window.removeEventListener("pointercancel", finalizeDrag);
     };
-  }, [camera, onDragEnd]);
+  }, [onDragEnd]);
 
   useFrame((state, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
+    cameraRef.current = state.camera;
     clockRef.current = state.clock;
     const t = state.clock.elapsedTime;
     const dt = Math.min(delta, 0.05);
@@ -185,18 +221,6 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   });
 
-  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    e.stopPropagation();
-    const index = e.instanceId ?? -1;
-    if (index < 0 || !entriesRef.current[index]) return;
-    dragRef.current = {
-      index,
-      last: entriesRef.current[index].pos.clone(),
-      time: performance.now(),
-      vel: new THREE.Vector3(),
-    };
-  };
-
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
     if (dragRef.current) return; // movement handled by window listener
     const index = e.instanceId ?? -1;
@@ -246,7 +270,6 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
           if (entry) onClick(entry.journal);
         }
       }}
-      onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerOut={handlePointerOut}
     >
