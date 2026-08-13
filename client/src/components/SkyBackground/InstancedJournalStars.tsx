@@ -46,7 +46,6 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const entriesRef = useRef<StarEntry[]>([]);
-  const clockRef = useRef<THREE.Clock | null>(null);
   const hoverIndexRef = useRef(-1);
   const dragRef = useRef<{
     index: number;
@@ -60,9 +59,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   const ndcRef = useRef(new THREE.Vector2());
 
   useEffect(() => {
-    const now = clockRef.current ? clockRef.current.elapsedTime : 0;
-    const existing = new Map(entriesRef.current.map((e) => [e.id, e]));
-    entriesRef.current = stars.map((star) => {
+    const now = performance.now() / 1000;
+    const existing = new Map(entriesRef.current.map((e) => [e.id, e]));    entriesRef.current = stars.map((star) => {
       const old = existing.get(star.id);
       if (old) {
         old.journal = star.journal;
@@ -75,7 +73,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         pos: new THREE.Vector3(...star.position),
         vel: new THREE.Vector3(),
         phase: Math.random() * 1000,
-        speedFactor: 0.6 + 0.8 * noise3D(Math.random() * 1000, 1, 0),
+        speedFactor: 0.3 + 0.4 * noise3D(Math.random() * 1000, 1, 0),
         birth: now,
         hover: 0,
       };
@@ -165,8 +163,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     const mesh = meshRef.current;
     if (!mesh) return;
     cameraRef.current = state.camera;
-    clockRef.current = state.clock;
     const t = state.clock.elapsedTime;
+    const tWall = performance.now() / 1000;
     const dt = Math.min(delta, 0.05);
     const entries = entriesRef.current;
     const dragging = dragRef.current;
@@ -182,7 +180,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
           1.4,
         );
         const [fx, fy, fz] = flowVelocity(e.pos.x, e.pos.y, e.pos.z, t);
-        const speed = 1.6 * depth * e.speedFactor;
+        const speed = 0.9 * depth * e.speedFactor;
 
         e.vel.x += fx * speed * dt;
         e.vel.y += fy * speed * dt;
@@ -202,13 +200,13 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       }
 
       const spawn = easeOutCubic(
-        THREE.MathUtils.clamp((t - e.birth) / SPAWN_DURATION, 0, 1),
+        THREE.MathUtils.clamp((tWall - e.birth) / SPAWN_DURATION, 0, 1),
       );
       const scale = Math.max(spawn * (1 + 0.3 * e.hover), 0.001);
 
       _quaternion.setFromAxisAngle(
         THREE.Object3D.DEFAULT_UP,
-        t * 0.3 + e.phase * 0.1,
+        t * 0.15 + e.phase * 0.1,
       );
       _scale.set(scale, scale, scale);
       _matrix.compose(e.pos, _quaternion, _scale);
