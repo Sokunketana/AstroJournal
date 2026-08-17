@@ -199,6 +199,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         e.vel.multiplyScalar(Math.exp(-dt * 0.5));
       }
 
+      e.hover = THREE.MathUtils.lerp(e.hover, hoverIndexRef.current === i ? 1 : 0, dt * 10);
+
       const spawn = easeOutCubic(
         THREE.MathUtils.clamp((tWall - e.birth) / SPAWN_DURATION, 0, 1),
       );
@@ -224,16 +226,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     const index = e.instanceId ?? -1;
 
     if (index !== hoverIndexRef.current) {
-      if (
-        hoverIndexRef.current >= 0 &&
-        entriesRef.current[hoverIndexRef.current]
-      ) {
-        entriesRef.current[hoverIndexRef.current].hover = 0;
-      }
       hoverIndexRef.current = index;
       const entry = entriesRef.current[index];
       if (entry) {
-        entry.hover = 1;
         document.body.style.cursor = "grab";
         onHover({
           title: formatShortDate(entry.journal.createdAt),
