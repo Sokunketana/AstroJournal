@@ -185,7 +185,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 }
               }}
               placeholder="Reflect on your day across the universe..."
-              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-white/40 focus:min-h-[96px] transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-96 overflow-y-auto disabled:opacity-50 no-scrollbar"
+              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-white/40 transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-64 overflow-y-auto disabled:opacity-50 no-scrollbar"
               rows={1}
               disabled={isSubmitting}
             />
