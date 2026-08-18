@@ -219,6 +219,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
   });
 
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
