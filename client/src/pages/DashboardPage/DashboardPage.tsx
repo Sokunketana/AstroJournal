@@ -164,7 +164,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       {/* Persistent Top Navigation & Input Bar */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
         <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
-          <div className="flex items-center gap-4 h-11.5">
+          <div className="flex items-center gap-4 h-11.5" data-star-bounce>
             <Logo className="text-2xl" />
 
           </div>
@@ -172,6 +172,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           {/* Main Input Bar */}
           <form
             onSubmit={handleSubmit}
+            data-star-bounce
             className="flex-1 max-w-xl mx-8 relative group transition-all duration-300 ease-in-out"
           >
             <textarea
@@ -204,7 +205,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             </button>
           </form>
 
-          <div className="flex items-center gap-4 h-11.5">
+          <div className="flex items-center gap-4 h-11.5" data-star-bounce>
             <button
               onClick={() => setShowArchive(true)}
               className="p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"

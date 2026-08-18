@@ -29,13 +29,42 @@ interface StarEntry {
   hover: number;
 }
 
+// Screen rect of a UI element (nav bar, entry bar, buttons...), in NDC.
+// Scaled to camera space at each star's depth so it acts as a bounce box.
+interface UiRect {
+  l: number;
+  r: number;
+  b: number;
+  t: number;
+}
+
 const MAX_STARS = 2048;
 const SPAWN_DURATION = 1.2;
+const UI_SCAN_MS = 250;
+const UI_MARGIN_PX = 12;
+// Screen-edge margins in NDC: consistent at every depth, and always outside
+// the UI rects (which are clamped to these same lines) so the two bounce
+// systems can never disagree
+const SCREEN_MARGIN_X = 0.03;
+const SCREEN_MARGIN_BOTTOM = 0.03;
+const SCREEN_MARGIN_TOP = 0.03;
+// Reflect off UI elements when the star arrives with real momentum (total
+// speed above this threshold); slower drifts get absorbed so the star rests
+// against the edge instead of fizzling on it
+const UI_BOUNCE_SPEED = 1.0;
+// UI bounces are bouncier than the screen edges (0.8) so throws keep their
+// energy when deflecting off the nav elements
+const UI_RESTITUTION = 0.9;
+// Z bounce bounds: stars stay between a near plane (before the projection
+// blows up and they fly off-screen) and a far plane (before they shrink away)
+const NEAR_DEPTH = 1.5;
+const FAR_DEPTH = 30;
 const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 const _matrix = new THREE.Matrix4();
 const _quaternion = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _color = new THREE.Color();
+const _cameraSpace = new THREE.Vector3();
 
 const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   stars,
@@ -57,6 +86,41 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   const cameraRef = useRef(camera);
   const raycasterRef = useRef(new THREE.Raycaster());
   const ndcRef = useRef(new THREE.Vector2());
+  const uiRectsRef = useRef<UiRect[]>([]);
+
+  // Cache the bounce zones (nav bar, entry bar, buttons...) as NDC rects.
+  // Elements opt in with data-star-bounce; rescan on resize and periodically
+  // so layout/visibility changes (e.g. the entry bar growing while typing)
+  // stay in sync without querying the DOM on every frame
+  useEffect(() => {
+    const scan = () => {
+      const canvas = gl.domElement;
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (w === 0 || h === 0) return;
+      const rects: UiRect[] = [];
+      document.querySelectorAll("[data-star-bounce]").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) return; // hidden or empty
+        const mx = (UI_MARGIN_PX / w) * 2;
+        const my = (UI_MARGIN_PX / h) * 2;
+        rects.push({
+          l: Math.max((r.left / w) * 2 - 1 - mx, -(1 - SCREEN_MARGIN_X)),
+          r: Math.min((r.right / w) * 2 - 1 + mx, 1 - SCREEN_MARGIN_X),
+          b: Math.max(1 - (r.bottom / h) * 2 - my, -(1 - SCREEN_MARGIN_BOTTOM)),
+          t: Math.min(1 - (r.top / h) * 2 + my, 1 - SCREEN_MARGIN_TOP),
+        });
+      });
+      uiRectsRef.current = rects;
+    };
+    scan();
+    window.addEventListener("resize", scan);
+    const interval = window.setInterval(scan, UI_SCAN_MS);
+    return () => {
+      window.removeEventListener("resize", scan);
+      window.clearInterval(interval);
+    };
+  }, [gl]);
 
   useEffect(() => {
     const now = performance.now() / 1000;
@@ -193,6 +257,96 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         e.pos.x += e.vel.x * dt;
         e.pos.y += e.vel.y * dt;
         e.pos.z += e.vel.z * dt;
+
+        // Screen boundaries for bouncing, computed in camera space so they
+        // match the true view frustum: viewport.getCurrentViewport() sizes
+        // the frustum by euclidean distance, which overestimates for stars
+        // far off-axis and lets them poke off the screen
+        camera.updateMatrixWorld();
+        const cs = _cameraSpace.copy(e.pos).applyMatrix4(camera.matrixWorldInverse);
+        const viewDepth = -cs.z;
+        const tanHalf = Math.tan(
+          ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 360,
+        );
+        const halfW = viewDepth * tanHalf * state.viewport.aspect;
+        const halfH = viewDepth * tanHalf;
+
+        const marginX = SCREEN_MARGIN_X;
+        const marginBottom = SCREEN_MARGIN_BOTTOM;
+        const marginTop = SCREEN_MARGIN_TOP;
+
+        const maxX = (1 - marginX) * halfW;
+        const minX = -(1 - marginX) * halfW;
+        const maxY = (1 - marginTop) * halfH;
+        const minY = -(1 - marginBottom) * halfH;
+
+        if (cs.x > maxX) {
+          cs.x = maxX;
+          e.vel.x *= -0.8;
+        } else if (cs.x < minX) {
+          cs.x = minX;
+          e.vel.x *= -0.8;
+        }
+
+        if (cs.y > maxY) {
+          cs.y = maxY;
+          e.vel.y *= -0.8;
+        } else if (cs.y < minY) {
+          cs.y = minY;
+          e.vel.y *= -0.8;
+        }
+
+        if (cs.z < -FAR_DEPTH) {
+          cs.z = -FAR_DEPTH;
+          e.vel.z *= -0.8;
+        } else if (cs.z > -NEAR_DEPTH) {
+          cs.z = -NEAR_DEPTH;
+          e.vel.z *= -0.8;
+        }
+
+        // Bounce off UI elements (app title, entry bar, search, stats...):
+        // each screen rect becomes a camera-space box at the star's depth,
+        // so a thrown star deflects off whichever edge it crosses. Two
+        // passes so overlapping rects resolve into a stable push-out.
+        // The bounce decision uses total speed (not the axis component) so
+        // glancing hits reflect too; the normal component is the one flipped
+        const uiRects = uiRectsRef.current;
+        for (let pass = 0; pass < 2; pass++) {
+          for (const rect of uiRects) {
+            const l = rect.l * halfW;
+            const rgt = rect.r * halfW;
+            const b = rect.b * halfH;
+            const top = rect.t * halfH;
+            // boundary counts as outside: a star pushed onto an edge must not
+            // be processed again (or its velocity flips twice per frame and
+            // it pings against the element, bleeding speed)
+            if (cs.x <= l || cs.x >= rgt || cs.y <= b || cs.y >= top) continue;
+            const penL = cs.x - l;
+            const penR = rgt - cs.x;
+            const penB = cs.y - b;
+            const penT = top - cs.y;
+            const minPen = Math.min(penL, penR, penB, penT);
+            const hit = e.vel.length() > UI_BOUNCE_SPEED;
+            // Flip the component along the pushed axis — the min-pen edge is
+            // the one the star crossed, so that component must reflect
+            // (y is up in camera space); slow contacts are absorbed
+            if (minPen === penL) {
+              cs.x = l;
+              e.vel.x = hit ? -e.vel.x * UI_RESTITUTION : 0;
+            } else if (minPen === penR) {
+              cs.x = rgt;
+              e.vel.x = hit ? -e.vel.x * UI_RESTITUTION : 0;
+            } else if (minPen === penB) {
+              cs.y = b;
+              e.vel.y = hit ? -e.vel.y * UI_RESTITUTION : 0;
+            } else {
+              cs.y = top;
+              e.vel.y = hit ? -e.vel.y * UI_RESTITUTION : 0;
+            }
+          }
+        }
+
+        e.pos.copy(cs).applyMatrix4(camera.matrixWorld);
 
         // Gentle pull home so stars keep their spot in the sky
         const pull = 0.15 * dt;
