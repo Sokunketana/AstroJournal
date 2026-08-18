@@ -105,10 +105,13 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         time: performance.now(),
         vel: new THREE.Vector3(),
       };
+      hoverIndexRef.current = -1;
+      onHover(null);
+      document.body.style.cursor = "grabbing";
     };
     canvas.addEventListener("pointerdown", onPointerDown);
     return () => canvas.removeEventListener("pointerdown", onPointerDown);
-  }, [gl]);
+  }, [gl, onHover]);
 
   // Window-level drag: pointer capture on the object is unreliable across
   // browsers/touch, so movement and release are tracked globally instead
@@ -142,6 +145,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       const drag = dragRef.current;
       if (!drag) return;
       dragRef.current = null;
+      document.body.style.cursor = "auto";
       const entry = entriesRef.current[drag.index];
       if (!entry) return;
       // Throw: hand the drag velocity back to the star for momentum
