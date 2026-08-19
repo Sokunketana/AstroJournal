@@ -178,9 +178,8 @@ const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, on
         document.body.style.cursor = "grab";
         onHover({
           title: "Planet",
-          subtitle: `${journals.length} journal${journals.length === 1 ? "" : "s"}${
-            journals.length ? ` · ${formatShortDate(journals[0].createdAt)}` : ""
-          }`,
+          subtitle: `${journals.length} journal${journals.length === 1 ? "" : "s"}${journals.length ? ` · ${formatShortDate(journals[0].createdAt)}` : ""
+            }`,
           color,
           x: e.clientX,
           y: e.clientY,
@@ -348,8 +347,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
         {quality === "high" && (
           <EffectComposer multisampling={0}>
             <Bloom
-              intensity={0.4}
-              luminanceThreshold={0.7}
+              intensity={0.6}
+              luminanceThreshold={0.2}
               luminanceSmoothing={0.3}
               radius={0.45}
             />
