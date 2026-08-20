@@ -7,13 +7,14 @@ import { emotionColor } from "../../utils/emotion";
 import { formatShortDate } from "../../utils/dateUtils";
 import { flowVelocity, noise3D } from "./flowField";
 import { getStarGeometry } from "./starGeometry";
-import type { SkyTooltipData } from "./SkyBackground.types";
+import type { RocketLaunchData, SkyTooltipData } from "./SkyBackground.types";
 
 export interface InstancedJournalStarsProps {
   stars: { id: string; position: [number, number, number]; journal: Journal }[];
   onClick: (journal: Journal) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
   onHover: (tooltip: SkyTooltipData | null) => void;
+  impact?: RocketLaunchData | null;
   paused?: boolean;
 }
 
@@ -55,6 +56,10 @@ const UI_BOUNCE_SPEED = 1.0;
 // UI bounces are bouncier than the screen edges (0.8) so throws keep their
 // energy when deflecting off the nav elements
 const UI_RESTITUTION = 0.9;
+const IMPACT_RADIUS_VIEWPORT_RATIO = 0.26;
+const IMPACT_RADIUS_MIN_PX = 150;
+const IMPACT_RADIUS_MAX_PX = 260;
+const IMPACT_STRENGTH = 7;
 // Z bounce bounds: stars stay between a near plane (before the projection
 // blows up and they fly off-screen) and a far plane (before they shrink away)
 const NEAR_DEPTH = 1.5;
@@ -71,6 +76,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   onClick,
   onDragEnd,
   onHover,
+  impact,
   paused,
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -87,6 +93,61 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   const raycasterRef = useRef(new THREE.Raycaster());
   const ndcRef = useRef(new THREE.Vector2());
   const uiRectsRef = useRef<UiRect[]>([]);
+  const lastImpactIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!impact?.confirmed || lastImpactIdRef.current === impact.id) return;
+
+    const canvasRect = gl.domElement.getBoundingClientRect();
+    if (canvasRect.width === 0 || canvasRect.height === 0) return;
+    lastImpactIdRef.current = impact.id;
+
+    const camera = cameraRef.current;
+    camera.updateMatrixWorld();
+    const originScreen = new THREE.Vector3(
+      impact.target.x,
+      impact.target.y,
+      impact.target.z,
+    ).project(camera);
+    const impactRadius = THREE.MathUtils.clamp(
+      Math.min(canvasRect.width, canvasRect.height) * IMPACT_RADIUS_VIEWPORT_RATIO,
+      IMPACT_RADIUS_MIN_PX,
+      IMPACT_RADIUS_MAX_PX,
+    );
+    const cameraRight = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    const cameraUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+
+    entriesRef.current.forEach((entry) => {
+      if (entry.id === impact.journalId) return;
+      const starScreen = entry.pos.clone().project(camera);
+      const dx = ((starScreen.x - originScreen.x) * canvasRect.width) / 2;
+      const dy = ((starScreen.y - originScreen.y) * canvasRect.height) / 2;
+      const distance = Math.hypot(dx, dy);
+      if (distance >= impactRadius) return;
+
+      const direction = new THREE.Vector3();
+      if (distance < 0.5) {
+        const seed = entry.id
+          .split("")
+          .reduce((total, character) => total + character.charCodeAt(0), impact.id);
+        const angle = (seed % 360) * (Math.PI / 180);
+        direction
+          .copy(cameraRight)
+          .multiplyScalar(Math.cos(angle))
+          .addScaledVector(cameraUp, Math.sin(angle));
+      } else {
+        direction
+          .copy(cameraRight)
+          .multiplyScalar(dx)
+          .addScaledVector(cameraUp, dy)
+          .normalize();
+      }
+
+      const falloff = 1 - distance / impactRadius;
+      const impulse = IMPACT_STRENGTH * falloff * falloff;
+      entry.vel.add(direction.multiplyScalar(impulse)).clampLength(0, 8);
+    });
+  }, [gl, impact]);
 
   // Cache the bounce zones (nav bar, entry bar, buttons...) as NDC rects.
   // Elements opt in with data-star-bounce; rescan on resize and periodically
