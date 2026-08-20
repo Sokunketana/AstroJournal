@@ -302,12 +302,26 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         confirmed: false,
       });
       setIsLaunching(true);
-      const [creationResult] = await Promise.all([
-        handleSubmit(target),
-        new Promise<void>((resolve) => window.setTimeout(resolve, ROCKET_FLIGHT_DURATION_MS)),
-      ]);
+      let settledCreation: JournalCreationResult | null | undefined;
+      const creationRequest = handleSubmit(target).then((result) => {
+        settledCreation = result;
+        return result;
+      });
+
+      await new Promise<void>((resolve) =>
+        window.setTimeout(resolve, ROCKET_FLIGHT_DURATION_MS));
+
+      // Impact timing belongs to the animation, not the network. If the request
+      // is still running when the rocket arrives, play the explosion now and
+      // attach the persisted journal as soon as the response follows.
+      if (settledCreation !== null) {
+        setLaunch((current) => current?.id === launchId
+          ? { ...current, confirmed: true }
+          : current);
+      }
       setIsLaunching(false);
 
+      const creationResult = settledCreation ?? await creationRequest;
       if (creationResult) {
         applyJournalCreation(creationResult);
         setLaunch((current) => current?.id === launchId
