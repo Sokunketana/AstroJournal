@@ -6,13 +6,60 @@ import Planet from '../models/Planet.js';
 import { detectEmotion } from '../utils/emotion.js';
 import mongoose from 'mongoose';
 
+interface JournalPosition {
+  x: number;
+  y: number;
+  z: number;
+}
+
+const parsePosition = (value: unknown): JournalPosition | null => {
+  if (!value || typeof value !== 'object') return null;
+
+  const { x, y, z } = value as Partial<JournalPosition>;
+  if (
+    typeof x !== 'number' || !Number.isFinite(x)
+    || typeof y !== 'number' || !Number.isFinite(y)
+    || typeof z !== 'number' || !Number.isFinite(z)
+  ) {
+    return null;
+  }
+
+  return { x, y, z };
+};
+
+const classifyJournalEmotion = async (
+  journalId: mongoose.Types.ObjectId,
+  userId: mongoose.Types.ObjectId,
+  content: string,
+) => {
+  try {
+    const emotion = await detectEmotion(content);
+    await Journal.updateOne(
+      { _id: journalId, userId, content },
+      { $set: { emotion } },
+    );
+  } catch (error) {
+    console.error('Background journal emotion classification failed:', error);
+  }
+};
+
 export const createJournal = async (req: AuthRequest, res: Response) => {
   try {
-    const { content } = req.body;
+    const { content, position: rawPosition } = req.body;
     const userId = req.user?.userId;
 
 
     if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    if (typeof content !== 'string' || !content.trim()) {
+      return res.status(400).json({ message: 'Content cannot be empty' });
+    }
+
+    const position = rawPosition === undefined ? undefined : parsePosition(rawPosition);
+    if (rawPosition !== undefined && !position) {
+      return res.status(400).json({ message: 'Journal position must contain finite x, y, and z coordinates' });
+    }
+
+    const objectUserId = new mongoose.Types.ObjectId(userId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -61,14 +108,13 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
 
     const starsEarned = 1;
 
-    const emotion = await detectEmotion(content);
-
     const journal = new Journal({
-      userId: new mongoose.Types.ObjectId(userId),
-      content,
-      emotion,
+      userId: objectUserId,
+      content: content.trim(),
+      emotion: 'neutral',
       starsEarned,
       streakBeforeEntry,
+      position,
       createdAt: new Date()
     });
 
@@ -79,6 +125,7 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
     user.lastEntryDate = journal.createdAt;
 
     // Explicit Planet Merging
+    let planetCreated = false;
     if (user.totalStars >= 10) {
       // Find the 10 oldest loose journals
       const looseJournals = await Journal.find({
@@ -95,6 +142,7 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
           color: randomColor
         });
         await planet.save();
+        planetCreated = true;
 
         // Link journals to planet
         await Journal.updateMany(
@@ -114,7 +162,15 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
 
     await user.save();
 
-    res.status(201).json({ journal, user: { currentStreak: user.currentStreak, totalStars: user.totalStars } });
+    res.status(201).json({
+      journal,
+      user: { currentStreak: user.currentStreak, totalStars: user.totalStars },
+      planetCreated,
+    });
+
+    setImmediate(() => {
+      void classifyJournalEmotion(journal._id, objectUserId, journal.content);
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error creating journal', error });
   }

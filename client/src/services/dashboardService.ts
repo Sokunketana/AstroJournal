@@ -1,10 +1,10 @@
 import { apiFetch } from './api';
 
 export const dashboardService = {
-  createJournal: (content: string) =>
+  createJournal: (content: string, position: { x: number; y: number; z: number }) =>
     apiFetch('/journals', {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, position }),
     }),
 
   deleteJournal: (id: string) =>

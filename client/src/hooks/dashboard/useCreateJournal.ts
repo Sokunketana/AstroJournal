@@ -1,22 +1,29 @@
 import { useState } from 'react';
 import { dashboardService } from '../../services/dashboardService';
-import type { Journal } from '../../types';
+import type { Journal, User } from '../../types';
 
-export const useCreateJournal = (mutateAll: () => void) => {
+export interface JournalCreationResult {
+  journal: Journal;
+  user: Pick<User, 'currentStreak' | 'totalStars'>;
+  planetCreated: boolean;
+}
+
+export const useCreateJournal = () => {
   const [newEntry, setNewEntry] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (
     position: { x: number; y: number; z: number },
-  ): Promise<Journal | null> => {
+  ): Promise<JournalCreationResult | null> => {
     if (!newEntry.trim() || isSubmitting) return null;
     setIsSubmitting(true);
     try {
-      const result = await dashboardService.createJournal(newEntry) as { journal: Journal };
-      await dashboardService.updateJournalPosition(result.journal._id, position);
+      const result = await dashboardService.createJournal(newEntry, position) as JournalCreationResult;
       setNewEntry("");
-      mutateAll();
-      return { ...result.journal, position };
+      return {
+        ...result,
+        journal: { ...result.journal, position },
+      };
     } catch (err: unknown) {
       if (err instanceof Error) alert(err.message);
       else alert(String(err));

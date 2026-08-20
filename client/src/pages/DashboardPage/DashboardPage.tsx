@@ -1,13 +1,16 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useRouter } from '@tanstack/react-router';
 import { useAuth } from "../../context/AuthContext";
-import { useCreateJournal } from "../../hooks/dashboard/useCreateJournal";
+import {
+  useCreateJournal,
+  type JournalCreationResult,
+} from "../../hooks/dashboard/useCreateJournal";
 import { useDeleteJournal } from "../../hooks/dashboard/useDeleteJournal";
 import { useUpdateJournal } from "../../hooks/dashboard/useUpdateJournal";
 import { useUpdateJournalPosition } from "../../hooks/dashboard/useUpdateJournalPosition";
 import { useUpdatePlanetPosition } from "../../hooks/dashboard/useUpdatePlanetPosition";
 import { useUserData, useJournals, usePlanets } from "../../hooks/useDashboardData";
-import type { Journal, Planet } from "../../types";
+import type { Journal, Planet, User } from "../../types";
 import SkyBackground from "../../components/SkyBackground";
 import LottieRocketOverlay, {
   ROCKET_FLIGHT_DURATION_MS,
@@ -178,7 +181,30 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     mutatePlanets();
   }, [mutateUser, mutateJournals, mutatePlanets]);
 
-  const { newEntry, setNewEntry, isSubmitting, handleSubmit } = useCreateJournal(mutateAll);
+  const applyJournalCreation = useCallback((result: JournalCreationResult) => {
+    void mutateJournals(
+      (current: Journal[] | undefined = []) => [
+        result.journal,
+        ...current.filter((journal) => journal._id !== result.journal._id),
+      ],
+      { revalidate: false },
+    );
+    void mutateUser(
+      (current: User | undefined) => current ? { ...current, ...result.user } : current,
+      { revalidate: false },
+    );
+
+    if (result.planetCreated) {
+      void mutateJournals();
+      void mutatePlanets();
+    }
+
+    // Emotion detection finishes in the background on the server. Refresh only
+    // journals later so its final color arrives without blocking star creation.
+    window.setTimeout(() => void mutateJournals(), 1800);
+  }, [mutateJournals, mutatePlanets, mutateUser]);
+
+  const { newEntry, setNewEntry, isSubmitting, handleSubmit } = useCreateJournal();
   const { deleteTargetId, setDeleteTargetId, handleDelete, confirmDelete } = useDeleteJournal(mutateJournals, mutateAll, setSelectedJournal, setSelectedPlanetJournals);
   const { editingJournalId, editContent, setEditContent, handleEdit, startEditing, cancelEditing } = useUpdateJournal(mutateJournals, selectedJournal, setSelectedJournal, selectedPlanetJournals, setSelectedPlanetJournals);
   const { handleJournalPositionUpdate } = useUpdateJournalPosition(mutateJournals);
@@ -276,22 +302,23 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         confirmed: false,
       });
       setIsLaunching(true);
-      const [savedJournal] = await Promise.all([
+      const [creationResult] = await Promise.all([
         handleSubmit(target),
         new Promise<void>((resolve) => window.setTimeout(resolve, ROCKET_FLIGHT_DURATION_MS)),
       ]);
       setIsLaunching(false);
 
-      if (savedJournal) {
+      if (creationResult) {
+        applyJournalCreation(creationResult);
         setLaunch((current) => current?.id === launchId
-          ? { ...current, confirmed: true, journalId: savedJournal._id }
+          ? { ...current, confirmed: true, journalId: creationResult.journal._id }
           : current);
       } else {
         setLaunch(null);
         textareaRef.current?.focus();
       }
     },
-    [handleSubmit, isLaunching, isSubmitting, newEntry],
+    [applyJournalCreation, handleSubmit, isLaunching, isSubmitting, newEntry],
   );
 
   const handleLaunchSubmit = useCallback(
