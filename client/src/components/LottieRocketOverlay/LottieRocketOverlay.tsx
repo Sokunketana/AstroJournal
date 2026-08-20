@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DotLottieReact, type DotLottie } from "@lottiefiles/dotlottie-react";
 import { motion } from "framer-motion";
+import { Rocket } from "lucide-react";
 import type { RocketLaunchData } from "../SkyBackground/SkyBackground.types";
 
 interface LottieRocketOverlayProps {
@@ -12,6 +13,49 @@ export const ROCKET_FLIGHT_DURATION_SECONDS = ROCKET_FLIGHT_DURATION_MS / 1000;
 
 const LottieRocketOverlay: React.FC<LottieRocketOverlayProps> = ({ launch }) => {
   const launchId = launch?.id;
+  const renderedLaunchIdRef = useRef<number | null>(null);
+  const playerCleanupRef = useRef<(() => void) | null>(null);
+  const [fallbackLaunchId, setFallbackLaunchId] = useState<number | null>(null);
+
+  const handlePlayerRef = useCallback((player: DotLottie | null) => {
+    playerCleanupRef.current?.();
+    playerCleanupRef.current = null;
+    if (!player || !launch) return;
+
+    const currentLaunchId = launch.id;
+    renderedLaunchIdRef.current = null;
+    const markRendered = () => {
+      renderedLaunchIdRef.current = currentLaunchId;
+      setFallbackLaunchId((visibleLaunchId) =>
+        visibleLaunchId === currentLaunchId ? null : visibleLaunchId);
+    };
+    const showFallback = () => setFallbackLaunchId(currentLaunchId);
+
+    player.addEventListener("render", markRendered);
+    player.addEventListener("loadError", showFallback);
+    playerCleanupRef.current = () => {
+      player.removeEventListener("render", markRendered);
+      player.removeEventListener("loadError", showFallback);
+    };
+
+    player.stop();
+    player.setFrame(0);
+    player.play();
+  }, [launch]);
+
+  useEffect(() => {
+    if (launchId == null) return;
+
+    const fallbackTimer = window.setTimeout(() => {
+      if (renderedLaunchIdRef.current !== launchId) {
+        setFallbackLaunchId(launchId);
+      }
+    }, 120);
+
+    return () => window.clearTimeout(fallbackTimer);
+  }, [launchId]);
+
+  useEffect(() => () => playerCleanupRef.current?.(), []);
 
   const start = launch?.start ?? { x: -80, y: -80 };
   const end = launch?.targetScreen ?? start;
@@ -47,6 +91,13 @@ const LottieRocketOverlay: React.FC<LottieRocketOverlayProps> = ({ launch }) => 
         }
         : { duration: 0 }}
     >
+      {launch && fallbackLaunchId === launchId && (
+        <Rocket
+          className="absolute inset-2 h-12 w-12 text-orange-100 drop-shadow-[0_0_8px_rgba(251,146,60,0.9)]"
+          strokeWidth={1.8}
+          style={{ transform: "rotate(-16deg)" }}
+        />
+      )}
       <DotLottieReact
         key={launchId ?? "idle"}
         src={launchId
@@ -57,12 +108,7 @@ const LottieRocketOverlay: React.FC<LottieRocketOverlayProps> = ({ launch }) => 
         speed={1.1}
         className="h-16 w-16"
         renderConfig={{ autoResize: true, devicePixelRatio: 1 }}
-        dotLottieRefCallback={(player: DotLottie | null) => {
-          if (!player || !launch) return;
-          player.stop();
-          player.setFrame(0);
-          player.play();
-        }}
+        dotLottieRefCallback={handlePlayerRef}
       />
     </motion.span>
   );
