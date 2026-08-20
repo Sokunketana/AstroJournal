@@ -9,6 +9,7 @@ import { useUpdatePlanetPosition } from "../../hooks/dashboard/useUpdatePlanetPo
 import { useUserData, useJournals, usePlanets } from "../../hooks/useDashboardData";
 import type { Journal, Planet } from "../../types";
 import SkyBackground from "../../components/SkyBackground";
+import LottieRocketOverlay from "../../components/LottieRocketOverlay/LottieRocketOverlay";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Modal from "../../components/Modal";
 import ArchiveModal from "../../components/ArchiveModal";
@@ -19,13 +20,24 @@ import Logo from "../../components/Logo";
 import { formatLongDate, formatShortDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
+import type { RocketLaunchData } from "../../components/SkyBackground/SkyBackground.types";
 import {
   Star,
   Flame,
   Globe,
+  Rocket,
   Search,
 } from "lucide-react";
 
+const projectTargetToScreen = (target: { x: number; y: number; z: number }) => {
+  const distance = 10 - target.z;
+  const halfHeight = Math.tan(Math.PI / 6) * distance;
+  const halfWidth = halfHeight * (window.innerWidth / window.innerHeight);
+  return {
+    x: window.innerWidth * (0.5 + target.x / (halfWidth * 2)),
+    y: window.innerHeight * (0.5 - target.y / (halfHeight * 2)),
+  };
+};
 
 const DashboardPage: React.FC<DashboardPageProps> = () => {
   const { logout } = useAuth();
@@ -59,6 +71,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [showArchive, setShowArchive] = useState(false);
   const [planetHighlightId, setPlanetHighlightId] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
+  const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
 
   const mutateAll = useCallback(() => {
     mutateUser();
@@ -73,6 +87,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const { handlePlanetPositionUpdate } = useUpdatePlanetPosition(mutatePlanets);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const launchButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -141,6 +156,46 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     [journals],
   );
 
+  const handleLaunchSubmit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault();
+      if (!newEntry.trim() || isSubmitting || isLaunching) return;
+
+      const buttonRect = launchButtonRef.current?.getBoundingClientRect();
+      const target = {
+        x: -5.6 + Math.random() * 11.2,
+        y: 0.5 + Math.random() * 3.8,
+        z: -1.5 + Math.random() * 2.5,
+      };
+      const targetScreen = projectTargetToScreen(target);
+      const launchId = Date.now();
+      setLaunch({
+        id: launchId,
+        start: {
+          x: buttonRect ? buttonRect.left + buttonRect.width / 2 : window.innerWidth / 2,
+          y: buttonRect ? buttonRect.top + buttonRect.height / 2 : window.innerHeight - 48,
+        },
+        targetScreen,
+        target,
+        confirmed: false,
+      });
+      setIsLaunching(true);
+      const [savedJournal] = await Promise.all([
+        handleSubmit(event, target),
+        new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
+      ]);
+      setIsLaunching(false);
+
+      if (savedJournal) {
+        setLaunch((current) => current?.id === launchId ? { ...current, confirmed: true } : current);
+      } else {
+        setLaunch(null);
+        textareaRef.current?.focus();
+      }
+    },
+    [handleSubmit, isLaunching, isSubmitting, newEntry],
+  );
+
   if (loading)
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -152,6 +207,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     <div className="relative min-h-screen text-white overflow-hidden font-sans">
       <SkyBackground
         totalStars={userData?.totalStars || 0}
+        launch={launch}
         planetsData={planetsData}
         looseJournals={looseJournals}
         onStarClick={handleStarClick}
@@ -160,50 +216,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onPlanetPositionUpdate={handlePlanetPositionUpdate}
         paused={!!selectedJournal || !!selectedPlanetJournals || showArchive}
       />
+      <LottieRocketOverlay launch={launch} />
 
-      {/* Persistent Top Navigation & Input Bar */}
+      {/* Persistent top navigation */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
         <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
           <div className="flex items-center gap-4 h-11.5" data-star-bounce>
             <Logo className="text-2xl" />
 
           </div>
-
-          {/* Main Input Bar */}
-          <form
-            onSubmit={handleSubmit}
-            data-star-bounce
-            className="flex-1 max-w-xl mx-8 relative group transition-all duration-300 ease-in-out"
-          >
-            <textarea
-              ref={textareaRef}
-              value={newEntry}
-              onChange={(e) => setNewEntry(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e as unknown as React.FormEvent);
-                }
-              }}
-              placeholder="Reflect on your day across the universe..."
-              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-white/40 transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-64 overflow-y-auto disabled:opacity-50 no-scrollbar"
-              rows={1}
-              disabled={isSubmitting}
-            />
-            <button
-              type="submit"
-              onClick={(e) => {
-                if (!newEntry.trim() || isSubmitting) e.preventDefault();
-              }}
-              className={`absolute right-2 top-[7px] p-2 rounded-full transition-all flex items-center justify-center cursor-pointer ${
-                !newEntry.trim() || isSubmitting
-                  ? "bg-white opacity-30 hover:opacity-100 group-focus-within:opacity-100"
-                  : "bg-white hover:bg-gray-200 group-focus-within:bg-gray-200"
-              }`}
-            >
-              <img src="/Send Button.svg" alt="Send" className="w-4 h-4 object-contain translate-x-0.5 pointer-events-none invert" />
-            </button>
-          </form>
 
           <div className="flex items-center gap-4 h-11.5" data-star-bounce>
             <button
@@ -227,6 +248,54 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             </button>
           </div>
         </header>
+      </div>
+
+      {/* Bottom composer: entries launch upward into the sky. */}
+      <div className="fixed bottom-0 inset-x-0 z-50 pointer-events-none px-4 pb-6 sm:px-6">
+        <form
+          onSubmit={handleLaunchSubmit}
+          data-star-bounce
+          className="pointer-events-auto relative group mx-auto w-full max-w-xl transition-all duration-300 ease-in-out"
+        >
+            <textarea
+              ref={textareaRef}
+              value={newEntry}
+              onChange={(e) => setNewEntry(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void handleLaunchSubmit(e as unknown as React.FormEvent);
+                }
+              }}
+              placeholder="Reflect on your day across the universe..."
+              className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-white/40 transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-64 overflow-y-auto disabled:opacity-50 no-scrollbar"
+              rows={1}
+              disabled={isSubmitting}
+            />
+            <button
+              ref={launchButtonRef}
+              type="submit"
+              onClick={(e) => {
+                if (!newEntry.trim() || isSubmitting || isLaunching) e.preventDefault();
+              }}
+              aria-label={isLaunching ? "Launching entry" : "Launch entry into the sky"}
+              title={isLaunching ? "Launching..." : "Launch entry"}
+              className={`absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full p-0 transition-all flex items-center justify-center cursor-pointer overflow-visible ${
+                isLaunching
+                  ? "bg-orange-200"
+                  : !newEntry.trim() || isSubmitting
+                    ? "bg-white opacity-30 hover:opacity-100 group-focus-within:opacity-100"
+                    : "bg-white hover:bg-gray-200 group-focus-within:bg-gray-200"
+              }`}
+            >
+              <Rocket
+                size={18}
+                strokeWidth={2.2}
+                className="-rotate-45 text-black"
+                aria-hidden="true"
+              />
+            </button>
+        </form>
       </div>
 
       {/* Journal Entry Viewer (Modal) */}

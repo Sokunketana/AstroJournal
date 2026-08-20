@@ -8,6 +8,7 @@ import { flowVelocity, noise3D } from "./flowField";
 import InstancedJournalStars from "./InstancedJournalStars";
 import BackgroundStars from "./BackgroundStars";
 import QualityProbe from "./QualityProbe";
+import RocketLaunch from "./RocketLaunch";
 import type {
   PlanetProps,
   SkyBackgroundProps,
@@ -199,6 +200,7 @@ const Planet: React.FC<PlanetProps> = ({ id, position, color, size, journals, on
 
 const SkyBackground: React.FC<SkyBackgroundProps> = ({
   totalStars,
+  launch,
   planetsData,
   looseJournals,
   onStarClick,
@@ -319,6 +321,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           opacity={0.45}
           color="#9db4ff"
         />
+
+        {launch && <RocketLaunch key={launch.id} launch={launch} />}
 
         <QualityProbe onResult={handleQualityResult} />
 

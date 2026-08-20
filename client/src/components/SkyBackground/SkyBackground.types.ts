@@ -8,6 +8,14 @@ export interface SkyTooltipData {
   y: number;
 }
 
+export interface RocketLaunchData {
+  id: number;
+  start: { x: number; y: number };
+  targetScreen: { x: number; y: number };
+  target: { x: number; y: number; z: number };
+  confirmed: boolean;
+}
+
 export interface PlanetProps {
   id: string;
   position: [number, number, number];
@@ -31,6 +39,7 @@ export interface JournalStarProps {
 
 export interface SkyBackgroundProps {
   totalStars: number;
+  launch: RocketLaunchData | null;
   planetsData: PlanetData[];
   looseJournals: Journal[];
   onStarClick: (journal: Journal) => void;
