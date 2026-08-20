@@ -14,6 +14,7 @@ export interface RocketLaunchData {
   targetScreen: { x: number; y: number };
   target: { x: number; y: number; z: number };
   confirmed: boolean;
+  journalId?: string;
 }
 
 export interface PlanetProps {

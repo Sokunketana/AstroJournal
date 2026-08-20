@@ -7,6 +7,9 @@ interface LottieRocketOverlayProps {
   launch: RocketLaunchData | null;
 }
 
+export const ROCKET_FLIGHT_DURATION_MS = 1100;
+export const ROCKET_FLIGHT_DURATION_SECONDS = ROCKET_FLIGHT_DURATION_MS / 1000;
+
 const LottieRocketOverlay: React.FC<LottieRocketOverlayProps> = ({ launch }) => {
   const launchId = launch?.id;
 
@@ -37,7 +40,11 @@ const LottieRocketOverlay: React.FC<LottieRocketOverlayProps> = ({ launch }) => 
           }
         : { x: 0, y: 0, rotate: 0, opacity: 0, scale: 0.7 }}
       transition={launch
-        ? { duration: 1.05, times: [0, 0.08, 0.84, 1], ease: "easeIn" }
+        ? {
+          duration: ROCKET_FLIGHT_DURATION_SECONDS,
+          times: [0, 0.08, 0.84, 1],
+          ease: "easeIn",
+        }
         : { duration: 0 }}
     >
       <DotLottieReact

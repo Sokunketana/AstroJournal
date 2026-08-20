@@ -9,7 +9,9 @@ import { useUpdatePlanetPosition } from "../../hooks/dashboard/useUpdatePlanetPo
 import { useUserData, useJournals, usePlanets } from "../../hooks/useDashboardData";
 import type { Journal, Planet } from "../../types";
 import SkyBackground from "../../components/SkyBackground";
-import LottieRocketOverlay from "../../components/LottieRocketOverlay/LottieRocketOverlay";
+import LottieRocketOverlay, {
+  ROCKET_FLIGHT_DURATION_MS,
+} from "../../components/LottieRocketOverlay/LottieRocketOverlay";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Modal from "../../components/Modal";
 import ArchiveModal from "../../components/ArchiveModal";
@@ -182,12 +184,14 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       setIsLaunching(true);
       const [savedJournal] = await Promise.all([
         handleSubmit(event, target),
-        new Promise<void>((resolve) => window.setTimeout(resolve, 900)),
+        new Promise<void>((resolve) => window.setTimeout(resolve, ROCKET_FLIGHT_DURATION_MS)),
       ]);
       setIsLaunching(false);
 
       if (savedJournal) {
-        setLaunch((current) => current?.id === launchId ? { ...current, confirmed: true } : current);
+        setLaunch((current) => current?.id === launchId
+          ? { ...current, confirmed: true, journalId: savedJournal._id }
+          : current);
       } else {
         setLaunch(null);
         textareaRef.current?.focus();

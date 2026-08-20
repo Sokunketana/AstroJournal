@@ -7,13 +7,14 @@ import { emotionColor } from "../../utils/emotion";
 import { formatShortDate } from "../../utils/dateUtils";
 import { flowVelocity, noise3D } from "./flowField";
 import { getStarGeometry } from "./starGeometry";
-import type { SkyTooltipData } from "./SkyBackground.types";
+import type { RocketLaunchData, SkyTooltipData } from "./SkyBackground.types";
 
 export interface InstancedJournalStarsProps {
   stars: { id: string; position: [number, number, number]; journal: Journal }[];
   onClick: (journal: Journal) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
   onHover: (tooltip: SkyTooltipData | null) => void;
+  impact?: RocketLaunchData | null;
   paused?: boolean;
 }
 
@@ -55,6 +56,8 @@ const UI_BOUNCE_SPEED = 1.0;
 // UI bounces are bouncier than the screen edges (0.8) so throws keep their
 // energy when deflecting off the nav elements
 const UI_RESTITUTION = 0.9;
+const IMPACT_RADIUS = 4.5;
+const IMPACT_STRENGTH = 7;
 // Z bounce bounds: stars stay between a near plane (before the projection
 // blows up and they fly off-screen) and a far plane (before they shrink away)
 const NEAR_DEPTH = 1.5;
@@ -71,6 +74,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   onClick,
   onDragEnd,
   onHover,
+  impact,
   paused,
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -87,6 +91,40 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   const raycasterRef = useRef(new THREE.Raycaster());
   const ndcRef = useRef(new THREE.Vector2());
   const uiRectsRef = useRef<UiRect[]>([]);
+  const lastImpactIdRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!impact?.confirmed || lastImpactIdRef.current === impact.id) return;
+    lastImpactIdRef.current = impact.id;
+
+    const origin = new THREE.Vector3(
+      impact.target.x,
+      impact.target.y,
+      impact.target.z,
+    );
+
+    entriesRef.current.forEach((entry) => {
+      if (entry.id === impact.journalId) return;
+      const direction = entry.pos.clone().sub(origin);
+      const distance = direction.length();
+      if (distance >= IMPACT_RADIUS) return;
+
+      if (distance < 0.001) {
+        const seed = entry.id
+          .split("")
+          .reduce((total, character) => total + character.charCodeAt(0), impact.id);
+        const angle = (seed % 360) * (Math.PI / 180);
+        const depth = ((seed * 17) % 100) / 100 - 0.5;
+        direction.set(Math.cos(angle), Math.sin(angle), depth * 0.7).normalize();
+      } else {
+        direction.divideScalar(distance);
+      }
+
+      const falloff = 1 - distance / IMPACT_RADIUS;
+      const impulse = IMPACT_STRENGTH * falloff * falloff;
+      entry.vel.add(direction.multiplyScalar(impulse)).clampLength(0, 8);
+    });
+  }, [impact]);
 
   // Cache the bounce zones (nav bar, entry bar, buttons...) as NDC rects.
   // Elements opt in with data-star-bounce; rescan on resize and periodically

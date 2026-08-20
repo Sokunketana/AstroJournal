@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Stars, Sparkles, MeshDistortMaterial } from "@react-three/drei";
+import { CameraShake, Stars, Sparkles, MeshDistortMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { formatShortDate } from "../../utils/dateUtils";
@@ -211,6 +211,16 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
 }) => {
   const [tooltip, setTooltip] = useState<SkyTooltipData | null>(null);
   const [quality, setQuality] = useState<"high" | "low">("high");
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
 
   const handleQualityResult = useCallback((avgFrameMs: number, renderer: string) => {
     const softwareRenderer = /WebKit WebGL|SwiftShader|llvmpipe|Software/i.test(
@@ -323,6 +333,20 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
         />
 
         {launch && <RocketLaunch key={launch.id} launch={launch} />}
+        {launch?.confirmed && !prefersReducedMotion && (
+          <CameraShake
+            key={`impact-shake-${launch.id}`}
+            intensity={1}
+            decay
+            decayRate={0.4}
+            maxYaw={0.018}
+            maxPitch={0.015}
+            maxRoll={0.012}
+            yawFrequency={18}
+            pitchFrequency={22}
+            rollFrequency={16}
+          />
+        )}
 
         <QualityProbe onResult={handleQualityResult} />
 
@@ -331,6 +355,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           onClick={onStarClick}
           onDragEnd={onJournalPositionUpdate}
           onHover={setTooltip}
+          impact={launch}
           paused={paused}
         />
 
