@@ -29,7 +29,28 @@ import {
   Globe,
   Rocket,
   Search,
+  X,
 } from "lucide-react";
+
+interface AimPoint {
+  x: number;
+  y: number;
+}
+
+interface AimPreview {
+  start: AimPoint;
+  target: AimPoint;
+  canceling: boolean;
+}
+
+interface AimDragState extends AimPreview {
+  pointerId: number;
+  pointerStart: AimPoint;
+  moved: boolean;
+}
+
+const AIM_DRAG_THRESHOLD = 8;
+const AIM_CANCEL_MARGIN = 8;
 
 const projectTargetToScreen = (target: { x: number; y: number; z: number }) => {
   const distance = 10 - target.z;
@@ -39,6 +60,80 @@ const projectTargetToScreen = (target: { x: number; y: number; z: number }) => {
     x: window.innerWidth * (0.5 + target.x / (halfWidth * 2)),
     y: window.innerHeight * (0.5 - target.y / (halfHeight * 2)),
   };
+};
+
+const projectScreenToTarget = (screen: AimPoint, z: number) => {
+  const distance = 10 - z;
+  const halfHeight = Math.tan(Math.PI / 6) * distance;
+  const halfWidth = halfHeight * (window.innerWidth / window.innerHeight);
+  return {
+    x: ((screen.x / window.innerWidth) * 2 - 1) * halfWidth,
+    y: (1 - (screen.y / window.innerHeight) * 2) * halfHeight,
+    z,
+  };
+};
+
+const clampAimToSky = (x: number, y: number): AimPoint => {
+  const composer = document.querySelector("[data-launch-composer]")?.getBoundingClientRect();
+  const horizontalMargin = Math.min(48, window.innerWidth * 0.08);
+  const minY = Math.min(96, window.innerHeight * 0.18);
+  const maxY = Math.max(minY + 40, (composer?.top ?? window.innerHeight - 96) - 36);
+
+  return {
+    x: Math.min(Math.max(x, horizontalMargin), window.innerWidth - horizontalMargin),
+    y: Math.min(Math.max(y, minY), maxY),
+  };
+};
+
+const isPointOverButton = (point: AimPoint, rect: DOMRect) => (
+  point.x >= rect.left - AIM_CANCEL_MARGIN
+  && point.x <= rect.right + AIM_CANCEL_MARGIN
+  && point.y >= rect.top - AIM_CANCEL_MARGIN
+  && point.y <= rect.bottom + AIM_CANCEL_MARGIN
+);
+
+const LaunchAimPreview: React.FC<AimPreview> = ({ start, target, canceling }) => {
+  const dx = target.x - start.x;
+  const dy = target.y - start.y;
+  const length = Math.hypot(dx, dy);
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-40" aria-hidden="true">
+      {canceling ? (
+        <span
+          className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full border border-red-300/30 bg-black/75 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-red-100 backdrop-blur-sm"
+          style={{ left: start.x, top: start.y - 26 }}
+        >
+          Release to cancel
+        </span>
+      ) : (
+        <>
+      <div
+        className="absolute h-px origin-left bg-gradient-to-r from-orange-300/20 via-yellow-200/80 to-white shadow-[0_0_8px_rgba(253,224,71,0.8)]"
+        style={{
+          left: start.x,
+          top: start.y,
+          width: length,
+          transform: `rotate(${angle}deg)`,
+        }}
+      />
+      <div
+        className="absolute"
+        style={{ left: target.x, top: target.y }}
+      >
+        <span className="absolute block h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-yellow-200/80 shadow-[0_0_18px_rgba(253,224,71,0.65)]">
+          <span className="absolute inset-2 rounded-full border border-white/70" />
+          <span className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_10px_white]" />
+        </span>
+        <span className="absolute left-0 top-7 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-black/65 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-yellow-100 backdrop-blur-sm">
+          Release to launch
+        </span>
+      </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 const DashboardPage: React.FC<DashboardPageProps> = () => {
@@ -75,6 +170,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
+  const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
 
   const mutateAll = useCallback(() => {
     mutateUser();
@@ -90,6 +186,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const launchButtonRef = useRef<HTMLButtonElement>(null);
+  const aimDragRef = useRef<AimDragState | null>(null);
+  const suppressLaunchClickRef = useRef(false);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -158,18 +256,14 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     [journals],
   );
 
-  const handleLaunchSubmit = useCallback(
-    async (event: React.FormEvent) => {
-      event.preventDefault();
+  const launchToTarget = useCallback(
+    async (
+      target: { x: number; y: number; z: number },
+      targetScreen: AimPoint,
+    ) => {
       if (!newEntry.trim() || isSubmitting || isLaunching) return;
 
       const buttonRect = launchButtonRef.current?.getBoundingClientRect();
-      const target = {
-        x: -5.6 + Math.random() * 11.2,
-        y: 0.5 + Math.random() * 3.8,
-        z: -1.5 + Math.random() * 2.5,
-      };
-      const targetScreen = projectTargetToScreen(target);
       const launchId = Date.now();
       setLaunch({
         id: launchId,
@@ -183,7 +277,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       });
       setIsLaunching(true);
       const [savedJournal] = await Promise.all([
-        handleSubmit(event, target),
+        handleSubmit(target),
         new Promise<void>((resolve) => window.setTimeout(resolve, ROCKET_FLIGHT_DURATION_MS)),
       ]);
       setIsLaunching(false);
@@ -198,6 +292,109 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       }
     },
     [handleSubmit, isLaunching, isSubmitting, newEntry],
+  );
+
+  const handleLaunchSubmit = useCallback(
+    (event: React.FormEvent) => {
+      event.preventDefault();
+      const target = {
+        x: -5.6 + Math.random() * 11.2,
+        y: 0.5 + Math.random() * 3.8,
+        z: -1.5 + Math.random() * 2.5,
+      };
+      void launchToTarget(target, projectTargetToScreen(target));
+    },
+    [launchToTarget],
+  );
+
+  const handleAimPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      if (event.button !== 0 || !newEntry.trim() || isSubmitting || isLaunching) return;
+
+      const rect = event.currentTarget.getBoundingClientRect();
+      const start = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      };
+      aimDragRef.current = {
+        pointerId: event.pointerId,
+        pointerStart: { x: event.clientX, y: event.clientY },
+        start,
+        target: start,
+        moved: false,
+        canceling: false,
+      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [isLaunching, isSubmitting, newEntry],
+  );
+
+  const handleAimPointerMove = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      const drag = aimDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      const movement = Math.hypot(
+        event.clientX - drag.pointerStart.x,
+        event.clientY - drag.pointerStart.y,
+      );
+      if (!drag.moved && movement < AIM_DRAG_THRESHOLD) return;
+
+      event.preventDefault();
+      drag.moved = true;
+      const point = { x: event.clientX, y: event.clientY };
+      drag.canceling = isPointOverButton(
+        point,
+        event.currentTarget.getBoundingClientRect(),
+      );
+      if (!drag.canceling) drag.target = clampAimToSky(point.x, point.y);
+      setAimPreview({
+        start: drag.start,
+        target: drag.target,
+        canceling: drag.canceling,
+      });
+    },
+    [],
+  );
+
+  const handleAimPointerUp = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      const drag = aimDragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      aimDragRef.current = null;
+      setAimPreview(null);
+      if (!drag.moved) return;
+
+      event.preventDefault();
+      suppressLaunchClickRef.current = true;
+      window.setTimeout(() => {
+        suppressLaunchClickRef.current = false;
+      }, 0);
+
+      const releasePoint = { x: event.clientX, y: event.clientY };
+      if (isPointOverButton(releasePoint, event.currentTarget.getBoundingClientRect())) {
+        textareaRef.current?.focus();
+        return;
+      }
+
+      drag.target = clampAimToSky(releasePoint.x, releasePoint.y);
+      const z = -1.5 + Math.random() * 2.5;
+      void launchToTarget(projectScreenToTarget(drag.target, z), drag.target);
+    },
+    [launchToTarget],
+  );
+
+  const handleAimPointerCancel = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      if (aimDragRef.current?.pointerId !== event.pointerId) return;
+      aimDragRef.current = null;
+      setAimPreview(null);
+    },
+    [],
   );
 
   if (loading)
@@ -221,6 +418,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         paused={!!selectedJournal || !!selectedPlanetJournals || showArchive}
       />
       <LottieRocketOverlay launch={launch} />
+      {aimPreview && <LaunchAimPreview {...aimPreview} />}
 
       {/* Persistent top navigation */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
@@ -259,6 +457,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         <form
           onSubmit={handleLaunchSubmit}
           data-star-bounce
+          data-launch-composer
           className="pointer-events-auto relative group mx-auto w-full max-w-xl transition-all duration-300 ease-in-out"
         >
             <textarea
@@ -280,24 +479,53 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               ref={launchButtonRef}
               type="submit"
               onClick={(e) => {
+                if (suppressLaunchClickRef.current) {
+                  suppressLaunchClickRef.current = false;
+                  e.preventDefault();
+                  return;
+                }
                 if (!newEntry.trim() || isSubmitting || isLaunching) e.preventDefault();
               }}
-              aria-label={isLaunching ? "Launching entry" : "Launch entry into the sky"}
-              title={isLaunching ? "Launching..." : "Launch entry"}
-              className={`absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full p-0 transition-all flex items-center justify-center cursor-pointer overflow-visible ${
-                isLaunching
+              onPointerDown={handleAimPointerDown}
+              onPointerMove={handleAimPointerMove}
+              onPointerUp={handleAimPointerUp}
+              onPointerCancel={handleAimPointerCancel}
+              aria-label={aimPreview?.canceling
+                ? "Release to cancel the aimed launch"
+                : aimPreview
+                  ? "Release to launch at the selected location"
+                : isLaunching
+                  ? "Launching entry"
+                  : "Launch entry into the sky; drag to aim"}
+              title={aimPreview?.canceling
+                ? "Release to cancel"
+                : aimPreview
+                  ? "Release to launch"
+                : isLaunching
+                  ? "Launching..."
+                  : "Click to launch randomly, or drag to aim"}
+              className={`absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 touch-none rounded-full p-0 transition-all flex items-center justify-center cursor-pointer overflow-visible ${
+                aimPreview?.canceling
+                  ? "bg-red-200 ring-2 ring-red-100/80 shadow-[0_0_18px_rgba(248,113,113,0.75)]"
+                  : aimPreview
+                  ? "bg-yellow-200 ring-2 ring-yellow-100/70 shadow-[0_0_18px_rgba(253,224,71,0.7)]"
+                  : isLaunching
                   ? "bg-orange-200"
                   : !newEntry.trim() || isSubmitting
                     ? "bg-white opacity-30 hover:opacity-100 group-focus-within:opacity-100"
                     : "bg-white hover:bg-gray-200 group-focus-within:bg-gray-200"
               }`}
             >
-              <Rocket
-                size={18}
-                strokeWidth={2.2}
-                className="-rotate-45 text-black"
-                aria-hidden="true"
-              />
+              {aimPreview?.canceling ? (
+                <X size={19} strokeWidth={2.5} className="text-black" aria-hidden="true" />
+              ) : (
+                <Rocket
+                  size={18}
+                  strokeWidth={2.2}
+                  className="-rotate-45 text-black"
+                  aria-hidden="true"
+                />
+              )}
             </button>
         </form>
       </div>

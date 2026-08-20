@@ -53,23 +53,73 @@ const StarBurst: React.FC<{ launch: RocketLaunchData }> = ({ launch }) => {
   }, [launch.id]);
 
   const constellationTargets = useMemo(() => {
-    const vertices = Array.from({ length: 10 }, (_, index) => {
-      const angle = -Math.PI / 2 + (index * Math.PI) / 5;
-      const radius = index % 2 === 0 ? 1.25 : 0.55;
-      return new THREE.Vector3(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * radius,
-        ((index % 3) - 1) * 0.08,
-      );
-    });
+    const pattern = Math.floor(seededUnit(launch.id, 137) * 5);
+    const rotation = seededUnit(launch.id, 211) * Math.PI * 2;
+    const scale = 0.9 + seededUnit(launch.id, 307) * 0.25;
 
-    return Array.from({ length: PARTICLE_COUNT }, (_, index) => {
-      const progress = (index / PARTICLE_COUNT) * vertices.length;
-      const edge = Math.floor(progress) % vertices.length;
-      const amount = progress - Math.floor(progress);
-      return vertices[edge].clone().lerp(vertices[(edge + 1) % vertices.length], amount);
-    });
-  }, []);
+    const samplePolygon = (vertices: THREE.Vector3[]) =>
+      Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+        const progress = (index / PARTICLE_COUNT) * vertices.length;
+        const edge = Math.floor(progress) % vertices.length;
+        const amount = progress - Math.floor(progress);
+        return vertices[edge]
+          .clone()
+          .lerp(vertices[(edge + 1) % vertices.length], amount);
+      });
+
+    let targets: THREE.Vector3[];
+    if (pattern === 0) {
+      const vertices = Array.from({ length: 10 }, (_, index) => {
+        const angle = -Math.PI / 2 + (index * Math.PI) / 5;
+        const radius = index % 2 === 0 ? 1.25 : 0.55;
+        return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+      });
+      targets = samplePolygon(vertices);
+    } else if (pattern === 1) {
+      const vertices = Array.from({ length: 8 }, (_, index) => {
+        const angle = -Math.PI / 2 + (index * Math.PI) / 4;
+        const radius = index % 2 === 0 ? 1.35 : 0.38;
+        return new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+      });
+      targets = samplePolygon(vertices);
+    } else if (pattern === 2) {
+      targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+        const progress = index / (PARTICLE_COUNT - 1);
+        const angle = progress * Math.PI * 4.5;
+        const radius = 0.12 + progress * 1.15;
+        return new THREE.Vector3(
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          (progress - 0.5) * 0.18,
+        );
+      });
+    } else if (pattern === 3) {
+      targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+        const angle = (index / PARTICLE_COUNT) * Math.PI * 2;
+        const radius = 1 + Math.sin(index * 2.7) * 0.12;
+        return new THREE.Vector3(
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          Math.sin(index * 1.9) * 0.08,
+        );
+      });
+    } else {
+      targets = Array.from({ length: PARTICLE_COUNT }, (_, index) => {
+        const angle = seededUnit(launch.id, 400 + index * 2) * Math.PI * 2;
+        const radius = Math.sqrt(seededUnit(launch.id, 401 + index * 2)) * 1.15;
+        return new THREE.Vector3(
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          (seededUnit(launch.id, 500 + index) - 0.5) * 0.25,
+        );
+      });
+    }
+
+    const rotationAxis = new THREE.Vector3(0, 0, 1);
+    return targets.map((target) =>
+      target.applyAxisAngle(rotationAxis, rotation).multiplyScalar(scale),
+    );
+  }, [launch.id]);
 
   useFrame((_, delta) => {
     elapsed.current += Math.min(delta, 0.05);

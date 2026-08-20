@@ -7,10 +7,8 @@ export const useCreateJournal = (mutateAll: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (
-    e: React.FormEvent,
     position: { x: number; y: number; z: number },
   ): Promise<Journal | null> => {
-    e.preventDefault();
     if (!newEntry.trim() || isSubmitting) return null;
     setIsSubmitting(true);
     try {
