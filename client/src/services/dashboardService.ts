@@ -1,4 +1,5 @@
 import { apiFetch } from './api';
+import { isTimelineDemoJournal } from '../utils/timelineDemo';
 
 export const dashboardService = {
   createJournal: (content: string, position: { x: number; y: number; z: number }) =>
@@ -19,7 +20,7 @@ export const dashboardService = {
     }),
 
   updateJournalPosition: (id: string, position: { x: number; y: number; z: number }) =>
-    apiFetch(`/journals/${id}/position`, {
+    isTimelineDemoJournal(id) ? Promise.resolve({ position }) : apiFetch(`/journals/${id}/position`, {
       method: 'PUT',
       body: JSON.stringify(position),
     }),

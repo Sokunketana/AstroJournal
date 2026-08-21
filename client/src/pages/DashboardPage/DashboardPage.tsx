@@ -23,6 +23,7 @@ import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
+import { isTimelineDemo } from "../../utils/timelineDemo";
 import type { DashboardPageProps } from "./DashboardPage.types";
 import type { RocketLaunchData } from "../../components/SkyBackground/SkyBackground.types";
 import {
@@ -140,6 +141,7 @@ const LaunchAimPreview: React.FC<AimPreview> = ({ start, target, canceling }) =>
 const DashboardPage: React.FC<DashboardPageProps> = () => {
   const { logout } = useAuth();
   const router = useRouter();
+  const timelineDemo = isTimelineDemo();
 
   // fetch user data
   const {
@@ -414,7 +416,11 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
           <div className="flex items-center gap-4 h-11.5" data-star-bounce>
             <Logo className="text-2xl" />
-
+            {timelineDemo && (
+              <span className="hidden rounded-full border border-violet-300/20 bg-violet-300/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-violet-200 sm:inline-flex">
+                Timeline demo
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-4 h-11.5" data-star-bounce>

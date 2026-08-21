@@ -1,8 +1,19 @@
 import useSWR from 'swr';
 import { apiFetch } from '../services/api';
+import {
+  createTimelineDemoJournals,
+  isTimelineDemo,
+  timelineDemoUser,
+} from '../utils/timelineDemo';
 
 // SWR fetcher that wraps our existing apiFetch
-const fetcher = (endpoint: string) => apiFetch(endpoint);
+const demoJournals = createTimelineDemoJournals();
+const fetcher = (endpoint: string) => {
+  if (isTimelineDemo()) {
+    return Promise.resolve(endpoint === '/users/me' ? timelineDemoUser : demoJournals);
+  }
+  return apiFetch(endpoint);
+};
 
 export function useUserData() {
   return useSWR('/users/me', fetcher, {
