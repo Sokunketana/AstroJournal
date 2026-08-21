@@ -2,11 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Check, Link2, MousePointer2, Palette, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Button from '../Button';
+import ConfirmDialog from '../ConfirmDialog';
 import { formatShortDate } from '../../utils/dateUtils';
 import type { Constellation, ConstellationInput } from '../../types';
 import type { ConstellationModalProps } from './ConstellationModal.types';
 
-const DEFAULT_COLOR = '#a78bfa';
+const DEFAULT_COLOR = "#787878";
 
 interface HslColor {
   h: number;
@@ -72,6 +73,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Constellation | null>(null);
 
   const hslColor = useMemo(() => hexToHsl(color), [color]);
 
@@ -141,8 +143,10 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
     }
   };
 
-  const remove = async (constellation: Constellation) => {
-    if (!window.confirm(`Delete “${constellation.title}”? Your journal entries will remain.`)) return;
+  const confirmRemove = async () => {
+    if (!deleteTarget) return;
+    const constellation = deleteTarget;
+    setDeleteTarget(null);
     setBusy(true);
     setError('');
     try {
@@ -157,11 +161,13 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   const close = () => {
     leaveEditor();
     setViewing(null);
+    setDeleteTarget(null);
     onClose();
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={close} maxWidth="2xl" className="max-h-[85vh]">
+    <>
+      <Modal isOpen={isOpen} onClose={close} maxWidth="2xl" className="max-h-[85vh]">
       {editing ? (
         <>
           <div className="mb-5 flex items-center gap-3 pr-10">
@@ -433,7 +439,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
                 <button onClick={() => beginEdit(constellation)} className="rounded-full p-2 text-gray-500 transition hover:bg-white/10 hover:text-white" aria-label={`Edit ${constellation.title}`}>
                   <Pencil size={16} />
                 </button>
-                <button onClick={() => void remove(constellation)} disabled={busy} className="rounded-full p-2 text-gray-500 transition hover:bg-red-400/10 hover:text-red-400" aria-label={`Delete ${constellation.title}`}>
+                <button onClick={() => setDeleteTarget(constellation)} disabled={busy} className="rounded-full p-2 text-gray-500 transition hover:bg-red-400/10 hover:text-red-400" aria-label={`Delete ${constellation.title}`}>
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -441,7 +447,18 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
           </div>
         </>
       )}
-    </Modal>
+      </Modal>
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete constellation?"
+        message={deleteTarget
+          ? `Delete “${deleteTarget.title}”? Its connecting lines will disappear, but all grouped journal entries will remain.`
+          : ''}
+        confirmLabel="Delete"
+        onConfirm={() => void confirmRemove()}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    </>
   );
 };
 
