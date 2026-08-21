@@ -131,6 +131,10 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   }, []);
 
   const weekWidth = getWeekWorldWidth(aspect);
+  const journalWeekIndexes = useMemo(
+    () => new Map(looseJournals.map((journal) => [journal._id, dateToWeekIndex(journal.createdAt)])),
+    [looseJournals],
+  );
   const earliestWeek = useMemo(
     () => Math.min(0, ...looseJournals.map((journal) => dateToWeekIndex(journal.createdAt))),
     [looseJournals],
@@ -245,6 +249,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
             ? constellations.filter((constellation) => constellation._id !== selectionDraft.editingId)
             : constellations}
           positionsRef={starPositionsRef}
+          weekIndexes={journalWeekIndexes}
           draft={selectionDraft}
         />
 
