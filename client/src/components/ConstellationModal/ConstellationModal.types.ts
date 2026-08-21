@@ -12,5 +12,5 @@ export interface ConstellationModalProps {
     journalIds: string[];
     color: string;
     editingId?: string;
-  }, onComplete: (journalIds: string[]) => void) => void;
+  }, onComplete: (journalIds: string[]) => void, onSave: (journalIds: string[]) => Promise<boolean>) => void;
 }

@@ -58,6 +58,7 @@ interface SkySelectionDraft {
   color: string;
   editingId?: string;
   onComplete: (journalIds: string[]) => void;
+  onSave: (journalIds: string[]) => Promise<boolean>;
 }
 
 const AIM_DRAG_THRESHOLD = 8;
@@ -175,6 +176,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showConstellations, setShowConstellations] = useState(false);
   const [skySelection, setSkySelection] = useState<SkySelectionDraft | null>(null);
+  const [isSavingSkySelection, setIsSavingSkySelection] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
@@ -282,10 +284,11 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   }, [skySelection]);
 
   const beginSkySelection = useCallback((
-    draft: Omit<SkySelectionDraft, 'onComplete'>,
+    draft: Omit<SkySelectionDraft, 'onComplete' | 'onSave'>,
     onComplete: (journalIds: string[]) => void,
+    onSave: (journalIds: string[]) => Promise<boolean>,
   ) => {
-    setSkySelection({ ...draft, onComplete });
+    setSkySelection({ ...draft, onComplete, onSave });
     setShowConstellations(false);
   }, []);
 
@@ -300,6 +303,26 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     setSkySelection(null);
     setShowConstellations(true);
   }, []);
+
+  const saveSkySelection = useCallback(async () => {
+    if (!skySelection || isSavingSkySelection) return;
+    setIsSavingSkySelection(true);
+    const saved = await skySelection.onSave(skySelection.journalIds);
+    setIsSavingSkySelection(false);
+    setSkySelection(null);
+    if (!saved) setShowConstellations(true);
+  }, [isSavingSkySelection, skySelection]);
+
+  useEffect(() => {
+    if (!skySelection) return;
+    const handleSelectionKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter' || event.repeat) return;
+      event.preventDefault();
+      void saveSkySelection();
+    };
+    window.addEventListener('keydown', handleSelectionKeyDown);
+    return () => window.removeEventListener('keydown', handleSelectionKeyDown);
+  }, [saveSkySelection, skySelection]);
 
   const handleArchiveSelect = useCallback(
     (journal: Journal) => {
@@ -625,12 +648,12 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-white">Select stars in connection order</p>
-              <p className="text-xs text-gray-400">Hover to read an entry. Click to select or remove it.</p>
+              <p className="text-xs text-gray-400">Hover to read. Click to select. Press Enter to save.</p>
             </div>
-            <button onClick={cancelSkySelection} className="rounded-xl px-3 py-2 text-xs font-bold uppercase text-gray-400 transition hover:bg-white/10 hover:text-white">
+            <button onClick={cancelSkySelection} disabled={isSavingSkySelection} className="rounded-xl px-3 py-2 text-xs font-bold uppercase text-gray-400 transition hover:bg-white/10 hover:text-white disabled:opacity-40">
               Cancel
             </button>
-            <button onClick={finishSkySelection} className="rounded-xl bg-white px-4 py-2 text-xs font-bold uppercase text-black transition hover:bg-gray-200">
+            <button onClick={finishSkySelection} disabled={isSavingSkySelection} className="rounded-xl bg-white px-4 py-2 text-xs font-bold uppercase text-black transition hover:bg-gray-200 disabled:opacity-40">
               Done
             </button>
           </div>

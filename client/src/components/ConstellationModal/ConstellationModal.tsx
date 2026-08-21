@@ -125,19 +125,28 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
     setColor(hslToHex({ h: hue, s: saturation, l: hslColor.l }));
   };
 
-  const save = async () => {
-    if (!title.trim()) return setError('Give this constellation a name.');
-    if (selectedIds.length < 2) return setError('Choose at least two journal stars.');
+  const saveSelection = async (journalIds: string[]): Promise<boolean> => {
+    setSelectedIds(journalIds);
+    if (!title.trim()) {
+      setError('Give this constellation a name.');
+      return false;
+    }
+    if (journalIds.length < 2) {
+      setError('Choose at least two journal stars.');
+      return false;
+    }
 
-    const input: ConstellationInput = { title: title.trim(), color, journalIds: selectedIds };
+    const input: ConstellationInput = { title: title.trim(), color, journalIds };
     setBusy(true);
     setError('');
     try {
       if (editing === 'new') await onCreate(input);
       else if (editing) await onUpdate(editing._id, input);
       leaveEditor();
+      return true;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not save the constellation.');
+      return false;
     } finally {
       setBusy(false);
     }
@@ -293,6 +302,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
                 editingId: editing === 'new' ? undefined : editing._id,
               },
               setSelectedIds,
+              saveSelection,
             )}
             className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-violet-300/40 bg-violet-400/8 px-4 py-5 text-sm font-semibold text-violet-100 transition hover:border-violet-200/70 hover:bg-violet-400/15"
           >
@@ -347,7 +357,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
           {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
           <div className="mt-5 flex justify-end gap-2 border-t border-white/5 pt-4">
             <Button variant="ghost" onClick={leaveEditor} disabled={busy}>Cancel</Button>
-            <Button icon={Save} onClick={() => void save()} disabled={busy || selectedIds.length < 2 || !title.trim()}>
+            <Button icon={Save} onClick={() => void saveSelection(selectedIds)} disabled={busy || selectedIds.length < 2 || !title.trim()}>
               {busy ? 'Saving…' : 'Save constellation'}
             </Button>
           </div>
