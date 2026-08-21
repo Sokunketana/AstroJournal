@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ArrowLeft, BookOpen, Link2, MousePointer2, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Button from '../Button';
@@ -26,6 +26,13 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  const sortedJournals = useMemo(
+    () => [...journals].sort(
+      (first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime(),
+    ),
+    [journals],
+  );
+
   const beginEdit = (constellation: Constellation | 'new') => {
     setViewing(null);
     setEditing(constellation);
@@ -37,6 +44,20 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
 
   const leaveEditor = () => {
     setEditing(null);
+    setError('');
+  };
+
+  const toggleJournal = (journalId: string) => {
+    if (selectedIds.includes(journalId)) {
+      setSelectedIds((current) => current.filter((id) => id !== journalId));
+      setError('');
+      return;
+    }
+    if (selectedIds.length >= 30) {
+      setError('A constellation can contain at most 30 stars.');
+      return;
+    }
+    setSelectedIds((current) => [...current, journalId]);
     setError('');
   };
 
@@ -143,28 +164,47 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
             {selectedIds.length ? 'Continue selecting stars in the sky' : 'Select stars in the sky'}
           </button>
 
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Or select from your journal list</p>
+            <p className="text-xs text-gray-600">Click again to remove</p>
+          </div>
           <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
-            {selectedIds.length === 0 ? (
+            {sortedJournals.length === 0 ? (
               <div className="py-8 text-center">
                 <Star size={26} className="mx-auto mb-2 text-gray-700" />
-                <p className="text-sm text-gray-500">No stars selected yet.</p>
+                <p className="text-sm text-gray-500">No journal stars available yet.</p>
               </div>
-            ) : selectedIds.map((journalId, index) => {
-              const journal = journals.find((item) => item._id === journalId);
-              if (!journal) return null;
+            ) : sortedJournals.map((journal) => {
+              const selectionIndex = selectedIds.indexOf(journal._id);
+              const selected = selectionIndex >= 0;
               return (
-                <div key={journalId} className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3">
+                <button
+                  key={journal._id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleJournal(journal._id)}
+                  className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
+                    selected
+                      ? 'border-white/30 bg-white/12'
+                      : 'border-white/5 bg-white/5 hover:border-white/15 hover:bg-white/10'
+                  }`}
+                >
                   <span
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/60 text-xs font-bold"
-                    style={{ color, boxShadow: `0 0 14px ${color}88` }}
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
+                      selected ? 'border-white/60' : 'border-white/15 text-gray-600'
+                    }`}
+                    style={selected ? { color, boxShadow: `0 0 14px ${color}88` } : undefined}
                   >
-                    {index + 1}
+                    {selected ? selectionIndex + 1 : <Star size={13} />}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-semibold text-gray-300">{formatShortDate(journal.createdAt)}</span>
                     <span className="block truncate text-sm text-gray-500">{journal.content}</span>
                   </span>
-                </div>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${selected ? 'text-white' : 'text-gray-600'}`}>
+                    {selected ? 'Selected' : 'Select'}
+                  </span>
+                </button>
               );
             })}
           </div>
