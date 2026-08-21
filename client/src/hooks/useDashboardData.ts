@@ -17,3 +17,10 @@ export function useJournals() {
     dedupingInterval: 5000,
   });
 }
+
+export function useConstellations() {
+  return useSWR('/constellations', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 5000,
+  });
+}

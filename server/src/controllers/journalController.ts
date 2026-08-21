@@ -4,6 +4,7 @@ import Journal from '../models/Journal.js';
 import User from '../models/User.js';
 import { detectEmotion } from '../utils/emotion.js';
 import mongoose from 'mongoose';
+import Constellation from '../models/Constellation.js';
 
 interface JournalPosition {
   x: number;
@@ -181,6 +182,12 @@ export const deleteJournal = async (req: AuthRequest, res: Response) => {
 
     await user.save();
     await journal.deleteOne();
+
+    await Constellation.updateMany(
+      { userId, journalIds: journal._id },
+      { $pull: { journalIds: journal._id } },
+    );
+    await Constellation.deleteMany({ userId, 'journalIds.1': { $exists: false } });
 
     res.json({ message: 'Journal deleted and stats reverted', user: { currentStreak: user.currentStreak, totalStars: user.totalStars } });
   } catch (error) {

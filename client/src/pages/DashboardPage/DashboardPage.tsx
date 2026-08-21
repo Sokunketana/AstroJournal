@@ -8,8 +8,9 @@ import {
 import { useDeleteJournal } from "../../hooks/dashboard/useDeleteJournal";
 import { useUpdateJournal } from "../../hooks/dashboard/useUpdateJournal";
 import { useUpdateJournalPosition } from "../../hooks/dashboard/useUpdateJournalPosition";
-import { useUserData, useJournals } from "../../hooks/useDashboardData";
-import type { Journal, User } from "../../types";
+import { useUserData, useJournals, useConstellations } from "../../hooks/useDashboardData";
+import type { Constellation, ConstellationInput, Journal, User } from "../../types";
+import { dashboardService } from "../../services/dashboardService";
 import SkyBackground from "../../components/SkyBackground";
 import LottieRocketOverlay, {
   ROCKET_FLIGHT_DURATION_MS,
@@ -21,6 +22,7 @@ import StatBadge from "../../components/StatBadge";
 import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
+import ConstellationModal from "../../components/ConstellationModal";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
@@ -31,6 +33,7 @@ import {
   Rocket,
   Search,
   X,
+  Share2,
 } from "lucide-react";
 
 interface AimPoint {
@@ -155,9 +158,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     mutate: mutateJournals,
   } = useJournals();
 
+  const {
+    data: constellations = [],
+    mutate: mutateConstellations,
+  } = useConstellations();
+
   const [selectedJournal, setSelectedJournal] = useState<Journal | null>(null);
   const [showArchive, setShowArchive] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showConstellations, setShowConstellations] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
@@ -166,7 +175,32 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const mutateAll = useCallback(() => {
     mutateUser();
     mutateJournals();
-  }, [mutateUser, mutateJournals]);
+    mutateConstellations();
+  }, [mutateUser, mutateJournals, mutateConstellations]);
+
+  const createConstellation = useCallback(async (input: ConstellationInput) => {
+    const created = await dashboardService.createConstellation(input) as Constellation;
+    await mutateConstellations(
+      (current: Constellation[] | undefined = []) => [created, ...current],
+      { revalidate: false },
+    );
+  }, [mutateConstellations]);
+
+  const updateConstellation = useCallback(async (id: string, input: ConstellationInput) => {
+    const updated = await dashboardService.updateConstellation(id, input) as Constellation;
+    await mutateConstellations(
+      (current: Constellation[] | undefined = []) => current.map((item) => item._id === id ? updated : item),
+      { revalidate: false },
+    );
+  }, [mutateConstellations]);
+
+  const deleteConstellation = useCallback(async (id: string) => {
+    await dashboardService.deleteConstellation(id);
+    await mutateConstellations(
+      (current: Constellation[] | undefined = []) => current.filter((item) => item._id !== id),
+      { revalidate: false },
+    );
+  }, [mutateConstellations]);
 
   const applyJournalCreation = useCallback((result: JournalCreationResult) => {
     void mutateJournals(
@@ -401,10 +435,11 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         totalStars={userData?.totalStars || 0}
         launch={launch}
         looseJournals={journals}
+        constellations={constellations}
         onStarClick={handleStarClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
         focusCurrentSignal={focusCurrentSignal}
-        paused={!!selectedJournal || showArchive}
+        paused={!!selectedJournal || showArchive || showConstellations}
       />
       <LottieRocketOverlay launch={launch} />
       {aimPreview && <LaunchAimPreview {...aimPreview} />}
@@ -418,6 +453,14 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           </div>
 
           <div className="flex items-center gap-4 h-11.5" data-star-bounce>
+            <button
+              onClick={() => setShowConstellations(true)}
+              className="p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm text-gray-400 hover:text-violet-200 hover:bg-white/10 transition-all cursor-pointer"
+              aria-label="Manage constellations"
+              title="Constellations"
+            >
+              <Share2 size={18} />
+            </button>
             <button
               onClick={() => setShowArchive(true)}
               className="p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
@@ -591,6 +634,16 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onClose={() => setShowArchive(false)}
         journals={journals}
         onSelect={handleArchiveSelect}
+      />
+
+      <ConstellationModal
+        isOpen={showConstellations}
+        onClose={() => setShowConstellations(false)}
+        constellations={constellations}
+        journals={journals}
+        onCreate={createConstellation}
+        onUpdate={updateConstellation}
+        onDelete={deleteConstellation}
       />
 
       {/* Delete Confirmation Dialog */}

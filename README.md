@@ -24,4 +24,5 @@ Gamified Daily Diary & Celestial Streak Tracker.
 - **Star Generation**: Each entry earns you a star in your digital sky.
 - **Streak Tracker**: Tracks consecutive days of journaling.
 - **3D Sky Interface**: Interactive 3D visualization of your progress.
+- **Personal Constellations**: Group journal stars into named, color-coded stories with live connecting lines.
 - **Archive**: View and manage previous entries.

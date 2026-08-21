@@ -23,6 +23,7 @@ export interface InstancedJournalStarsProps {
   onHover: (tooltip: SkyTooltipData | null) => void;
   impact?: RocketLaunchData | null;
   paused?: boolean;
+  positionsRef?: React.MutableRefObject<Map<string, THREE.Vector3>>;
 }
 
 interface StarEntry {
@@ -118,6 +119,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   onHover,
   impact,
   paused,
+  positionsRef,
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const entriesRef = useRef<StarEntry[]>([]);
@@ -507,6 +509,12 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       _renderWorld.x = timelineToRenderX(e.pos.x, e.pos.z, camera);
       _matrix.compose(_renderWorld, _quaternion, _scale);
       mesh.setMatrixAt(i, _matrix);
+
+      if (positionsRef) {
+        const sharedPosition = positionsRef.current.get(e.id);
+        if (sharedPosition) sharedPosition.copy(_renderWorld);
+        else positionsRef.current.set(e.id, _renderWorld.clone());
+      }
 
       _color.set(emotionColor(e.journal.emotion)).multiplyScalar(1.5);
       mesh.setColorAt(i, _color);
