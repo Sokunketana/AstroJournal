@@ -1,9 +1,8 @@
 import { createFileRoute, redirect, Outlet } from '@tanstack/react-router';
-import { isTimelineDemo } from '../utils/timelineDemo';
 
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: ({ context }) => {
-    if (!context.auth.isAuthenticated && !isTimelineDemo()) {
+    if (!context.auth.isAuthenticated) {
       throw redirect({ to: '/login' });
     }
   },
