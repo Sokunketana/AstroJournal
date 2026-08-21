@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
@@ -23,6 +23,9 @@ export interface InstancedJournalStarsProps {
   onHover: (tooltip: SkyTooltipData | null) => void;
   impact?: RocketLaunchData | null;
   paused?: boolean;
+  positionsRef?: React.MutableRefObject<Map<string, THREE.Vector3>>;
+  selectedIds?: string[];
+  selectionColor?: string;
 }
 
 interface StarEntry {
@@ -118,6 +121,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   onHover,
   impact,
   paused,
+  positionsRef,
+  selectedIds = [],
+  selectionColor = '#ffffff',
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const entriesRef = useRef<StarEntry[]>([]);
@@ -134,6 +140,10 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   const ndcRef = useRef(new THREE.Vector2());
   const uiRectsRef = useRef<UiRect[]>([]);
   const lastImpactIdRef = useRef<number | null>(null);
+  const selectedOrder = useMemo(
+    () => new Map(selectedIds.map((id, index) => [id, index + 1])),
+    [selectedIds],
+  );
 
   useEffect(() => {
     if (!impact?.confirmed || lastImpactIdRef.current === impact.id) return;
@@ -496,7 +506,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       const spawn = easeOutCubic(
         THREE.MathUtils.clamp((tWall - e.birth) / SPAWN_DURATION, 0, 1),
       );
-      const scale = Math.max(spawn * (1 + 0.3 * e.hover), 0.001);
+      const isSelected = selectedOrder.has(e.id);
+      const scale = Math.max(spawn * (1 + 0.3 * e.hover) * (isSelected ? 1.45 : 1), 0.001);
 
       _quaternion.setFromAxisAngle(
         THREE.Object3D.DEFAULT_UP,
@@ -508,7 +519,13 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       _matrix.compose(_renderWorld, _quaternion, _scale);
       mesh.setMatrixAt(i, _matrix);
 
-      _color.set(emotionColor(e.journal.emotion)).multiplyScalar(1.5);
+      if (positionsRef) {
+        const sharedPosition = positionsRef.current.get(e.id);
+        if (sharedPosition) sharedPosition.copy(_renderWorld);
+        else positionsRef.current.set(e.id, _renderWorld.clone());
+      }
+
+      _color.set(isSelected ? selectionColor : emotionColor(e.journal.emotion)).multiplyScalar(isSelected ? 2 : 1.5);
       mesh.setColorAt(i, _color);
     }
     mesh.instanceMatrix.needsUpdate = true;
@@ -526,7 +543,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       if (entry) {
         document.body.style.cursor = "grab";
         onHover({
-          title: formatShortDate(entry.journal.createdAt),
+          title: selectedOrder.has(entry.id)
+            ? `${formatShortDate(entry.journal.createdAt)} · Selected ${selectedOrder.get(entry.id)}`
+            : formatShortDate(entry.journal.createdAt),
           subtitle: entry.journal.content,
           color: emotionColor(entry.journal.emotion),
           x: e.clientX,

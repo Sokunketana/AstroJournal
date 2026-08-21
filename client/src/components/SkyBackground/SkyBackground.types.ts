@@ -1,4 +1,4 @@
-import type { Journal } from "../../types";
+import type { Constellation, Journal } from "../../types";
 
 export interface SkyTooltipData {
   title: string;
@@ -30,6 +30,12 @@ export interface SkyBackgroundProps {
   totalStars: number;
   launch: RocketLaunchData | null;
   looseJournals: Journal[];
+  constellations: Constellation[];
+  selectionDraft?: {
+    journalIds: string[];
+    color: string;
+    editingId?: string;
+  } | null;
   onStarClick: (journal: Journal) => void;
   onJournalPositionUpdate: (
     id: string,

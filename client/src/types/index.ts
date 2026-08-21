@@ -20,3 +20,19 @@ export interface User {
   lastEntryDate: string | null;
 }
 
+export interface Constellation {
+  _id: string;
+  userId: string;
+  title: string;
+  color: string;
+  journalIds: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConstellationInput {
+  title: string;
+  color: string;
+  journalIds: string[];
+}
+

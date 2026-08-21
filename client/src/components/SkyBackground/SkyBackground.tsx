@@ -12,6 +12,7 @@ import TimelineCameraController, {
   type TimelineViewState,
 } from "./TimelineCameraController";
 import TimelineSkyGuide from "./TimelineSkyGuide";
+import ConstellationLines from "./ConstellationLines";
 import {
   BASE_CAMERA_Z,
   dateToWeekIndex,
@@ -81,6 +82,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   totalStars,
   launch,
   looseJournals,
+  constellations,
+  selectionDraft,
   onStarClick,
   onJournalPositionUpdate,
   focusCurrentSignal = 0,
@@ -98,6 +101,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
     weekPosition: 0,
     zoom: BASE_CAMERA_Z,
   });
+  const starPositionsRef = React.useRef<Map<string, THREE.Vector3>>(new Map());
 
   useEffect(() => {
     const updateAspect = () => setAspect(window.innerWidth / window.innerHeight);
@@ -127,6 +131,10 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   }, []);
 
   const weekWidth = getWeekWorldWidth(aspect);
+  const journalWeekIndexes = useMemo(
+    () => new Map(looseJournals.map((journal) => [journal._id, dateToWeekIndex(journal.createdAt)])),
+    [looseJournals],
+  );
   const earliestWeek = useMemo(
     () => Math.min(0, ...looseJournals.map((journal) => dateToWeekIndex(journal.createdAt))),
     [looseJournals],
@@ -231,6 +239,18 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           onHover={setTooltip}
           impact={launch}
           paused={paused}
+          positionsRef={starPositionsRef}
+          selectedIds={selectionDraft?.journalIds}
+          selectionColor={selectionDraft?.color}
+        />
+
+        <ConstellationLines
+          constellations={selectionDraft?.editingId
+            ? constellations.filter((constellation) => constellation._id !== selectionDraft.editingId)
+            : constellations}
+          positionsRef={starPositionsRef}
+          weekIndexes={journalWeekIndexes}
+          draft={selectionDraft}
         />
 
         {quality === "high" && (
