@@ -314,7 +314,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
               setSelectedIds,
               saveSelection,
             )}
-            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-violet-300/40 bg-violet-400/8 px-4 py-5 text-sm font-semibold text-violet-100 transition hover:border-violet-200/70 hover:bg-violet-400/15"
+            className="mb-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-violet-300/40 bg-violet-400/8 px-4 py-5 text-sm font-semibold text-violet-100 transition hover:border-violet-200/70 hover:bg-violet-400/15"
           >
             <MousePointer2 size={18} />
             {selectedIds.length ? 'Continue selecting stars in the sky' : 'Select stars in the sky'}
@@ -367,7 +367,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
           {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
           <div className="mt-5 flex justify-end gap-2 border-t border-white/5 pt-4">
             <Button type="button" variant="ghost" onClick={leaveEditor} disabled={busy}>Cancel</Button>
-            <Button type="submit" icon={Save} disabled={busy || selectedIds.length < 2 || !title.trim()}>
+            <Button type="submit" icon={Save} className="cursor-pointer disabled:cursor-not-allowed" disabled={busy || selectedIds.length < 2 || !title.trim()}>
               {busy ? 'Saving…' : 'Save constellation'}
             </Button>
           </div>
