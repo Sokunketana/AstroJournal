@@ -7,7 +7,6 @@ export const useDeleteJournal = (
   mutateJournals: KeyedMutator<Journal[]>,
   mutateAll: () => void,
   setSelectedJournal: (journal: Journal | null) => void,
-  setSelectedPlanetJournals: (journals: Journal[] | null) => void
 ) => {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
@@ -27,7 +26,6 @@ export const useDeleteJournal = (
         false,
       );
       setSelectedJournal(null);
-      setSelectedPlanetJournals(null);
 
       await dashboardService.deleteJournal(id);
       mutateAll();

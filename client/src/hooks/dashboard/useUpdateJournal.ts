@@ -7,8 +7,6 @@ export const useUpdateJournal = (
   mutateJournals: KeyedMutator<Journal[]>,
   selectedJournal: Journal | null,
   setSelectedJournal: React.Dispatch<React.SetStateAction<Journal | null>>,
-  selectedPlanetJournals: Journal[] | null,
-  setSelectedPlanetJournals: React.Dispatch<React.SetStateAction<Journal[] | null>>
 ) => {
   const [editingJournalId, setEditingJournalId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -20,16 +18,6 @@ export const useUpdateJournal = (
       // Update the selected journal if it's the one being edited
       if (selectedJournal && selectedJournal._id === id) {
         setSelectedJournal({ ...selectedJournal, content: updated.content });
-      }
-      // Update planet journals if viewing planet modal
-      if (selectedPlanetJournals) {
-        setSelectedPlanetJournals((prev) =>
-          prev
-            ? prev.map((j) =>
-              j._id === id ? { ...j, content: updated.content } : j,
-            )
-            : null,
-        );
       }
       setEditingJournalId(null);
       setEditContent("");

@@ -24,9 +24,4 @@ export const dashboardService = {
       body: JSON.stringify(position),
     }),
 
-  updatePlanetPosition: (id: string, position: { x: number; y: number; z: number }) =>
-    apiFetch(`/planets/${id}/position`, {
-      method: 'PUT',
-      body: JSON.stringify(position),
-    }),
 };
