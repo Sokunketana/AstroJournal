@@ -21,7 +21,6 @@ import StatBadge from "../../components/StatBadge";
 import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
-import StarTimeline from "../../components/StarTimeline";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
@@ -162,6 +161,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
+  const [focusCurrentSignal, setFocusCurrentSignal] = useState(0);
 
   const mutateAll = useCallback(() => {
     mutateUser();
@@ -403,6 +403,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         looseJournals={journals}
         onStarClick={handleStarClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
+        focusCurrentSignal={focusCurrentSignal}
         paused={!!selectedJournal || showArchive}
       />
       <LottieRocketOverlay launch={launch} />
@@ -439,11 +440,6 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         </header>
       </div>
 
-      {/* Zoomable star history: weekly detail and monthly progress. */}
-      <div className="fixed bottom-[5.75rem] inset-x-0 z-40 pointer-events-none px-4 sm:px-6">
-        <StarTimeline journals={journals} onSelect={handleStarClick} />
-      </div>
-
       {/* Bottom composer: entries launch upward into the sky. */}
       <div className="fixed bottom-0 inset-x-0 z-50 pointer-events-none px-4 pb-6 sm:px-6">
         <form
@@ -456,6 +452,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               ref={textareaRef}
               value={newEntry}
               onChange={(e) => setNewEntry(e.target.value)}
+              onFocus={() => setFocusCurrentSignal((signal) => signal + 1)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();

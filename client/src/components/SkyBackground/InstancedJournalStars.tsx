@@ -10,7 +10,14 @@ import { getStarGeometry } from "./starGeometry";
 import type { RocketLaunchData, SkyTooltipData } from "./SkyBackground.types";
 
 export interface InstancedJournalStarsProps {
-  stars: { id: string; position: [number, number, number]; journal: Journal }[];
+  stars: {
+    id: string;
+    position: [number, number, number];
+    anchorX: number;
+    minX: number;
+    maxX: number;
+    journal: Journal;
+  }[];
   onClick: (journal: Journal) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
   onHover: (tooltip: SkyTooltipData | null) => void;
@@ -26,6 +33,9 @@ interface StarEntry {
   vel: THREE.Vector3;
   phase: number;
   speedFactor: number;
+  anchorX: number;
+  minX: number;
+  maxX: number;
   birth: number;
   hover: number;
 }
@@ -185,10 +195,17 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
   useEffect(() => {
     const now = performance.now() / 1000;
-    const existing = new Map(entriesRef.current.map((e) => [e.id, e]));    entriesRef.current = stars.map((star) => {
+    const existing = new Map(entriesRef.current.map((e) => [e.id, e]));
+    entriesRef.current = stars.map((star) => {
       const old = existing.get(star.id);
       if (old) {
+        const anchorMovement = star.anchorX - old.anchorX;
         old.journal = star.journal;
+        old.anchorX = star.anchorX;
+        old.minX = star.minX;
+        old.maxX = star.maxX;
+        old.pos.x += anchorMovement;
+        old.home.set(...star.position);
         return old;
       }
       return {
@@ -199,6 +216,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         vel: new THREE.Vector3(),
         phase: Math.random() * 1000,
         speedFactor: 0.3 + 0.4 * noise3D(Math.random() * 1000, 1, 0),
+        anchorX: star.anchorX,
+        minX: star.minX,
+        maxX: star.maxX,
         birth: now,
         hover: 0,
       };
@@ -256,6 +276,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       const dir = vector.sub(cam.position).normalize();
       const distance = (entry.pos.z - cam.position.z) / dir.z;
       const pos = cam.position.clone().add(dir.multiplyScalar(distance));
+      pos.x = THREE.MathUtils.clamp(pos.x, entry.minX, entry.maxX);
       const now = performance.now();
       const dt = Math.max((now - drag.time) / 1000, 0.001);
       drag.vel
@@ -275,7 +296,11 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       if (!entry) return;
       // Throw: hand the drag velocity back to the star for momentum
       entry.vel.copy(drag.vel).clampLength(0, 8);
-      onDragEnd(entry.id, { x: entry.pos.x, y: entry.pos.y, z: entry.pos.z });
+      onDragEnd(entry.id, {
+        x: entry.pos.x - entry.anchorX,
+        y: entry.pos.y,
+        z: entry.pos.z,
+      });
     };
 
     window.addEventListener("pointermove", onWindowMove);
@@ -332,22 +357,11 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         const halfW = viewDepth * tanHalf * state.viewport.aspect;
         const halfH = viewDepth * tanHalf;
 
-        const marginX = SCREEN_MARGIN_X;
         const marginBottom = SCREEN_MARGIN_BOTTOM;
         const marginTop = SCREEN_MARGIN_TOP;
 
-        const maxX = (1 - marginX) * halfW;
-        const minX = -(1 - marginX) * halfW;
         const maxY = (1 - marginTop) * halfH;
         const minY = -(1 - marginBottom) * halfH;
-
-        if (cs.x > maxX) {
-          cs.x = maxX;
-          e.vel.x *= -0.8;
-        } else if (cs.x < minX) {
-          cs.x = minX;
-          e.vel.x *= -0.8;
-        }
 
         if (cs.y > maxY) {
           cs.y = maxY;
@@ -408,6 +422,17 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         }
 
         e.pos.copy(cs).applyMatrix4(camera.matrixWorld);
+
+        // Each pair of neighboring weeks shares an immutable world-space
+        // wall. The camera may stop anywhere, but a star always remains on
+        // its own side of both surrounding boundaries.
+        if (e.pos.x > e.maxX) {
+          e.pos.x = e.maxX;
+          e.vel.x = -Math.abs(e.vel.x) * 0.8;
+        } else if (e.pos.x < e.minX) {
+          e.pos.x = e.minX;
+          e.vel.x = Math.abs(e.vel.x) * 0.8;
+        }
 
         // Gentle pull home so stars keep their spot in the sky
         const pull = 0.15 * dt;
@@ -474,6 +499,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
   return (
     <instancedMesh
+      name="journal-stars"
       ref={meshRef}
       args={[getStarGeometry(), undefined, MAX_STARS]}
       onClick={(e) => {
