@@ -150,8 +150,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
             journal.position.z,
           ] as [number, number, number],
           anchorX,
-          minX: anchorX - horizontalLimit,
-          maxX: anchorX + horizontalLimit,
+          minX: anchorX - halfWeek,
+          maxX: anchorX + halfWeek,
           journal,
         };
       }
@@ -171,8 +171,8 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
         id: journal._id,
         position: [anchorX + x, y, z] as [number, number, number],
         anchorX,
-        minX: anchorX - horizontalLimit,
-        maxX: anchorX + horizontalLimit,
+        minX: anchorX - halfWeek,
+        maxX: anchorX + halfWeek,
         journal,
       };
     });

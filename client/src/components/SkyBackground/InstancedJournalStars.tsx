@@ -6,7 +6,7 @@ import type { Journal } from "../../types";
 import { emotionColor } from "../../utils/emotion";
 import { formatShortDate } from "../../utils/dateUtils";
 import { flowVelocity, noise3D } from "./flowField";
-import { getStarGeometry } from "./starGeometry";
+import { getStarGeometry, JOURNAL_STAR_RADIUS } from "./starGeometry";
 import type { RocketLaunchData, SkyTooltipData } from "./SkyBackground.types";
 
 export interface InstancedJournalStarsProps {
@@ -80,6 +80,35 @@ const _quaternion = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _color = new THREE.Color();
 const _cameraSpace = new THREE.Vector3();
+const _renderWorld = new THREE.Vector3();
+
+// Journal-star x positions live on the timeline's reference plane (z = 0).
+// Compensate their rendered x for depth so a fixed week boundary projects to
+// the same screen-space divider for every star, regardless of its z value.
+const timelineToRenderX = (
+  timelineX: number,
+  z: number,
+  camera: THREE.Camera,
+): number => {
+  const cameraDepth = Math.max(camera.position.z, 0.001);
+  const depthRatio = (camera.position.z - z) / cameraDepth;
+  return camera.position.x + (timelineX - camera.position.x) * depthRatio;
+};
+
+const renderToTimelineX = (
+  renderX: number,
+  z: number,
+  camera: THREE.Camera,
+): number => {
+  const cameraDepth = Math.max(camera.position.z, 0.001);
+  const depthRatio = Math.max((camera.position.z - z) / cameraDepth, 0.001);
+  return camera.position.x + (renderX - camera.position.x) / depthRatio;
+};
+
+const timelineCollisionRadius = (z: number, camera: THREE.Camera): number => {
+  const viewDepth = Math.max(camera.position.z - z, 0.001);
+  return JOURNAL_STAR_RADIUS * (camera.position.z / viewDepth);
+};
 
 const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   stars,
@@ -129,7 +158,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
     entriesRef.current.forEach((entry) => {
       if (entry.id === impact.journalId) return;
-      const starScreen = entry.pos.clone().project(camera);
+      const starScreen = entry.pos.clone();
+      starScreen.x = timelineToRenderX(entry.pos.x, entry.pos.z, camera);
+      starScreen.project(camera);
       const dx = ((starScreen.x - originScreen.x) * canvasRect.width) / 2;
       const dy = ((starScreen.y - originScreen.y) * canvasRect.height) / 2;
       const distance = Math.hypot(dx, dy);
@@ -276,7 +307,13 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       const dir = vector.sub(cam.position).normalize();
       const distance = (entry.pos.z - cam.position.z) / dir.z;
       const pos = cam.position.clone().add(dir.multiplyScalar(distance));
-      pos.x = THREE.MathUtils.clamp(pos.x, entry.minX, entry.maxX);
+      pos.x = renderToTimelineX(pos.x, pos.z, cam);
+      const collisionRadius = timelineCollisionRadius(pos.z, cam);
+      pos.x = THREE.MathUtils.clamp(
+        pos.x,
+        entry.minX + collisionRadius,
+        entry.maxX - collisionRadius,
+      );
       const now = performance.now();
       const dt = Math.max((now - drag.time) / 1000, 0.001);
       drag.vel
@@ -349,7 +386,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         // the frustum by euclidean distance, which overestimates for stars
         // far off-axis and lets them poke off the screen
         camera.updateMatrixWorld();
-        const cs = _cameraSpace.copy(e.pos).applyMatrix4(camera.matrixWorldInverse);
+        _renderWorld.copy(e.pos);
+        _renderWorld.x = timelineToRenderX(e.pos.x, e.pos.z, camera);
+        const cs = _cameraSpace.copy(_renderWorld).applyMatrix4(camera.matrixWorldInverse);
         const viewDepth = -cs.z;
         const tanHalf = Math.tan(
           ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 360,
@@ -421,16 +460,24 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
           }
         }
 
-        e.pos.copy(cs).applyMatrix4(camera.matrixWorld);
+        _renderWorld.copy(cs).applyMatrix4(camera.matrixWorld);
+        e.pos.set(
+          renderToTimelineX(_renderWorld.x, _renderWorld.z, camera),
+          _renderWorld.y,
+          _renderWorld.z,
+        );
 
         // Each pair of neighboring weeks shares an immutable world-space
         // wall. The camera may stop anywhere, but a star always remains on
         // its own side of both surrounding boundaries.
-        if (e.pos.x > e.maxX) {
-          e.pos.x = e.maxX;
+        const collisionRadius = timelineCollisionRadius(e.pos.z, camera);
+        const maxX = e.maxX - collisionRadius;
+        const minX = e.minX + collisionRadius;
+        if (e.pos.x > maxX) {
+          e.pos.x = maxX;
           e.vel.x = -Math.abs(e.vel.x) * 0.8;
-        } else if (e.pos.x < e.minX) {
-          e.pos.x = e.minX;
+        } else if (e.pos.x < minX) {
+          e.pos.x = minX;
           e.vel.x = Math.abs(e.vel.x) * 0.8;
         }
 
@@ -455,7 +502,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         t * 0.15 + e.phase * 0.1,
       );
       _scale.set(scale, scale, scale);
-      _matrix.compose(e.pos, _quaternion, _scale);
+      _renderWorld.copy(e.pos);
+      _renderWorld.x = timelineToRenderX(e.pos.x, e.pos.z, camera);
+      _matrix.compose(_renderWorld, _quaternion, _scale);
       mesh.setMatrixAt(i, _matrix);
 
       _color.set(emotionColor(e.journal.emotion)).multiplyScalar(1.5);
