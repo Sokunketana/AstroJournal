@@ -23,6 +23,5 @@ Gamified Daily Diary & Celestial Streak Tracker.
 - **Daily Journaling**: Strictly limited to 1 entry per day.
 - **Star Generation**: Each entry earns you a star in your digital sky.
 - **Streak Tracker**: Tracks consecutive days of journaling.
-- **Celestial Crafting**: Exchange 10 stars to craft a new planet.
 - **3D Sky Interface**: Interactive 3D visualization of your progress.
 - **Archive**: View and manage previous entries.

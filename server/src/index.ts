@@ -9,7 +9,6 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import journalRoutes from './routes/journalRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import planetRoutes from './routes/planetRoutes.js';
 
 dotenv.config();
 
@@ -23,7 +22,6 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/journals', journalRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/planets', planetRoutes);
 
 app.get('/', (req, res) => {
   res.send('AstraJournal API is running');

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from '@tanstack/react-router';
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -8,9 +8,8 @@ import {
 import { useDeleteJournal } from "../../hooks/dashboard/useDeleteJournal";
 import { useUpdateJournal } from "../../hooks/dashboard/useUpdateJournal";
 import { useUpdateJournalPosition } from "../../hooks/dashboard/useUpdateJournalPosition";
-import { useUpdatePlanetPosition } from "../../hooks/dashboard/useUpdatePlanetPosition";
-import { useUserData, useJournals, usePlanets } from "../../hooks/useDashboardData";
-import type { Journal, Planet, User } from "../../types";
+import { useUserData, useJournals } from "../../hooks/useDashboardData";
+import type { Journal, User } from "../../types";
 import SkyBackground from "../../components/SkyBackground";
 import LottieRocketOverlay, {
   ROCKET_FLIGHT_DURATION_MS,
@@ -22,14 +21,13 @@ import StatBadge from "../../components/StatBadge";
 import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
-import { formatLongDate, formatShortDate } from "../../utils/dateUtils";
+import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
 import type { RocketLaunchData } from "../../components/SkyBackground/SkyBackground.types";
 import {
   Star,
   Flame,
-  Globe,
   Rocket,
   Search,
   X,
@@ -157,19 +155,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     mutate: mutateJournals,
   } = useJournals();
 
-  // fetch planets data
-  const {
-    data: planets = [],
-    isLoading: planetsLoading,
-    mutate: mutatePlanets,
-  } = usePlanets();
-
   const [selectedJournal, setSelectedJournal] = useState<Journal | null>(null);
-  const [selectedPlanetJournals, setSelectedPlanetJournals] = useState<
-    Journal[] | null
-  >(null);
   const [showArchive, setShowArchive] = useState(false);
-  const [planetHighlightId, setPlanetHighlightId] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
@@ -178,8 +165,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const mutateAll = useCallback(() => {
     mutateUser();
     mutateJournals();
-    mutatePlanets();
-  }, [mutateUser, mutateJournals, mutatePlanets]);
+  }, [mutateUser, mutateJournals]);
 
   const applyJournalCreation = useCallback((result: JournalCreationResult) => {
     void mutateJournals(
@@ -194,21 +180,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       { revalidate: false },
     );
 
-    if (result.planetCreated) {
-      void mutateJournals();
-      void mutatePlanets();
-    }
-
     // Emotion detection finishes in the background on the server. Refresh only
     // journals later so its final color arrives without blocking star creation.
     window.setTimeout(() => void mutateJournals(), 1800);
-  }, [mutateJournals, mutatePlanets, mutateUser]);
+  }, [mutateJournals, mutateUser]);
 
   const { newEntry, setNewEntry, isSubmitting, handleSubmit } = useCreateJournal();
-  const { deleteTargetId, setDeleteTargetId, handleDelete, confirmDelete } = useDeleteJournal(mutateJournals, mutateAll, setSelectedJournal, setSelectedPlanetJournals);
-  const { editingJournalId, editContent, setEditContent, handleEdit, startEditing, cancelEditing } = useUpdateJournal(mutateJournals, selectedJournal, setSelectedJournal, selectedPlanetJournals, setSelectedPlanetJournals);
+  const { deleteTargetId, setDeleteTargetId, handleDelete, confirmDelete } = useDeleteJournal(mutateJournals, mutateAll, setSelectedJournal);
+  const { editingJournalId, editContent, setEditContent, handleEdit, startEditing, cancelEditing } = useUpdateJournal(mutateJournals, selectedJournal, setSelectedJournal);
   const { handleJournalPositionUpdate } = useUpdateJournalPosition(mutateJournals);
-  const { handlePlanetPositionUpdate } = useUpdatePlanetPosition(mutatePlanets);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const launchButtonRef = useRef<HTMLButtonElement>(null);
@@ -237,49 +217,18 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     }
   }, [newEntry]);
 
-  const loading = userLoading || journalsLoading || planetsLoading;
-
-  // Memoize derived data so SkyBackground only re-renders when journals/planets actually change
-  const looseJournals = useMemo(
-    () => journals.filter((j: Journal) => !j.planetId),
-    [journals],
-  );
-
-  const planetsData = useMemo(
-    () =>
-      planets.map((planet: Planet) => ({
-        ...planet,
-        journals: journals.filter((j: Journal) => j.planetId === planet._id),
-      })),
-    [planets, journals],
-  );
+  const loading = userLoading || journalsLoading;
 
   const handleStarClick = useCallback((journal: Journal) => {
     setSelectedJournal(journal);
   }, []);
 
-  const handlePlanetClick = useCallback((pJournals: Journal[]) => {
-    setSelectedPlanetJournals(pJournals);
-  }, []);
-
-  const closePlanetModal = useCallback(() => {
-    setSelectedPlanetJournals(null);
-    setPlanetHighlightId(null);
-  }, []);
-
   const handleArchiveSelect = useCallback(
     (journal: Journal) => {
-      if (journal.planetId) {
-        setPlanetHighlightId(journal._id);
-        setSelectedPlanetJournals(
-          journals.filter((j: Journal) => j.planetId === journal.planetId),
-        );
-      } else {
-        setSelectedJournal(journal);
-      }
+      setSelectedJournal(journal);
       setShowArchive(false);
     },
-    [journals],
+    [],
   );
 
   const launchToTarget = useCallback(
@@ -450,13 +399,10 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       <SkyBackground
         totalStars={userData?.totalStars || 0}
         launch={launch}
-        planetsData={planetsData}
-        looseJournals={looseJournals}
+        looseJournals={journals}
         onStarClick={handleStarClick}
-        onPlanetClick={handlePlanetClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
-        onPlanetPositionUpdate={handlePlanetPositionUpdate}
-        paused={!!selectedJournal || !!selectedPlanetJournals || showArchive}
+        paused={!!selectedJournal || showArchive}
       />
       <LottieRocketOverlay launch={launch} />
       {aimPreview && <LaunchAimPreview {...aimPreview} />}
@@ -479,7 +425,6 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               <Search size={18} />
             </button>
             <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
-              <StatBadge icon={Globe} value={planetsData.length} colorClass="text-gray-400" tooltip="Total Planets Created" />
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
               <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} tooltip="Total Stars Earned" />
             </div>
@@ -632,90 +577,6 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                 isSaveDisabled={!editContent.trim()}
                 editButtonClassName="text-gray-400/50! hover:text-white! hover:bg-white/10!"
               />
-            </div>
-          </>
-        )}
-      </Modal>
-
-      {/* Planet Journals Viewer (Modal) */}
-      <Modal isOpen={!!selectedPlanetJournals} onClose={closePlanetModal} maxWidth="2xl" className="max-h-[80vh]">
-        {selectedPlanetJournals && (
-          <>
-            <div className="mb-4 shrink-0">
-              <p className="text-xs font-bold text-white uppercase tracking-widest mb-1">
-                Planet Archive
-              </p>
-              <h3 className="text-gray-400 text-sm font-medium">
-                {selectedPlanetJournals.length} Journals Contained
-              </h3>
-            </div>
-
-            <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 space-y-4">
-              {selectedPlanetJournals.map((journal: Journal) => (
-                <div
-                  key={journal._id}
-                  ref={(el) => {
-                    if (el && planetHighlightId === journal._id) {
-                      el.scrollIntoView({ block: "center", behavior: "smooth" });
-                    }
-                  }}
-                  className={`bg-white/5 p-4 rounded-xl border relative group ${
-                    planetHighlightId === journal._id
-                      ? "border-white/60 ring-2 ring-white/30"
-                      : "border-white/5"
-                  }`}
-                  style={{ borderLeft: `2px solid ${emotionColor(journal.emotion)}` }}
-                >
-                  <div className="flex items-center gap-2 mb-2 pr-14">
-                    <p className="text-sm text-gray-400 shrink-0">
-                      {formatShortDate(journal.createdAt)}
-                    </p>
-                    {journal.emotion && (
-                      <span
-                        className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border bg-black/30 shrink-0"
-                        style={{
-                          color: emotionColor(journal.emotion),
-                          borderColor: `${emotionColor(journal.emotion)}66`,
-                        }}
-                      >
-                        <span
-                          className="w-1.5 h-1.5 rounded-full"
-                          style={{ backgroundColor: emotionColor(journal.emotion) }}
-                        />
-                        {journal.emotion}
-                      </span>
-                    )}
-                  </div>
-                  <EditableContent
-                    isEditing={editingJournalId === journal._id}
-                    value={editContent}
-                    onValueChange={setEditContent}
-                    displayContent={journal.content}
-                    textareaClassName="rounded-lg p-3 min-h-20"
-                  >
-                    <EditableActions
-                      isEditing={true}
-                      onSave={() => handleEdit(journal._id, editContent)}
-                      onCancel={cancelEditing}
-                      isSaveDisabled={!editContent.trim()}
-                      editContainerClassName="flex items-center gap-2 mt-2"
-                      saveButtonClassName="py-1.5! px-3!"
-                      cancelButtonClassName="py-1.5! px-3!"
-                    />
-                  </EditableContent>
-                  {editingJournalId !== journal._id && (
-                    <EditableActions
-                      isEditing={false}
-                      onEdit={() => startEditing(journal)}
-                      onDelete={() => handleDelete(journal._id)}
-                      viewVariant="icon"
-                      viewContainerClassName="absolute top-4 right-4 flex items-center gap-1"
-                      editButtonClassName="text-gray-400/0 group-hover:text-gray-400/50 hover:text-white! hover:bg-transparent!"
-                      deleteButtonClassName="text-red-400/0 group-hover:text-red-400/50 hover:text-red-400! hover:bg-transparent!"
-                    />
-                  )}
-                </div>
-              ))}
             </div>
           </>
         )}

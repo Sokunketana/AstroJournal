@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { Search, Star, Globe, RotateCcw, SearchX } from "lucide-react";
+import { Search, Star, RotateCcw, SearchX } from "lucide-react";
 import Modal from "../Modal";
 import { formatRelativeDate, formatShortDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
@@ -168,17 +168,10 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
               <span className="text-xs text-gray-500">
                 {formatShortDate(journal.createdAt)}
               </span>
-              {journal.planetId ? (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-teal-500/40 text-teal-400 bg-teal-500/10 shrink-0">
-                  <Globe size={10} />
-                  Planet
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-yellow-500/40 text-yellow-400 bg-yellow-500/10 shrink-0">
-                  <Star size={10} />
-                  Star
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-yellow-500/40 text-yellow-400 bg-yellow-500/10 shrink-0">
+                <Star size={10} />
+                Star
+              </span>
               {journal.emotion && (
                 <span
                   className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border bg-black/30 shrink-0"

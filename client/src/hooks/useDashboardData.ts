@@ -17,10 +17,3 @@ export function useJournals() {
     dedupingInterval: 5000,
   });
 }
-
-export function usePlanets() {
-  return useSWR('/planets', fetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 5000,
-  });
-}

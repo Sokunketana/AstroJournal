@@ -1,4 +1,4 @@
-import type { Journal, PlanetData } from "../../types";
+import type { Journal } from "../../types";
 
 export interface SkyTooltipData {
   title: string;
@@ -17,18 +17,6 @@ export interface RocketLaunchData {
   journalId?: string;
 }
 
-export interface PlanetProps {
-  id: string;
-  position: [number, number, number];
-  color: string;
-  size: number;
-  journals: Journal[];
-  onClick: (journals: Journal[]) => void;
-  onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
-  onHover: (tooltip: SkyTooltipData | null) => void;
-  paused?: boolean;
-}
-
 export interface JournalStarProps {
   position: [number, number, number];
   journal: Journal;
@@ -41,15 +29,9 @@ export interface JournalStarProps {
 export interface SkyBackgroundProps {
   totalStars: number;
   launch: RocketLaunchData | null;
-  planetsData: PlanetData[];
   looseJournals: Journal[];
   onStarClick: (journal: Journal) => void;
-  onPlanetClick: (journals: Journal[]) => void;
   onJournalPositionUpdate: (
-    id: string,
-    pos: { x: number; y: number; z: number },
-  ) => void;
-  onPlanetPositionUpdate: (
     id: string,
     pos: { x: number; y: number; z: number },
   ) => void;

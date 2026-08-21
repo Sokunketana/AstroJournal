@@ -2,7 +2,6 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.js';
 import Journal from '../models/Journal.js';
 import User from '../models/User.js';
-import Planet from '../models/Planet.js';
 import { detectEmotion } from '../utils/emotion.js';
 import mongoose from 'mongoose';
 
@@ -121,51 +120,14 @@ export const createJournal = async (req: AuthRequest, res: Response) => {
     await journal.save();
 
     user.currentStreak = newStreak;
-    user.totalStars += starsEarned;
+    user.totalStars = await Journal.countDocuments({ userId: objectUserId });
     user.lastEntryDate = journal.createdAt;
-
-    // Explicit Planet Merging
-    let planetCreated = false;
-    if (user.totalStars >= 10) {
-      // Find the 10 oldest loose journals
-      const looseJournals = await Journal.find({
-        userId: new mongoose.Types.ObjectId(userId),
-        planetId: null
-      }).sort({ createdAt: 1 }).limit(10);
-
-      if (looseJournals.length === 10) {
-        const planetColors = ['#4a90e2', '#d0021b', '#f5a623', '#7ed321', '#9013fe', '#50e3c2'];
-        const randomColor = planetColors[Math.floor(Math.random() * planetColors.length)];
-        
-        const planet = new Planet({
-          userId: new mongoose.Types.ObjectId(userId),
-          color: randomColor
-        });
-        await planet.save();
-        planetCreated = true;
-
-        // Link journals to planet
-        await Journal.updateMany(
-          { _id: { $in: looseJournals.map(j => j._id) } },
-          { $set: { planetId: planet._id } }
-        );
-
-        user.totalStars -= 10;
-        const planetIndex = user.celestialInventory.findIndex(item => item.type === 'Planet');
-        if (planetIndex !== -1) {
-          user.celestialInventory[planetIndex].count += 1;
-        } else {
-          user.celestialInventory.push({ type: 'Planet', count: 1 });
-        }
-      }
-    }
 
     await user.save();
 
     res.status(201).json({
       journal,
       user: { currentStreak: user.currentStreak, totalStars: user.totalStars },
-      planetCreated,
     });
 
     setImmediate(() => {
@@ -202,47 +164,10 @@ export const deleteJournal = async (req: AuthRequest, res: Response) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Handle Planet dissolution or replacement
-    if (journal.planetId) {
-      const planetId = journal.planetId;
-      
-      // Try to find a loose replacement star (oldest loose star)
-      const replacementStar = await Journal.findOne({
-        userId: new mongoose.Types.ObjectId(userId),
-        planetId: null
-      }).sort({ createdAt: 1 });
-
-      if (replacementStar) {
-        // Move the loose star into the planet to maintain its 10-star status
-        await Journal.updateOne({ _id: replacementStar._id }, { $set: { planetId: planetId } });
-        // Since we replaced the deleted star, the planet is still intact.
-        // We just lost one loose star from the pool.
-        user.totalStars = Math.max(0, user.totalStars - 1);
-      } else {
-        // No loose stars available to fill the gap, so dissolve the planet
-        await Planet.deleteOne({ _id: planetId });
-        
-        // Unlink all other journals from this planet
-        await Journal.updateMany(
-          { planetId: planetId, _id: { $ne: journal._id } },
-          { $set: { planetId: null } }
-        );
-
-        // Revert user inventory
-        const planetIndex = user.celestialInventory.findIndex(item => item.type === 'Planet');
-        if (planetIndex !== -1) {
-          user.celestialInventory[planetIndex].count -= 1;
-          if (user.celestialInventory[planetIndex].count <= 0) {
-            user.celestialInventory.splice(planetIndex, 1);
-          }
-        }
-        // Refund the 9 stars that are now loose again
-        user.totalStars += 9;
-      }
-    } else {
-      // Deleting a loose star
-      user.totalStars = Math.max(0, user.totalStars - journal.starsEarned);
-    }
+    user.totalStars = await Journal.countDocuments({
+      userId: new mongoose.Types.ObjectId(userId),
+      _id: { $ne: journal._id },
+    });
 
     user.currentStreak = journal.streakBeforeEntry;
 

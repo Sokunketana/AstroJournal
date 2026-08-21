@@ -5,7 +5,6 @@ import type { Journal, User } from '../../types';
 export interface JournalCreationResult {
   journal: Journal;
   user: Pick<User, 'currentStreak' | 'totalStars'>;
-  planetCreated: boolean;
 }
 
 export const useCreateJournal = () => {
