@@ -2,6 +2,10 @@ import * as THREE from "three";
 
 let cached: THREE.ExtrudeGeometry | null = null;
 
+// Shape radius (0.15) plus its bevel (0.02). Collision centers stop this far
+// from a week divider so the visible tip of the star touches the shared wall.
+export const JOURNAL_STAR_RADIUS = 0.17;
+
 // One shared star geometry for all instanced journal stars
 export function getStarGeometry(): THREE.ExtrudeGeometry {
   if (cached) return cached;

@@ -35,5 +35,6 @@ export interface SkyBackgroundProps {
     id: string,
     pos: { x: number; y: number; z: number },
   ) => void;
+  focusCurrentSignal?: number;
   paused?: boolean;
 }

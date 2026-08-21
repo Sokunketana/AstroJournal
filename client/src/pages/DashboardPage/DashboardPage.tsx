@@ -161,6 +161,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
+  const [focusCurrentSignal, setFocusCurrentSignal] = useState(0);
 
   const mutateAll = useCallback(() => {
     mutateUser();
@@ -402,6 +403,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         looseJournals={journals}
         onStarClick={handleStarClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
+        focusCurrentSignal={focusCurrentSignal}
         paused={!!selectedJournal || showArchive}
       />
       <LottieRocketOverlay launch={launch} />
@@ -450,6 +452,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               ref={textareaRef}
               value={newEntry}
               onChange={(e) => setNewEntry(e.target.value)}
+              onFocus={() => setFocusCurrentSignal((signal) => signal + 1)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();

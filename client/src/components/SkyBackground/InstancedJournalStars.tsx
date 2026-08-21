@@ -6,11 +6,18 @@ import type { Journal } from "../../types";
 import { emotionColor } from "../../utils/emotion";
 import { formatShortDate } from "../../utils/dateUtils";
 import { flowVelocity, noise3D } from "./flowField";
-import { getStarGeometry } from "./starGeometry";
+import { getStarGeometry, JOURNAL_STAR_RADIUS } from "./starGeometry";
 import type { RocketLaunchData, SkyTooltipData } from "./SkyBackground.types";
 
 export interface InstancedJournalStarsProps {
-  stars: { id: string; position: [number, number, number]; journal: Journal }[];
+  stars: {
+    id: string;
+    position: [number, number, number];
+    anchorX: number;
+    minX: number;
+    maxX: number;
+    journal: Journal;
+  }[];
   onClick: (journal: Journal) => void;
   onDragEnd: (id: string, pos: { x: number; y: number; z: number }) => void;
   onHover: (tooltip: SkyTooltipData | null) => void;
@@ -26,6 +33,9 @@ interface StarEntry {
   vel: THREE.Vector3;
   phase: number;
   speedFactor: number;
+  anchorX: number;
+  minX: number;
+  maxX: number;
   birth: number;
   hover: number;
 }
@@ -60,16 +70,46 @@ const IMPACT_RADIUS_VIEWPORT_RATIO = 0.26;
 const IMPACT_RADIUS_MIN_PX = 150;
 const IMPACT_RADIUS_MAX_PX = 260;
 const IMPACT_STRENGTH = 7;
-// Z bounce bounds: stars stay between a near plane (before the projection
-// blows up and they fly off-screen) and a far plane (before they shrink away)
-const NEAR_DEPTH = 1.5;
-const FAR_DEPTH = 30;
+// Fixed world-space depth bounds. These must not follow the zooming camera:
+// camera-relative bounds would drag old stars forward while zoomed out and
+// leave them enormous when returning to the weekly view.
+const MIN_STAR_Z = -8;
+const MAX_STAR_Z = 3;
 const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 const _matrix = new THREE.Matrix4();
 const _quaternion = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _color = new THREE.Color();
 const _cameraSpace = new THREE.Vector3();
+const _renderWorld = new THREE.Vector3();
+
+// Journal-star x positions live on the timeline's reference plane (z = 0).
+// Compensate their rendered x for depth so a fixed week boundary projects to
+// the same screen-space divider for every star, regardless of its z value.
+const timelineToRenderX = (
+  timelineX: number,
+  z: number,
+  camera: THREE.Camera,
+): number => {
+  const cameraDepth = Math.max(camera.position.z, 0.001);
+  const depthRatio = (camera.position.z - z) / cameraDepth;
+  return camera.position.x + (timelineX - camera.position.x) * depthRatio;
+};
+
+const renderToTimelineX = (
+  renderX: number,
+  z: number,
+  camera: THREE.Camera,
+): number => {
+  const cameraDepth = Math.max(camera.position.z, 0.001);
+  const depthRatio = Math.max((camera.position.z - z) / cameraDepth, 0.001);
+  return camera.position.x + (renderX - camera.position.x) / depthRatio;
+};
+
+const timelineCollisionRadius = (z: number, camera: THREE.Camera): number => {
+  const viewDepth = Math.max(camera.position.z - z, 0.001);
+  return JOURNAL_STAR_RADIUS * (camera.position.z / viewDepth);
+};
 
 const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   stars,
@@ -119,7 +159,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
     entriesRef.current.forEach((entry) => {
       if (entry.id === impact.journalId) return;
-      const starScreen = entry.pos.clone().project(camera);
+      const starScreen = entry.pos.clone();
+      starScreen.x = timelineToRenderX(entry.pos.x, entry.pos.z, camera);
+      starScreen.project(camera);
       const dx = ((starScreen.x - originScreen.x) * canvasRect.width) / 2;
       const dy = ((starScreen.y - originScreen.y) * canvasRect.height) / 2;
       const distance = Math.hypot(dx, dy);
@@ -185,10 +227,17 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
   useEffect(() => {
     const now = performance.now() / 1000;
-    const existing = new Map(entriesRef.current.map((e) => [e.id, e]));    entriesRef.current = stars.map((star) => {
+    const existing = new Map(entriesRef.current.map((e) => [e.id, e]));
+    entriesRef.current = stars.map((star) => {
       const old = existing.get(star.id);
       if (old) {
+        const anchorMovement = star.anchorX - old.anchorX;
         old.journal = star.journal;
+        old.anchorX = star.anchorX;
+        old.minX = star.minX;
+        old.maxX = star.maxX;
+        old.pos.x += anchorMovement;
+        old.home.set(...star.position);
         return old;
       }
       return {
@@ -199,6 +248,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         vel: new THREE.Vector3(),
         phase: Math.random() * 1000,
         speedFactor: 0.3 + 0.4 * noise3D(Math.random() * 1000, 1, 0),
+        anchorX: star.anchorX,
+        minX: star.minX,
+        maxX: star.maxX,
         birth: now,
         hover: 0,
       };
@@ -256,6 +308,13 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       const dir = vector.sub(cam.position).normalize();
       const distance = (entry.pos.z - cam.position.z) / dir.z;
       const pos = cam.position.clone().add(dir.multiplyScalar(distance));
+      pos.x = renderToTimelineX(pos.x, pos.z, cam);
+      const collisionRadius = timelineCollisionRadius(pos.z, cam);
+      pos.x = THREE.MathUtils.clamp(
+        pos.x,
+        entry.minX + collisionRadius,
+        entry.maxX - collisionRadius,
+      );
       const now = performance.now();
       const dt = Math.max((now - drag.time) / 1000, 0.001);
       drag.vel
@@ -275,7 +334,11 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       if (!entry) return;
       // Throw: hand the drag velocity back to the star for momentum
       entry.vel.copy(drag.vel).clampLength(0, 8);
-      onDragEnd(entry.id, { x: entry.pos.x, y: entry.pos.y, z: entry.pos.z });
+      onDragEnd(entry.id, {
+        x: entry.pos.x - entry.anchorX,
+        y: entry.pos.y,
+        z: entry.pos.z,
+      });
     };
 
     window.addEventListener("pointermove", onWindowMove);
@@ -319,12 +382,22 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         e.pos.y += e.vel.y * dt;
         e.pos.z += e.vel.z * dt;
 
+        if (e.pos.z < MIN_STAR_Z) {
+          e.pos.z = MIN_STAR_Z;
+          e.vel.z = Math.abs(e.vel.z) * 0.8;
+        } else if (e.pos.z > MAX_STAR_Z) {
+          e.pos.z = MAX_STAR_Z;
+          e.vel.z = -Math.abs(e.vel.z) * 0.8;
+        }
+
         // Screen boundaries for bouncing, computed in camera space so they
         // match the true view frustum: viewport.getCurrentViewport() sizes
         // the frustum by euclidean distance, which overestimates for stars
         // far off-axis and lets them poke off the screen
         camera.updateMatrixWorld();
-        const cs = _cameraSpace.copy(e.pos).applyMatrix4(camera.matrixWorldInverse);
+        _renderWorld.copy(e.pos);
+        _renderWorld.x = timelineToRenderX(e.pos.x, e.pos.z, camera);
+        const cs = _cameraSpace.copy(_renderWorld).applyMatrix4(camera.matrixWorldInverse);
         const viewDepth = -cs.z;
         const tanHalf = Math.tan(
           ((camera as THREE.PerspectiveCamera).fov * Math.PI) / 360,
@@ -332,22 +405,11 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         const halfW = viewDepth * tanHalf * state.viewport.aspect;
         const halfH = viewDepth * tanHalf;
 
-        const marginX = SCREEN_MARGIN_X;
         const marginBottom = SCREEN_MARGIN_BOTTOM;
         const marginTop = SCREEN_MARGIN_TOP;
 
-        const maxX = (1 - marginX) * halfW;
-        const minX = -(1 - marginX) * halfW;
         const maxY = (1 - marginTop) * halfH;
         const minY = -(1 - marginBottom) * halfH;
-
-        if (cs.x > maxX) {
-          cs.x = maxX;
-          e.vel.x *= -0.8;
-        } else if (cs.x < minX) {
-          cs.x = minX;
-          e.vel.x *= -0.8;
-        }
 
         if (cs.y > maxY) {
           cs.y = maxY;
@@ -355,14 +417,6 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         } else if (cs.y < minY) {
           cs.y = minY;
           e.vel.y *= -0.8;
-        }
-
-        if (cs.z < -FAR_DEPTH) {
-          cs.z = -FAR_DEPTH;
-          e.vel.z *= -0.8;
-        } else if (cs.z > -NEAR_DEPTH) {
-          cs.z = -NEAR_DEPTH;
-          e.vel.z *= -0.8;
         }
 
         // Bounce off UI elements (app title, entry bar, search, stats...):
@@ -407,7 +461,26 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
           }
         }
 
-        e.pos.copy(cs).applyMatrix4(camera.matrixWorld);
+        _renderWorld.copy(cs).applyMatrix4(camera.matrixWorld);
+        e.pos.set(
+          renderToTimelineX(_renderWorld.x, _renderWorld.z, camera),
+          _renderWorld.y,
+          _renderWorld.z,
+        );
+
+        // Each pair of neighboring weeks shares an immutable world-space
+        // wall. The camera may stop anywhere, but a star always remains on
+        // its own side of both surrounding boundaries.
+        const collisionRadius = timelineCollisionRadius(e.pos.z, camera);
+        const maxX = e.maxX - collisionRadius;
+        const minX = e.minX + collisionRadius;
+        if (e.pos.x > maxX) {
+          e.pos.x = maxX;
+          e.vel.x = -Math.abs(e.vel.x) * 0.8;
+        } else if (e.pos.x < minX) {
+          e.pos.x = minX;
+          e.vel.x = Math.abs(e.vel.x) * 0.8;
+        }
 
         // Gentle pull home so stars keep their spot in the sky
         const pull = 0.15 * dt;
@@ -430,7 +503,9 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         t * 0.15 + e.phase * 0.1,
       );
       _scale.set(scale, scale, scale);
-      _matrix.compose(e.pos, _quaternion, _scale);
+      _renderWorld.copy(e.pos);
+      _renderWorld.x = timelineToRenderX(e.pos.x, e.pos.z, camera);
+      _matrix.compose(_renderWorld, _quaternion, _scale);
       mesh.setMatrixAt(i, _matrix);
 
       _color.set(emotionColor(e.journal.emotion)).multiplyScalar(1.5);
@@ -474,6 +549,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
   return (
     <instancedMesh
+      name="journal-stars"
       ref={meshRef}
       args={[getStarGeometry(), undefined, MAX_STARS]}
       onClick={(e) => {
