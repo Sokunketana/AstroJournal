@@ -7,6 +7,7 @@ import InstancedJournalStars from "./InstancedJournalStars";
 import BackgroundStars from "./BackgroundStars";
 import QualityProbe from "./QualityProbe";
 import RocketLaunch from "./RocketLaunch";
+import { JOURNAL_STAR_RADIUS } from "./starGeometry";
 import TimelineCameraController, {
   type TimelineViewState,
 } from "./TimelineCameraController";
@@ -132,7 +133,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
       const weekIndex = dateToWeekIndex(journal.createdAt);
       const anchorX = weekIndex * weekWidth;
       const halfWeek = weekWidth / 2;
-      const horizontalLimit = Math.max(halfWeek - 0.45, halfWeek * 0.72);
+      const horizontalLimit = halfWeek - JOURNAL_STAR_RADIUS;
 
       // Use saved position if available
       if (journal.position) {
