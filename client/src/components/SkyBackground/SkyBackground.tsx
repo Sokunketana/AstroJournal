@@ -94,6 +94,10 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
     weekPosition: 0,
     zoom: BASE_CAMERA_Z,
   });
+  const timelineViewRef = React.useRef<TimelineViewState>({
+    weekPosition: 0,
+    zoom: BASE_CAMERA_Z,
+  });
 
   useEffect(() => {
     const updateAspect = () => setAspect(window.innerWidth / window.innerHeight);
@@ -215,6 +219,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           earliestWeek={earliestWeek}
           weekWidth={weekWidth}
           focusCurrentSignal={focusCurrentSignal}
+          viewRef={timelineViewRef}
           paused={paused}
           onViewChange={setTimelineView}
         />
@@ -239,7 +244,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           </EffectComposer>
         )}
       </Canvas>
-      <TimelineSkyGuide view={timelineView} />
+      <TimelineSkyGuide view={timelineView} viewRef={timelineViewRef} />
       <SkyTooltip tooltip={tooltip} />
     </div>
   );

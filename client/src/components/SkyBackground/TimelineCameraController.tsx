@@ -12,6 +12,7 @@ interface TimelineCameraControllerProps {
   earliestWeek: number;
   weekWidth: number;
   focusCurrentSignal: number;
+  viewRef: { current: TimelineViewState };
   paused?: boolean;
   onViewChange: (view: TimelineViewState) => void;
 }
@@ -20,6 +21,7 @@ const TimelineCameraController: React.FC<TimelineCameraControllerProps> = ({
   earliestWeek,
   weekWidth,
   focusCurrentSignal,
+  viewRef,
   paused,
   onViewChange,
 }) => {
@@ -212,6 +214,7 @@ const TimelineCameraController: React.FC<TimelineCameraControllerProps> = ({
       weekPosition: camera.position.x / weekWidth,
       zoom: camera.position.z,
     };
+    viewRef.current = nextView;
     const viewChanged =
       !Number.isFinite(lastViewRef.current.weekPosition)
       || Math.abs(nextView.weekPosition - lastViewRef.current.weekPosition) > 0.002

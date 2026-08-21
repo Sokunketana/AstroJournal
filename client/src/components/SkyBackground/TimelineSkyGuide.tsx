@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useLayoutEffect, useMemo, useRef } from "react";
 import type { TimelineViewState } from "./TimelineCameraController";
 import {
   BASE_CAMERA_Z,
@@ -11,10 +11,15 @@ interface Marker {
   key: string;
   position: number;
   label?: string;
-  strong?: boolean;
 }
 
-const TimelineSkyGuide: React.FC<{ view: TimelineViewState }> = ({ view }) => {
+interface TimelineSkyGuideProps {
+  view: TimelineViewState;
+  viewRef: { current: TimelineViewState };
+}
+
+const TimelineSkyGuide: React.FC<TimelineSkyGuideProps> = ({ view, viewRef }) => {
+  const guideRef = useRef<HTMLDivElement>(null);
   const visibleWeeks = view.zoom / BASE_CAMERA_Z;
   const monthly = view.zoom >= 26;
   const markers = useMemo<Marker[]>(() => {
@@ -38,6 +43,14 @@ const TimelineSkyGuide: React.FC<{ view: TimelineViewState }> = ({ view }) => {
 
     const centerDate = weekPositionToDate(view.weekPosition);
     const result: Marker[] = [];
+    const firstWeek = Math.floor(view.weekPosition - visibleWeeks / 2) - 1;
+    const lastWeek = Math.ceil(view.weekPosition + visibleWeeks / 2) + 1;
+    for (let index = firstWeek; index <= lastWeek; index += 1) {
+      result.push({
+        key: `month-view-week-wall-${index}`,
+        position: index - 0.5,
+      });
+    }
     for (let offset = -3; offset <= 3; offset += 1) {
       const monthStart = new Date(
         centerDate.getFullYear(),
@@ -51,11 +64,6 @@ const TimelineSkyGuide: React.FC<{ view: TimelineViewState }> = ({ view }) => {
       );
       const startPosition = dateToWeekPosition(monthStart);
       const endPosition = dateToWeekPosition(nextMonth);
-      result.push({
-        key: `month-wall-${monthStart.toISOString()}`,
-        position: startPosition,
-        strong: true,
-      });
       result.push({
         key: `month-${monthStart.toISOString()}`,
         position: (startPosition + endPosition) / 2,
@@ -73,33 +81,53 @@ const TimelineSkyGuide: React.FC<{ view: TimelineViewState }> = ({ view }) => {
     ? centerDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : formatWeekRange(weekPositionToDate(Math.round(view.weekPosition)));
 
+  useLayoutEffect(() => {
+    let animationFrame = 0;
+
+    const updateMarkerPositions = () => {
+      const guide = guideRef.current;
+      if (guide) {
+        const currentView = viewRef.current;
+        const currentVisibleWeeks = currentView.zoom / BASE_CAMERA_Z;
+        guide
+          .querySelectorAll<HTMLElement>("[data-timeline-position]")
+          .forEach((marker) => {
+            const position = Number(marker.dataset.timelinePosition);
+            const left = 50
+              + ((position - currentView.weekPosition) / currentVisibleWeeks) * 100;
+            marker.style.left = `${left}%`;
+            marker.style.visibility = left < -8 || left > 108 ? "hidden" : "visible";
+          });
+      }
+      animationFrame = window.requestAnimationFrame(updateMarkerPositions);
+    };
+
+    updateMarkerPositions();
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [viewRef]);
+
   return (
-    <div className="pointer-events-none fixed inset-0 z-5 overflow-hidden" aria-hidden="true">
+    <div ref={guideRef} className="pointer-events-none fixed inset-0 z-5 overflow-hidden" aria-hidden="true">
       {markers.map((marker) => {
-        const left = 50 + ((marker.position - view.weekPosition) / visibleWeeks) * 100;
-        if (left < -8 || left > 108) return null;
         return marker.label ? (
           <span
             key={marker.key}
+            data-timeline-position={marker.position}
             className="absolute top-22 -translate-x-1/2 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.2em] text-white/35 sm:top-24 sm:text-[10px]"
-            style={{ left: `${left}%` }}
           >
             {marker.label}
           </span>
         ) : (
           <span
             key={marker.key}
-            className={`absolute top-20 bottom-24 w-px bg-gradient-to-b from-transparent via-white/12 to-transparent ${marker.strong ? "via-white/20" : ""}`}
-            style={{ left: `${left}%` }}
+            data-timeline-position={marker.position}
+            className="absolute top-20 bottom-24 w-[2px] bg-gradient-to-b from-transparent via-white/35 to-transparent shadow-[0_0_6px_rgba(255,255,255,0.16)]"
           />
         );
       })}
 
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center text-[9px] uppercase tracking-[0.18em] text-white/35 sm:bottom-25">
         <p>{centerLabel}</p>
-        <p className="mt-1 text-white/20">
-          Scroll or swipe to travel · Pinch, Ctrl/⌘ + wheel, or +/− to zoom · {monthly ? "Months" : "Weeks"}
-        </p>
       </div>
     </div>
   );
