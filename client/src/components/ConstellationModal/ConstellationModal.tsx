@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Link2, MousePointer2, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Link2, MousePointer2, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Button from '../Button';
 import { formatShortDate } from '../../utils/dateUtils';
@@ -19,6 +19,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   onSelectInSky,
 }) => {
   const [editing, setEditing] = useState<Constellation | 'new' | null>(null);
+  const [viewing, setViewing] = useState<Constellation | null>(null);
   const [title, setTitle] = useState('');
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -26,6 +27,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   const [error, setError] = useState('');
 
   const beginEdit = (constellation: Constellation | 'new') => {
+    setViewing(null);
     setEditing(constellation);
     setTitle(constellation === 'new' ? '' : constellation.title);
     setColor(constellation === 'new' ? DEFAULT_COLOR : constellation.color);
@@ -71,6 +73,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
 
   const close = () => {
     leaveEditor();
+    setViewing(null);
     onClose();
   };
 
@@ -174,6 +177,55 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
             </Button>
           </div>
         </>
+      ) : viewing ? (
+        <>
+          <div className="mb-5 flex items-center gap-3 pr-10">
+            <button
+              onClick={() => setViewing(null)}
+              className="rounded-full p-2 text-gray-400 transition hover:bg-white/10 hover:text-white"
+              aria-label="Back to constellations"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <span
+              className="h-9 w-9 shrink-0 rounded-full"
+              style={{ backgroundColor: viewing.color, boxShadow: `0 0 18px ${viewing.color}88` }}
+            />
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-white">{viewing.title}</p>
+              <p className="text-xs text-gray-500">{viewing.journalIds.length} grouped journals · constellation order</p>
+            </div>
+          </div>
+
+          <div className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto pr-2">
+            {viewing.journalIds.map((journalId, index) => {
+              const journal = journals.find((item) => item._id === journalId);
+              if (!journal) return null;
+              return (
+                <article
+                  key={journalId}
+                  className="rounded-2xl border border-white/8 bg-white/5 p-4"
+                  style={{ borderLeft: `2px solid ${viewing.color}` }}
+                >
+                  <div className="mb-3 flex items-center gap-3">
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold"
+                      style={{ color: viewing.color, borderColor: `${viewing.color}99` }}
+                    >
+                      {index + 1}
+                    </span>
+                    <time className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      {formatShortDate(journal.createdAt)}
+                    </time>
+                  </div>
+                  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-200">
+                    {journal.content}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </>
       ) : (
         <>
           <div className="mb-5 flex items-start justify-between gap-4 pr-10">
@@ -201,6 +253,14 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
                   <p className="truncate font-semibold text-white">{constellation.title}</p>
                   <p className="text-xs text-gray-500">{constellation.journalIds.length} connected stars</p>
                 </div>
+                <button
+                  onClick={() => setViewing(constellation)}
+                  className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-gray-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white"
+                  aria-label={`View journals in ${constellation.title}`}
+                >
+                  <BookOpen size={14} />
+                  <span className="hidden sm:inline">View journals</span>
+                </button>
                 <button onClick={() => beginEdit(constellation)} className="rounded-full p-2 text-gray-500 transition hover:bg-white/10 hover:text-white" aria-label={`Edit ${constellation.title}`}>
                   <Pencil size={16} />
                 </button>
