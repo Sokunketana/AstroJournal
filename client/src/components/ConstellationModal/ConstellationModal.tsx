@@ -178,9 +178,19 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
     <>
       <Modal isOpen={isOpen} onClose={close} maxWidth="2xl" className="max-h-[85vh]">
       {editing ? (
-        <>
+        <form
+          className="contents"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (colorPickerOpen) {
+              setColorPickerOpen(false);
+              return;
+            }
+            if (!busy) void saveSelection(selectedIds);
+          }}
+        >
           <div className="mb-5 flex items-center gap-3 pr-10">
-            <button onClick={leaveEditor} className="rounded-full p-2 text-gray-400 transition hover:bg-white/10 hover:text-white" aria-label="Back">
+            <button type="button" onClick={leaveEditor} className="rounded-full p-2 text-gray-400 transition hover:bg-white/10 hover:text-white" aria-label="Back">
               <ArrowLeft size={18} />
             </button>
             <div>
@@ -356,12 +366,12 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
 
           {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
           <div className="mt-5 flex justify-end gap-2 border-t border-white/5 pt-4">
-            <Button variant="ghost" onClick={leaveEditor} disabled={busy}>Cancel</Button>
-            <Button icon={Save} onClick={() => void saveSelection(selectedIds)} disabled={busy || selectedIds.length < 2 || !title.trim()}>
+            <Button type="button" variant="ghost" onClick={leaveEditor} disabled={busy}>Cancel</Button>
+            <Button type="submit" icon={Save} disabled={busy || selectedIds.length < 2 || !title.trim()}>
               {busy ? 'Saving…' : 'Save constellation'}
             </Button>
           </div>
-        </>
+        </form>
       ) : viewing ? (
         <>
           <div className="mb-5 flex items-center gap-3 pr-10">
