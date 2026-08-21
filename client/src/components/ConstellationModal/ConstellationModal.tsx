@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, BookOpen, Link2, MousePointer2, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Check, Link2, MousePointer2, Palette, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Button from '../Button';
 import { formatShortDate } from '../../utils/dateUtils';
@@ -7,6 +7,52 @@ import type { Constellation, ConstellationInput } from '../../types';
 import type { ConstellationModalProps } from './ConstellationModal.types';
 
 const DEFAULT_COLOR = '#a78bfa';
+
+interface HslColor {
+  h: number;
+  s: number;
+  l: number;
+}
+
+const hexToHsl = (hex: string): HslColor => {
+  const value = hex.replace('#', '');
+  const red = Number.parseInt(value.slice(0, 2), 16) / 255;
+  const green = Number.parseInt(value.slice(2, 4), 16) / 255;
+  const blue = Number.parseInt(value.slice(4, 6), 16) / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const lightness = (max + min) / 2;
+  const delta = max - min;
+
+  if (delta === 0) return { h: 0, s: 0, l: lightness * 100 };
+
+  const saturation = delta / (1 - Math.abs(2 * lightness - 1));
+  let hue = max === red
+    ? ((green - blue) / delta) % 6
+    : max === green
+      ? (blue - red) / delta + 2
+      : (red - green) / delta + 4;
+  hue = (hue * 60 + 360) % 360;
+  return { h: hue, s: saturation * 100, l: lightness * 100 };
+};
+
+const hslToHex = ({ h, s, l }: HslColor): string => {
+  const saturation = s / 100;
+  const lightness = l / 100;
+  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  const segment = h / 60;
+  const secondary = chroma * (1 - Math.abs((segment % 2) - 1));
+  const [red, green, blue] = segment < 1 ? [chroma, secondary, 0]
+    : segment < 2 ? [secondary, chroma, 0]
+      : segment < 3 ? [0, chroma, secondary]
+        : segment < 4 ? [0, secondary, chroma]
+          : segment < 5 ? [secondary, 0, chroma]
+            : [chroma, 0, secondary];
+  const offset = lightness - chroma / 2;
+  return `#${[red, green, blue]
+    .map((channel) => Math.round((channel + offset) * 255).toString(16).padStart(2, '0'))
+    .join('')}`;
+};
 
 const ConstellationModal: React.FC<ConstellationModalProps> = ({
   isOpen,
@@ -25,6 +71,9 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+
+  const hslColor = useMemo(() => hexToHsl(color), [color]);
 
   const sortedJournals = useMemo(
     () => [...journals].sort(
@@ -35,6 +84,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
 
   const beginEdit = (constellation: Constellation | 'new') => {
     setViewing(null);
+    setColorPickerOpen(false);
     setEditing(constellation);
     setTitle(constellation === 'new' ? '' : constellation.title);
     setColor(constellation === 'new' ? DEFAULT_COLOR : constellation.color);
@@ -44,6 +94,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
 
   const leaveEditor = () => {
     setEditing(null);
+    setColorPickerOpen(false);
     setError('');
   };
 
@@ -59,6 +110,17 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
     }
     setSelectedIds((current) => [...current, journalId]);
     setError('');
+  };
+
+  const chooseWheelColor = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.type === 'pointermove' && event.buttons !== 1) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const radius = bounds.width / 2;
+    const x = event.clientX - bounds.left - radius;
+    const y = event.clientY - bounds.top - radius;
+    const hue = (Math.atan2(y, x) * 180 / Math.PI + 450) % 360;
+    const saturation = Math.min(Math.hypot(x, y) / radius, 1) * 100;
+    setColor(hslToHex({ h: hue, s: saturation, l: hslColor.l }));
   };
 
   const save = async () => {
@@ -122,29 +184,97 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
               placeholder="e.g. A new beginning"
               className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-white/40"
             />
-            <div className="flex items-center gap-3" aria-label="Constellation color">
-              <label
-                className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full p-1 transition hover:scale-105"
-                style={{
-                  background: 'conic-gradient(#ef4444, #facc15, #22c55e, #22d3ee, #3b82f6, #a855f7, #ef4444)',
-                  boxShadow: `0 0 20px ${color}66`,
-                }}
-                title="Choose any constellation color"
+            <div className="relative flex items-center gap-3" aria-label="Constellation color">
+              <button
+                type="button"
+                onClick={() => setColorPickerOpen((open) => !open)}
+                className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/5 p-1.5 transition hover:border-white/45 hover:bg-white/10"
+                style={{ boxShadow: `0 0 18px ${color}55` }}
+                aria-label="Open constellation color picker"
+                aria-expanded={colorPickerOpen}
               >
-                <span className="h-full w-full rounded-full border-2 border-black/70" style={{ backgroundColor: color }} />
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(event) => setColor(event.target.value)}
-                  className="absolute -inset-3 h-20 w-20 cursor-pointer opacity-0"
-                  aria-label="Choose any constellation color"
-                />
-              </label>
+                <span className="h-full w-full rounded-full border border-white/30" style={{ backgroundColor: color }} />
+                <Palette size={13} className="absolute text-white drop-shadow-[0_1px_2px_black]" />
+              </button>
               <div>
                 <p className="text-xs font-semibold text-gray-300">Constellation color</p>
                 <p className="font-mono text-xs uppercase text-gray-500">{color}</p>
               </div>
               <span className="ml-auto text-xs text-gray-500">{selectedIds.length}/30 stars</span>
+
+              {colorPickerOpen && (
+                <div className="absolute left-0 top-14 z-30 w-60 rounded-2xl border border-white/15 bg-[#15151a]/98 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-300">Choose color</p>
+                    <span className="h-5 w-5 rounded-full border border-white/30" style={{ backgroundColor: color }} />
+                  </div>
+                  <div
+                    role="slider"
+                    tabIndex={0}
+                    aria-label="Hue and saturation"
+                    className="relative mx-auto mb-4 aspect-square w-40 touch-none rounded-full border border-white/20 shadow-inner cursor-crosshair"
+                    style={{
+                      background: 'radial-gradient(circle, white 0%, rgba(255,255,255,0) 72%), conic-gradient(from 0deg, #ef4444, #facc15, #22c55e, #22d3ee, #3b82f6, #a855f7, #ef4444)',
+                    }}
+                    onPointerDown={(event) => {
+                      event.currentTarget.setPointerCapture(event.pointerId);
+                      chooseWheelColor(event);
+                    }}
+                    onPointerMove={chooseWheelColor}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                        event.preventDefault();
+                        const direction = event.key === 'ArrowRight' ? 1 : -1;
+                        setColor(hslToHex({ ...hslColor, h: (hslColor.h + direction * 3 + 360) % 360 }));
+                      }
+                      if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        const direction = event.key === 'ArrowUp' ? 1 : -1;
+                        setColor(hslToHex({ ...hslColor, s: Math.min(100, Math.max(0, hslColor.s + direction * 3)) }));
+                      }
+                    }}
+                  >
+                    <span
+                      className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_1px_4px_black]"
+                      style={{
+                        left: `${50 + Math.cos((hslColor.h - 90) * Math.PI / 180) * hslColor.s / 2}%`,
+                        top: `${50 + Math.sin((hslColor.h - 90) * Math.PI / 180) * hslColor.s / 2}%`,
+                        backgroundColor: color,
+                      }}
+                    />
+                  </div>
+                  <label className="mb-3 block">
+                    <span className="mb-1.5 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                      Brightness <span>{Math.round(hslColor.l)}%</span>
+                    </span>
+                    <input
+                      type="range"
+                      min="5"
+                      max="95"
+                      value={hslColor.l}
+                      onChange={(event) => setColor(hslToHex({ ...hslColor, l: Number(event.target.value) }))}
+                      className="h-1.5 w-full cursor-pointer appearance-none rounded-full"
+                      style={{ background: `linear-gradient(to right, #050505, hsl(${hslColor.h} ${hslColor.s}% 50%), #ffffff)` }}
+                    />
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={color.toUpperCase()}
+                      readOnly
+                      className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/35 px-3 py-2 font-mono text-xs uppercase text-gray-300 outline-none focus:border-white/35"
+                      aria-label="Selected hex color"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setColorPickerOpen(false)}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-black transition hover:bg-gray-200"
+                      aria-label="Confirm color"
+                    >
+                      <Check size={15} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -164,9 +294,8 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
             {selectedIds.length ? 'Continue selecting stars in the sky' : 'Select stars in the sky'}
           </button>
 
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Or select from your journal list</p>
-            <p className="text-xs text-gray-600">Click again to remove</p>
           </div>
           <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
             {sortedJournals.length === 0 ? (
