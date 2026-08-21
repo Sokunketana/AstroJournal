@@ -21,6 +21,7 @@ import StatBadge from "../../components/StatBadge";
 import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
+import StarTimeline from "../../components/StarTimeline";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
@@ -436,6 +437,11 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             </button>
           </div>
         </header>
+      </div>
+
+      {/* Zoomable star history: weekly detail and monthly progress. */}
+      <div className="fixed bottom-[5.75rem] inset-x-0 z-40 pointer-events-none px-4 sm:px-6">
+        <StarTimeline journals={journals} onSelect={handleStarClick} />
       </div>
 
       {/* Bottom composer: entries launch upward into the sky. */}
