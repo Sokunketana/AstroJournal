@@ -70,10 +70,11 @@ const IMPACT_RADIUS_VIEWPORT_RATIO = 0.26;
 const IMPACT_RADIUS_MIN_PX = 150;
 const IMPACT_RADIUS_MAX_PX = 260;
 const IMPACT_STRENGTH = 7;
-// Z bounce bounds: stars stay between a near plane (before the projection
-// blows up and they fly off-screen) and a far plane (before they shrink away)
-const NEAR_DEPTH = 1.5;
-const FAR_DEPTH = 30;
+// Fixed world-space depth bounds. These must not follow the zooming camera:
+// camera-relative bounds would drag old stars forward while zoomed out and
+// leave them enormous when returning to the weekly view.
+const MIN_STAR_Z = -8;
+const MAX_STAR_Z = 3;
 const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 const _matrix = new THREE.Matrix4();
 const _quaternion = new THREE.Quaternion();
@@ -381,6 +382,14 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         e.pos.y += e.vel.y * dt;
         e.pos.z += e.vel.z * dt;
 
+        if (e.pos.z < MIN_STAR_Z) {
+          e.pos.z = MIN_STAR_Z;
+          e.vel.z = Math.abs(e.vel.z) * 0.8;
+        } else if (e.pos.z > MAX_STAR_Z) {
+          e.pos.z = MAX_STAR_Z;
+          e.vel.z = -Math.abs(e.vel.z) * 0.8;
+        }
+
         // Screen boundaries for bouncing, computed in camera space so they
         // match the true view frustum: viewport.getCurrentViewport() sizes
         // the frustum by euclidean distance, which overestimates for stars
@@ -408,14 +417,6 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         } else if (cs.y < minY) {
           cs.y = minY;
           e.vel.y *= -0.8;
-        }
-
-        if (cs.z < -FAR_DEPTH) {
-          cs.z = -FAR_DEPTH;
-          e.vel.z *= -0.8;
-        } else if (cs.z > -NEAR_DEPTH) {
-          cs.z = -NEAR_DEPTH;
-          e.vel.z *= -0.8;
         }
 
         // Bounce off UI elements (app title, entry bar, search, stats...):
