@@ -76,11 +76,6 @@ const TimelineSkyGuide: React.FC<TimelineSkyGuideProps> = ({ view, viewRef }) =>
     return result;
   }, [monthly, view.weekPosition, visibleWeeks]);
 
-  const centerDate = weekPositionToDate(view.weekPosition);
-  const centerLabel = monthly
-    ? centerDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    : formatWeekRange(weekPositionToDate(Math.round(view.weekPosition)));
-
   useLayoutEffect(() => {
     let animationFrame = 0;
 
@@ -126,9 +121,6 @@ const TimelineSkyGuide: React.FC<TimelineSkyGuideProps> = ({ view, viewRef }) =>
         );
       })}
 
-      <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-center text-[9px] uppercase tracking-[0.18em] text-white/35 sm:bottom-25">
-        <p>{centerLabel}</p>
-      </div>
     </div>
   );
 };

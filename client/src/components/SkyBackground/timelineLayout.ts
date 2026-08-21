@@ -1,7 +1,7 @@
 const DAY_MS = 86_400_000;
 
 export const BASE_CAMERA_Z = 10;
-export const MAX_CAMERA_Z = 50;
+export const MAX_CAMERA_Z = 120;
 
 export const startOfWeek = (value: string | Date): Date => {
   const source = new Date(value);
