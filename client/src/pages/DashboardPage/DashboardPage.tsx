@@ -499,9 +499,14 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           <div className="flex items-center gap-4 h-11.5" data-star-bounce>
             <button
               onClick={() => setShowConstellations(true)}
-              className="p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm text-gray-400 hover:text-violet-200 hover:bg-white/10 transition-all cursor-pointer"
-              aria-label="Manage constellations"
-              title="Constellations"
+              disabled={!!skySelection}
+              className={`p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm transition-all ${
+                skySelection
+                  ? 'cursor-not-allowed text-gray-700 opacity-45'
+                  : 'cursor-pointer text-gray-400 hover:bg-white/10 hover:text-violet-200'
+              }`}
+              aria-label={skySelection ? 'Constellations unavailable while selecting stars' : 'Manage constellations'}
+              title={skySelection ? 'Finish or cancel star selection first' : 'Constellations'}
             >
               <Share2 size={18} />
             </button>
