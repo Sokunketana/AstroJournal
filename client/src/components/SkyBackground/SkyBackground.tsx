@@ -83,6 +83,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   launch,
   looseJournals,
   constellations,
+  selectionDraft,
   onStarClick,
   onJournalPositionUpdate,
   focusCurrentSignal = 0,
@@ -235,9 +236,17 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           impact={launch}
           paused={paused}
           positionsRef={starPositionsRef}
+          selectedIds={selectionDraft?.journalIds}
+          selectionColor={selectionDraft?.color}
         />
 
-        <ConstellationLines constellations={constellations} positionsRef={starPositionsRef} />
+        <ConstellationLines
+          constellations={selectionDraft?.editingId
+            ? constellations.filter((constellation) => constellation._id !== selectionDraft.editingId)
+            : constellations}
+          positionsRef={starPositionsRef}
+          draft={selectionDraft}
+        />
 
         {quality === "high" && (
           <EffectComposer multisampling={0}>

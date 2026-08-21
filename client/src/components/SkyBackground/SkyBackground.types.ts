@@ -31,6 +31,11 @@ export interface SkyBackgroundProps {
   launch: RocketLaunchData | null;
   looseJournals: Journal[];
   constellations: Constellation[];
+  selectionDraft?: {
+    journalIds: string[];
+    color: string;
+    editingId?: string;
+  } | null;
   onStarClick: (journal: Journal) => void;
   onJournalPositionUpdate: (
     id: string,

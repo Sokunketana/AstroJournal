@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Link2, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Link2, MousePointer2, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Button from '../Button';
 import { formatShortDate } from '../../utils/dateUtils';
 import type { Constellation, ConstellationInput } from '../../types';
 import type { ConstellationModalProps } from './ConstellationModal.types';
 
-const COLORS = ['#a78bfa', '#60a5fa', '#22d3ee', '#34d399', '#facc15', '#fb7185'];
+const DEFAULT_COLOR = '#a78bfa';
 
 const ConstellationModal: React.FC<ConstellationModalProps> = ({
   isOpen,
@@ -16,23 +16,19 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   onCreate,
   onUpdate,
   onDelete,
+  onSelectInSky,
 }) => {
   const [editing, setEditing] = useState<Constellation | 'new' | null>(null);
   const [title, setTitle] = useState('');
-  const [color, setColor] = useState(COLORS[0]);
+  const [color, setColor] = useState(DEFAULT_COLOR);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const sortedJournals = useMemo(
-    () => [...journals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
-    [journals],
-  );
-
   const beginEdit = (constellation: Constellation | 'new') => {
     setEditing(constellation);
     setTitle(constellation === 'new' ? '' : constellation.title);
-    setColor(constellation === 'new' ? COLORS[0] : constellation.color);
+    setColor(constellation === 'new' ? DEFAULT_COLOR : constellation.color);
     setSelectedIds(constellation === 'new' ? [] : constellation.journalIds);
     setError('');
   };
@@ -40,12 +36,6 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   const leaveEditor = () => {
     setEditing(null);
     setError('');
-  };
-
-  const toggleJournal = (id: string) => {
-    setSelectedIds((current) => current.includes(id)
-      ? current.filter((journalId) => journalId !== id)
-      : current.length < 30 ? [...current, id] : current);
   };
 
   const save = async () => {
@@ -108,43 +98,70 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
               placeholder="e.g. A new beginning"
               className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-white/40"
             />
-            <div className="flex items-center gap-2" aria-label="Constellation color">
-              {COLORS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setColor(option)}
-                  className={`h-8 w-8 rounded-full border-2 transition ${color === option ? 'scale-110 border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                  style={{ backgroundColor: option, boxShadow: color === option ? `0 0 18px ${option}` : undefined }}
-                  aria-label={`Use color ${option}`}
+            <div className="flex items-center gap-3" aria-label="Constellation color">
+              <label
+                className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full p-1 transition hover:scale-105"
+                style={{
+                  background: 'conic-gradient(#ef4444, #facc15, #22c55e, #22d3ee, #3b82f6, #a855f7, #ef4444)',
+                  boxShadow: `0 0 20px ${color}66`,
+                }}
+                title="Choose any constellation color"
+              >
+                <span className="h-full w-full rounded-full border-2 border-black/70" style={{ backgroundColor: color }} />
+                <input
+                  type="color"
+                  value={color}
+                  onChange={(event) => setColor(event.target.value)}
+                  className="absolute -inset-3 h-20 w-20 cursor-pointer opacity-0"
+                  aria-label="Choose any constellation color"
                 />
-              ))}
+              </label>
+              <div>
+                <p className="text-xs font-semibold text-gray-300">Constellation color</p>
+                <p className="font-mono text-xs uppercase text-gray-500">{color}</p>
+              </div>
               <span className="ml-auto text-xs text-gray-500">{selectedIds.length}/30 stars</span>
             </div>
           </div>
 
+          <button
+            type="button"
+            onClick={() => onSelectInSky(
+              {
+                journalIds: selectedIds,
+                color,
+                editingId: editing === 'new' ? undefined : editing._id,
+              },
+              setSelectedIds,
+            )}
+            className="mb-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-violet-300/40 bg-violet-400/8 px-4 py-5 text-sm font-semibold text-violet-100 transition hover:border-violet-200/70 hover:bg-violet-400/15"
+          >
+            <MousePointer2 size={18} />
+            {selectedIds.length ? 'Continue selecting stars in the sky' : 'Select stars in the sky'}
+          </button>
+
           <div className="custom-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
-            {sortedJournals.map((journal) => {
-              const selected = selectedIds.includes(journal._id);
+            {selectedIds.length === 0 ? (
+              <div className="py-8 text-center">
+                <Star size={26} className="mx-auto mb-2 text-gray-700" />
+                <p className="text-sm text-gray-500">No stars selected yet.</p>
+              </div>
+            ) : selectedIds.map((journalId, index) => {
+              const journal = journals.find((item) => item._id === journalId);
+              if (!journal) return null;
               return (
-                <button
-                  key={journal._id}
-                  type="button"
-                  onClick={() => toggleJournal(journal._id)}
-                  className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${selected ? 'border-white/35 bg-white/12' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
-                >
+                <div key={journalId} className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3">
                   <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${selected ? 'border-white text-white' : 'border-white/15 text-gray-600'}`}
-                    style={selected ? { color, boxShadow: `0 0 14px ${color}88` } : undefined}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/60 text-xs font-bold"
+                    style={{ color, boxShadow: `0 0 14px ${color}88` }}
                   >
-                    <Star size={14} fill={selected ? 'currentColor' : 'none'} />
+                    {index + 1}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-xs font-semibold text-gray-300">{formatShortDate(journal.createdAt)}</span>
                     <span className="block truncate text-sm text-gray-500">{journal.content}</span>
                   </span>
-                  {selected && <span className="text-xs font-bold text-white">{selectedIds.indexOf(journal._id) + 1}</span>}
-                </button>
+                </div>
               );
             })}
           </div>

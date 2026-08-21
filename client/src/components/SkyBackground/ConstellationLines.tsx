@@ -6,6 +6,7 @@ import type { Constellation } from '../../types';
 interface ConstellationLinesProps {
   constellations: Constellation[];
   positionsRef: React.MutableRefObject<Map<string, THREE.Vector3>>;
+  draft?: { journalIds: string[]; color: string } | null;
 }
 
 interface Segment {
@@ -14,16 +15,19 @@ interface Segment {
   color: THREE.Color;
 }
 
-const ConstellationLines: React.FC<ConstellationLinesProps> = ({ constellations, positionsRef }) => {
+const ConstellationLines: React.FC<ConstellationLinesProps> = ({ constellations, positionsRef, draft }) => {
   const geometryRef = useRef<THREE.BufferGeometry>(null);
-  const segments = useMemo<Segment[]>(() => constellations.flatMap((constellation) => {
-    const color = new THREE.Color(constellation.color);
-    return constellation.journalIds.slice(0, -1).map((fromId, index) => ({
-      fromId,
-      toId: constellation.journalIds[index + 1],
-      color,
-    }));
-  }), [constellations]);
+  const segments = useMemo<Segment[]>(() => {
+    const sources = draft ? [...constellations, draft] : constellations;
+    return sources.flatMap((constellation) => {
+      const color = new THREE.Color(constellation.color);
+      return constellation.journalIds.slice(0, -1).map((fromId, index) => ({
+        fromId,
+        toId: constellation.journalIds[index + 1],
+        color,
+      }));
+    });
+  }, [constellations, draft]);
 
   const positions = useMemo(() => new Float32Array(Math.max(segments.length * 6, 6)), [segments.length]);
   const colors = useMemo(() => {

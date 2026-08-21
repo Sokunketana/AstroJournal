@@ -53,6 +53,13 @@ interface AimDragState extends AimPreview {
   moved: boolean;
 }
 
+interface SkySelectionDraft {
+  journalIds: string[];
+  color: string;
+  editingId?: string;
+  onComplete: (journalIds: string[]) => void;
+}
+
 const AIM_DRAG_THRESHOLD = 8;
 const AIM_CANCEL_MARGIN = 8;
 
@@ -167,6 +174,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [showArchive, setShowArchive] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showConstellations, setShowConstellations] = useState(false);
+  const [skySelection, setSkySelection] = useState<SkySelectionDraft | null>(null);
   const [isLaunching, setIsLaunching] = useState(false);
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
@@ -255,7 +263,42 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const loading = userLoading || journalsLoading;
 
   const handleStarClick = useCallback((journal: Journal) => {
-    setSelectedJournal(journal);
+    if (!skySelection) {
+      setSelectedJournal(journal);
+      return;
+    }
+
+    setSkySelection((current) => {
+      if (!current) return current;
+      const selected = current.journalIds.includes(journal._id);
+      if (!selected && current.journalIds.length >= 30) return current;
+      return {
+        ...current,
+        journalIds: selected
+          ? current.journalIds.filter((id) => id !== journal._id)
+          : [...current.journalIds, journal._id],
+      };
+    });
+  }, [skySelection]);
+
+  const beginSkySelection = useCallback((
+    draft: Omit<SkySelectionDraft, 'onComplete'>,
+    onComplete: (journalIds: string[]) => void,
+  ) => {
+    setSkySelection({ ...draft, onComplete });
+    setShowConstellations(false);
+  }, []);
+
+  const finishSkySelection = useCallback(() => {
+    if (!skySelection) return;
+    skySelection.onComplete(skySelection.journalIds);
+    setSkySelection(null);
+    setShowConstellations(true);
+  }, [skySelection]);
+
+  const cancelSkySelection = useCallback(() => {
+    setSkySelection(null);
+    setShowConstellations(true);
   }, []);
 
   const handleArchiveSelect = useCallback(
@@ -436,6 +479,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         launch={launch}
         looseJournals={journals}
         constellations={constellations}
+        selectionDraft={skySelection}
         onStarClick={handleStarClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
         focusCurrentSignal={focusCurrentSignal}
@@ -484,7 +528,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       </div>
 
       {/* Bottom composer: entries launch upward into the sky. */}
-      <div className="fixed bottom-0 inset-x-0 z-50 pointer-events-none px-4 pb-6 sm:px-6">
+      {!skySelection && <div className="fixed bottom-0 inset-x-0 z-50 pointer-events-none px-4 pb-6 sm:px-6">
         <form
           onSubmit={handleLaunchSubmit}
           data-star-bounce
@@ -560,7 +604,33 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               )}
             </button>
         </form>
-      </div>
+      </div>}
+
+      {skySelection && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-60 px-4 pb-6 sm:px-6">
+          <div
+            data-star-bounce
+            className="pointer-events-auto mx-auto flex w-full max-w-xl items-center gap-3 rounded-2xl border border-white/15 bg-black/80 p-3 shadow-2xl backdrop-blur-xl"
+          >
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/60 font-bold"
+              style={{ color: skySelection.color, boxShadow: `0 0 18px ${skySelection.color}88` }}
+            >
+              {skySelection.journalIds.length}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-white">Select stars in connection order</p>
+              <p className="text-xs text-gray-400">Hover to read an entry. Click to select or remove it.</p>
+            </div>
+            <button onClick={cancelSkySelection} className="rounded-xl px-3 py-2 text-xs font-bold uppercase text-gray-400 transition hover:bg-white/10 hover:text-white">
+              Cancel
+            </button>
+            <button onClick={finishSkySelection} className="rounded-xl bg-white px-4 py-2 text-xs font-bold uppercase text-black transition hover:bg-gray-200">
+              Done
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Journal Entry Viewer (Modal) */}
       <Modal isOpen={!!selectedJournal} onClose={() => setSelectedJournal(null)} maxWidth="lg">
@@ -644,6 +714,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onCreate={createConstellation}
         onUpdate={updateConstellation}
         onDelete={deleteConstellation}
+        onSelectInSky={beginSkySelection}
       />
 
       {/* Delete Confirmation Dialog */}

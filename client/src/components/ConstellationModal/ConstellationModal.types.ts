@@ -8,4 +8,9 @@ export interface ConstellationModalProps {
   onCreate: (input: ConstellationInput) => Promise<void>;
   onUpdate: (id: string, input: ConstellationInput) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onSelectInSky: (draft: {
+    journalIds: string[];
+    color: string;
+    editingId?: string;
+  }, onComplete: (journalIds: string[]) => void) => void;
 }
