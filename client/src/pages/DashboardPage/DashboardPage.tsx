@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { useRouter } from '@tanstack/react-router';
-import { useAuth } from "../../context/AuthContext";
+import { UserButton } from '@clerk/react';
 import {
   useCreateJournal,
   type JournalCreationResult,
@@ -149,9 +148,6 @@ const LaunchAimPreview: React.FC<AimPreview> = ({ start, target, canceling }) =>
 };
 
 const DashboardPage: React.FC<DashboardPageProps> = () => {
-  const { logout } = useAuth();
-  const router = useRouter();
-
   // fetch user data
   const {
     data: userData,
@@ -173,7 +169,6 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
   const [selectedJournal, setSelectedJournal] = useState<Journal | null>(null);
   const [showArchive, setShowArchive] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showConstellations, setShowConstellations] = useState(false);
   const [skySelection, setSkySelection] = useState<SkySelectionDraft | null>(null);
   const [isSavingSkySelection, setIsSavingSkySelection] = useState(false);
@@ -545,12 +540,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
               <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} tooltip="Total Stars Earned" />
             </div>
-            <button
-              onClick={() => setShowLogoutConfirm(true)}
-              className="text-xs text-gray-500 hover:text-white transition-colors"
-            >
-              Logout
-            </button>
+            <UserButton />
           </div>
         </header>
       </div>
@@ -750,20 +740,6 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         isOpen={!!deleteTargetId}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTargetId(null)}
-      />
-      {/* Logout Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={showLogoutConfirm}
-        title="Confirm Logout"
-        message="Are you sure you want to log out?"
-        confirmLabel="Logout"
-        cancelLabel="Cancel"
-        onConfirm={async () => {
-          setShowLogoutConfirm(false);
-          logout();
-          await router.navigate({ to: '/login' });
-        }}
-        onCancel={() => setShowLogoutConfirm(false)}
       />
     </div>
   );

@@ -1,7 +1,15 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+type AuthTokenGetter = () => Promise<string | null>;
+
+let getAuthToken: AuthTokenGetter | undefined;
+
+export const setAuthTokenGetter = (getter: AuthTokenGetter) => {
+  getAuthToken = getter;
+};
+
 export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
-  const token = localStorage.getItem('token');
+  const token = await getAuthToken?.();
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),

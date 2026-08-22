@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { getAuth } from '@clerk/express';
+import User from '../models/User.js';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -8,19 +9,29 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { userId: clerkId } = getAuth(req);
 
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET || 'your_super_secret_key_here', (err: any, decoded: any) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid token' });
+    if (!clerkId) {
+      return res.status(401).json({ message: 'Unauthorized' });
     }
-    req.user = { userId: decoded.userId, role: decoded.role };
+
+    const user = await User.findOneAndUpdate(
+      { clerkId },
+      {
+        $setOnInsert: {
+          clerkId,
+          username: clerkId,
+          role: 'user',
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true },
+    );
+
+    req.user = { userId: user._id.toString(), role: user.role };
     next();
-  });
+  } catch (error) {
+    next(error);
+  }
 };
