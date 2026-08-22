@@ -5,6 +5,8 @@ import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  envDir: '..',
+  envPrefix: ['VITE_', 'CLERK_PUBLISHABLE_KEY'],
   plugins: [
     TanStackRouterVite({ quoteStyle: 'single' }),
     react(),
