@@ -202,10 +202,8 @@ const LandingPage = () => {
     <main className="min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed]">
       <section className="relative isolate min-h-screen border-b border-white/[0.06]">
         <div className="landing-stars pointer-events-none absolute inset-0" aria-hidden="true" />
-        <span className="landing-meteor landing-meteor-one" aria-hidden="true" />
-        <span className="landing-meteor landing-meteor-two" aria-hidden="true" />
-        <div className="landing-glow-drift pointer-events-none absolute left-[10%] top-24 h-72 w-72 rounded-full bg-violet-600/15 blur-[120px]" aria-hidden="true" />
-        <div className="landing-glow-drift landing-glow-drift-reverse pointer-events-none absolute right-[4%] top-[28%] h-96 w-96 rounded-full bg-amber-400/10 blur-[140px]" aria-hidden="true" />
+        <div className="pointer-events-none absolute left-[10%] top-24 h-72 w-72 rounded-full bg-violet-600/15 blur-[120px]" aria-hidden="true" />
+        <div className="pointer-events-none absolute right-[4%] top-[28%] h-96 w-96 rounded-full bg-amber-400/10 blur-[140px]" aria-hidden="true" />
 
         <nav className="landing-enter relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
           <Link to="/" aria-label="AstroJournal home">
