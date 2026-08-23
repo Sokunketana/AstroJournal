@@ -24,6 +24,7 @@ import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
 import ConstellationModal from "../../components/ConstellationModal";
 import JournalDataSettings from "../../components/JournalDataSettings";
+import LoadingScreen from "../../components/LoadingScreen";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
@@ -508,12 +509,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     [],
   );
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white">
-        Loading...
-      </div>
-    );
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="relative min-h-screen text-white overflow-hidden font-sans">
