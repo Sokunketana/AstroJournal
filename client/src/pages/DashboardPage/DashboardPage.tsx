@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { UserButton } from '@clerk/react';
+import { clerkAppearance } from '../../config/clerkAppearance';
 import {
   useCreateJournal,
   type JournalCreationResult,
@@ -540,7 +541,10 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
               <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} tooltip="Total Stars Earned" />
             </div>
-            <UserButton />
+            <UserButton
+              appearance={clerkAppearance}
+              userProfileProps={{ appearance: clerkAppearance }}
+            />
           </div>
         </header>
       </div>
