@@ -324,12 +324,12 @@ const LandingPage = () => {
               <div className="relative mt-8 h-[300px]">
                 <ConstellationConnections segments={featureSegments} />
                 {emotionStars.map((star, index) => (
-                  <div key={star.label} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: star.left, top: star.top }}>
+                  <div key={star.label} className="absolute" style={{ left: star.left, top: star.top }}>
                     <span
-                      className={`block rounded-full ${index === 2 ? 'h-3 w-3' : 'h-2 w-2'}`}
+                      className={`absolute left-0 top-0 block -translate-x-1/2 -translate-y-1/2 rounded-full ${index === 2 ? 'h-3 w-3' : 'h-2 w-2'}`}
                       style={{ backgroundColor: star.color, boxShadow: `0 0 20px ${star.color}` }}
                     />
-                    <span className="mt-3 block -translate-x-1/3 text-[9px] font-bold uppercase tracking-wider text-white/30">{star.label}</span>
+                    <span className="absolute left-0 top-3 -translate-x-1/2 whitespace-nowrap text-[9px] font-bold uppercase tracking-wider text-white/30">{star.label}</span>
                   </div>
                 ))}
               </div>
