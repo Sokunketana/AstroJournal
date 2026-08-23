@@ -33,8 +33,8 @@ const steps = [
   {
     number: '01',
     icon: BookOpenText,
-    title: 'Capture one honest moment',
-    copy: 'A single thoughtful entry each day keeps reflection focused, sustainable, and worth returning to.',
+    title: 'Capture an honest moment',
+    copy: 'Write whenever something feels worth keeping. Every reflection adds another meaningful point to your sky.',
   },
   {
     number: '02',
@@ -225,11 +225,11 @@ const LandingPage = () => {
         <div className="landing-glow landing-glow-violet pointer-events-none absolute left-[10%] top-24 h-72 w-72 rounded-full" aria-hidden="true" />
         <div className="landing-glow landing-glow-amber pointer-events-none absolute right-[4%] top-[28%] h-96 w-96 rounded-full" aria-hidden="true" />
 
-        <nav className="landing-enter relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
+        <nav className="landing-enter relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-5 py-6 sm:px-8 lg:px-10">
           <Link to="/" aria-label="AstroJournal home">
-            <Logo className="text-xl sm:text-2xl" />
+            <Logo className="text-base min-[380px]:text-lg sm:text-2xl" />
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <div className="mr-3 hidden items-center gap-7 text-sm text-white/50 lg:flex">
               <a href="#how-it-works" className="transition hover:text-white">How it works</a>
               <a href="#features" className="transition hover:text-white">Features</a>
@@ -238,23 +238,24 @@ const LandingPage = () => {
             {!isSignedIn && (
               <Link
                 to="/login"
-                className="rounded-full px-4 py-2 text-sm font-medium text-white/65 transition hover:text-white"
+                className="whitespace-nowrap rounded-full px-2 py-2 text-xs font-medium text-white/65 transition hover:text-white sm:px-4 sm:text-sm"
               >
                 Sign in
               </Link>
             )}
             <Link
               to={primaryTo}
-              className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white px-4 py-2 text-sm font-bold text-[#06070d] transition hover:bg-[#f1dfb8] sm:px-5"
+              className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-white/15 bg-white px-3 py-2 text-xs font-bold text-[#06070d] transition hover:bg-[#f1dfb8] sm:gap-2 sm:px-5 sm:text-sm"
             >
-              {isSignedIn ? 'Open your sky' : 'Start journaling'}
-              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+              <span className="sm:hidden">{isSignedIn ? 'Open' : 'Start'}</span>
+              <span className="hidden sm:inline">{isSignedIn ? 'Open your sky' : 'Start journaling'}</span>
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5 sm:h-[15px] sm:w-[15px]" />
             </Link>
           </div>
         </nav>
 
         <div className="relative z-10 mx-auto grid min-h-[calc(100vh-92px)] w-full max-w-7xl items-center gap-14 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:px-10 lg:pb-24 lg:pt-8">
-          <div className="max-w-2xl">
+          <div className="min-w-0 max-w-2xl">
             <div className="landing-enter landing-enter-delay-1 mb-7 inline-flex items-center gap-2 rounded-full border border-amber-200/15 bg-amber-100/[0.05] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#e6c98e]">
               <Sparkles size={14} />
               A journal written in the stars
@@ -266,7 +267,7 @@ const LandingPage = () => {
               </span>
             </h1>
             <p className="landing-enter landing-enter-delay-3 mt-7 max-w-xl text-pretty text-base leading-7 text-[#9ca1b3] sm:text-lg sm:leading-8">
-              Turn one honest reflection a day into a living night sky. Every entry becomes a star, every streak builds momentum, and every constellation preserves a chapter of your life.
+              Turn honest reflections into a living night sky. Every entry becomes a star, every streak builds momentum, and every constellation preserves a chapter of your life.
             </p>
             <div className="landing-enter landing-enter-delay-4 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
@@ -285,12 +286,12 @@ const LandingPage = () => {
               </a>
             </div>
             <div className="landing-enter landing-enter-delay-5 mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs text-white/45">
-              <span className="inline-flex items-center gap-2"><Star size={14} className="text-[#e8c87c]" /> One meaningful entry a day</span>
+              <span className="inline-flex items-center gap-2"><Star size={14} className="text-[#e8c87c]" /> Every meaningful entry becomes a star</span>
               <span className="inline-flex items-center gap-2"><Flame size={14} className="text-[#f08d5d]" /> Gentle streaks, no noisy feeds</span>
             </div>
           </div>
 
-          <div className="landing-enter landing-enter-delay-3 relative mx-auto w-full max-w-[650px] lg:mx-0">
+          <div className="landing-enter landing-enter-delay-3 relative mx-auto min-w-0 w-full max-w-[650px] lg:mx-0">
             <div className="landing-glow landing-glow-violet-soft absolute -inset-10 rounded-full" aria-hidden="true" />
             <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#070912]/95 p-3 shadow-[0_32px_100px_rgba(0,0,0,0.55)] sm:p-4">
               <div className="flex items-center justify-between px-3 pb-3 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
@@ -300,7 +301,7 @@ const LandingPage = () => {
                   <span className="inline-flex items-center gap-1 text-amber-200/70"><Star size={12} /> 48</span>
                 </div>
               </div>
-              <div className="relative aspect-[1.12/0.78] min-h-[360px] overflow-hidden rounded-[1.45rem] border border-white/[0.07] bg-[radial-gradient(circle_at_50%_120%,#251b46_0%,#0b0d1b_38%,#03040a_76%)]">
+              <div className="relative aspect-[1.12/0.78] min-h-[280px] overflow-hidden rounded-[1.45rem] border border-white/[0.07] bg-[radial-gradient(circle_at_50%_120%,#251b46_0%,#0b0d1b_38%,#03040a_76%)] sm:min-h-[360px]">
                 <div className="landing-preview-grid absolute inset-0 opacity-35" aria-hidden="true" />
                 <ConstellationConnections segments={previewSegments} />
                 {previewStars.map((star, index) => (
@@ -476,7 +477,7 @@ const LandingPage = () => {
         <Reveal className="relative mx-auto max-w-3xl">
           <Star className="landing-cta-star mx-auto text-[#efd392]" size={24} fill="currentColor" />
           <h2 className="mt-7 text-balance text-4xl font-black tracking-[-0.045em] sm:text-6xl">Tonight is a good place to begin.</h2>
-          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-[#9196a7]">One reflection. One new star. A little more of your life held where you can see it.</p>
+          <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-[#9196a7]">Every reflection. A new star. A little more of your life held where you can see it.</p>
           <Link
             to={primaryTo}
             className="landing-primary-cta group mt-9 inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#f8f5ed] px-7 py-4 text-sm font-black text-[#080910] shadow-[0_0_55px_rgba(248,245,237,0.14)] transition hover:bg-[#f1dfb8]"

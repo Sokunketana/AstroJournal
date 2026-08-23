@@ -20,7 +20,7 @@ Gamified Daily Diary & Celestial Streak Tracker.
 3. `npm run dev`
 
 ## Features
-- **Daily Journaling**: Strictly limited to 1 entry per day.
+- **Flexible Journaling**: Capture as many entries as you like while maintaining a daily reflection streak.
 - **Star Generation**: Each entry earns you a star in your digital sky.
 - **Streak Tracker**: Tracks consecutive days of journaling.
 - **3D Sky Interface**: Interactive 3D visualization of your progress.
