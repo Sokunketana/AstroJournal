@@ -19,6 +19,21 @@ dotenv.config({
   ],
 });
 
+// Vite requires the VITE_ prefix in the browser, while Clerk Express expects
+// the unprefixed name. Reuse the same public key when both apps share an env.
+const clerkPublishableKey = process.env.CLERK_PUBLISHABLE_KEY
+  || process.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!clerkPublishableKey) {
+  throw new Error('Missing Clerk publishable key. Set CLERK_PUBLISHABLE_KEY or VITE_CLERK_PUBLISHABLE_KEY.');
+}
+
+if (!process.env.CLERK_SECRET_KEY) {
+  throw new Error('Missing CLERK_SECRET_KEY.');
+}
+
+process.env.CLERK_PUBLISHABLE_KEY = clerkPublishableKey;
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
