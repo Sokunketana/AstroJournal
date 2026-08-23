@@ -70,6 +70,30 @@ interface ConstellationSegment {
   toColor: string;
 }
 
+const revealCallbacks = new Map<Element, () => void>();
+let revealObserver: IntersectionObserver | null = null;
+
+const getRevealObserver = () => {
+  if (typeof IntersectionObserver === 'undefined') return null;
+
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+
+          revealCallbacks.get(entry.target)?.();
+          revealCallbacks.delete(entry.target);
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.16, rootMargin: '0px 0px -6% 0px' },
+    );
+  }
+
+  return revealObserver;
+};
+
 const Reveal = ({
   children,
   className = '',
@@ -86,22 +110,18 @@ const Reveal = ({
     const element = elementRef.current;
     if (!element) return;
 
-    if (typeof IntersectionObserver === 'undefined') {
+    const observer = getRevealObserver();
+    if (!observer) {
       const timer = window.setTimeout(() => setIsVisible(true), 0);
       return () => window.clearTimeout(timer);
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setIsVisible(true);
-        observer.unobserve(entry.target);
-      },
-      { threshold: 0.16, rootMargin: '0px 0px -6% 0px' },
-    );
-
+    revealCallbacks.set(element, () => setIsVisible(true));
     observer.observe(element);
-    return () => observer.disconnect();
+    return () => {
+      revealCallbacks.delete(element);
+      observer.unobserve(element);
+    };
   }, []);
 
   return (
@@ -202,8 +222,8 @@ const LandingPage = () => {
     <main className="min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed]">
       <section className="relative isolate min-h-screen border-b border-white/[0.06]">
         <div className="landing-stars pointer-events-none absolute inset-0" aria-hidden="true" />
-        <div className="pointer-events-none absolute left-[10%] top-24 h-72 w-72 rounded-full bg-violet-600/15 blur-[120px]" aria-hidden="true" />
-        <div className="pointer-events-none absolute right-[4%] top-[28%] h-96 w-96 rounded-full bg-amber-400/10 blur-[140px]" aria-hidden="true" />
+        <div className="landing-glow landing-glow-violet pointer-events-none absolute left-[10%] top-24 h-72 w-72 rounded-full" aria-hidden="true" />
+        <div className="landing-glow landing-glow-amber pointer-events-none absolute right-[4%] top-[28%] h-96 w-96 rounded-full" aria-hidden="true" />
 
         <nav className="landing-enter relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
           <Link to="/" aria-label="AstroJournal home">
@@ -271,8 +291,8 @@ const LandingPage = () => {
           </div>
 
           <div className="landing-enter landing-enter-delay-3 relative mx-auto w-full max-w-[650px] lg:mx-0">
-            <div className="absolute -inset-10 rounded-full bg-violet-500/[0.07] blur-3xl" aria-hidden="true" />
-            <div className="landing-float-panel relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#070912]/80 p-3 shadow-[0_32px_100px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:p-4">
+            <div className="landing-glow landing-glow-violet-soft absolute -inset-10 rounded-full" aria-hidden="true" />
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#070912]/95 p-3 shadow-[0_32px_100px_rgba(0,0,0,0.55)] sm:p-4">
               <div className="flex items-center justify-between px-3 pb-3 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
                 <span>Your night sky</span>
                 <div className="flex items-center gap-3">
@@ -299,11 +319,11 @@ const LandingPage = () => {
                     }}
                   />
                 ))}
-                <div className="absolute left-[55%] top-[46%] -translate-x-1/2 translate-y-5 rounded-xl border border-white/10 bg-black/60 px-3 py-2 text-center backdrop-blur-md">
+                <div className="absolute left-[55%] top-[46%] -translate-x-1/2 translate-y-5 rounded-xl border border-white/10 bg-[#05060c]/90 px-3 py-2 text-center">
                   <p className="text-[9px] font-bold uppercase tracking-widest text-amber-200/70">Tonight</p>
                   <p className="mt-0.5 text-xs text-white/80">I finally made time to breathe.</p>
                 </div>
-                <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.07] p-2 pl-4 backdrop-blur-md sm:inset-x-6 sm:bottom-6">
+                <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#171923]/95 p-2 pl-4 sm:inset-x-6 sm:bottom-6">
                   <span className="flex-1 text-xs text-white/40 sm:text-sm">Reflect on your day across the universe…</span>
                   <span className="landing-rocket-idle flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]">
                     <Rocket size={17} className="-rotate-45" />
@@ -311,7 +331,7 @@ const LandingPage = () => {
                 </div>
               </div>
             </div>
-            <div className="landing-float-chapter absolute -bottom-5 -left-4 rounded-2xl border border-white/10 bg-[#0c0e17]/90 px-4 py-3 shadow-2xl backdrop-blur-xl sm:-left-8">
+            <div className="absolute -bottom-5 -left-4 rounded-2xl border border-white/10 bg-[#0c0e17]/95 px-4 py-3 shadow-2xl sm:-left-8">
               <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/35">Current chapter</p>
               <p className="mt-1 text-sm font-semibold text-[#e7ddff]">Finding my orbit · 7 stars</p>
             </div>
@@ -320,7 +340,7 @@ const LandingPage = () => {
       </section>
 
       <section id="how-it-works" className="relative border-b border-white/[0.06] px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
-        <div className="pointer-events-none absolute left-1/2 top-1/3 h-80 w-[60%] -translate-x-1/2 rounded-full bg-violet-800/[0.06] blur-[120px]" aria-hidden="true" />
+        <div className="landing-glow landing-glow-violet-soft pointer-events-none absolute left-1/2 top-1/3 h-80 w-[60%] -translate-x-1/2 rounded-full" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl">
           <Reveal className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#d7bb80]">A quieter daily ritual</p>
@@ -370,7 +390,7 @@ const LandingPage = () => {
 
             <Reveal delay={140} className="relative min-h-[510px] overflow-hidden rounded-[2rem] border border-white/[0.09] bg-[#070912] p-5 shadow-[0_36px_100px_rgba(0,0,0,0.4)] sm:p-8">
               <div className="landing-stars pointer-events-none absolute inset-0 opacity-45" aria-hidden="true" />
-              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-violet-500/10 blur-[90px]" aria-hidden="true" />
+              <div className="landing-glow landing-glow-violet absolute -right-24 -top-24 h-72 w-72 rounded-full" aria-hidden="true" />
               <div className="relative flex items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/30">Constellation</p>
@@ -432,7 +452,7 @@ const LandingPage = () => {
 
       <section id="privacy" className="px-5 py-12 sm:px-8 lg:px-10">
         <Reveal className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-emerald-200/10 bg-[linear-gradient(120deg,rgba(10,22,24,0.95),rgba(10,12,22,0.95))] px-7 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between lg:gap-16 lg:px-16 lg:py-14">
-          <div className="absolute -left-20 top-0 h-52 w-52 rounded-full bg-emerald-400/[0.06] blur-[80px]" aria-hidden="true" />
+          <div className="landing-glow landing-glow-emerald absolute -left-20 top-0 h-52 w-52 rounded-full" aria-hidden="true" />
           <div className="relative max-w-2xl">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-200/10 bg-emerald-100/[0.05] text-emerald-100/70">
               <LockKeyhole size={20} />
@@ -452,7 +472,7 @@ const LandingPage = () => {
 
       <section className="relative px-5 py-28 text-center sm:px-8 sm:py-36 lg:px-10">
         <div className="landing-stars pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-[120px]" aria-hidden="true" />
+        <div className="landing-glow landing-glow-violet pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full" aria-hidden="true" />
         <Reveal className="relative mx-auto max-w-3xl">
           <Star className="landing-cta-star mx-auto text-[#efd392]" size={24} fill="currentColor" />
           <h2 className="mt-7 text-balance text-4xl font-black tracking-[-0.045em] sm:text-6xl">Tonight is a good place to begin.</h2>
@@ -508,7 +528,7 @@ const LandingPage = () => {
 
             <div className="sm:col-span-2 lg:col-span-3">
               <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
-                <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-violet-500/10 blur-[36px]" aria-hidden="true" />
+                <div className="landing-glow landing-glow-violet absolute -right-10 -top-10 h-24 w-24 rounded-full" aria-hidden="true" />
                 <div className="relative flex items-center justify-between">
                   <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#d8be87]">Tonight’s prompt</p>
                   <Star size={13} className="text-[#ead49f]" fill="currentColor" />
