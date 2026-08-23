@@ -10,6 +10,217 @@ body {
   background: #03040a;
 }
 
+.loading-screen {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 43%, rgba(26, 23, 54, 0.72), transparent 31%),
+    linear-gradient(145deg, #050610 0%, #020308 46%, #070610 100%);
+}
+
+.loading-star-field {
+  opacity: 0.72;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.82) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle, rgba(203, 190, 255, 0.55) 0 0.6px, transparent 0.85px),
+    radial-gradient(circle, rgba(255, 220, 151, 0.48) 0 0.7px, transparent 0.95px);
+  background-position: 0 0, 53px 89px, 117px 29px;
+  background-size: 173px 173px, 251px 251px, 337px 337px;
+  mask-image: radial-gradient(circle at center, black 0%, rgba(0, 0, 0, 0.8) 56%, transparent 100%);
+  animation: loading-stars-drift 22s linear infinite;
+}
+
+.loading-aurora {
+  position: absolute;
+  width: 32rem;
+  height: 32rem;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.14;
+  pointer-events: none;
+  animation: loading-aurora-breathe 8s ease-in-out infinite;
+}
+
+.loading-aurora-left {
+  top: -18rem;
+  left: -14rem;
+  background: #6850c8;
+}
+
+.loading-aurora-right {
+  right: -16rem;
+  bottom: -20rem;
+  background: #d19b52;
+  animation-delay: -4s;
+}
+
+.loading-brand {
+  animation: loading-fade-down 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.loading-celestial {
+  position: relative;
+  width: 12rem;
+  height: 12rem;
+  animation: loading-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.loading-orbit {
+  position: absolute;
+  inset: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.loading-orbit-outer {
+  width: 12rem;
+  height: 12rem;
+  margin: -6rem;
+  border-color: rgba(239, 211, 146, 0.15);
+  transform: rotate(16deg) scaleY(0.62);
+  animation: loading-orbit-outer 11s linear infinite;
+}
+
+.loading-orbit-middle {
+  width: 9.5rem;
+  height: 9.5rem;
+  margin: -4.75rem;
+  border-color: rgba(184, 168, 255, 0.18);
+  transform: rotate(-42deg) scaleY(0.72);
+  animation: loading-orbit-middle 8s linear infinite reverse;
+}
+
+.loading-orbit-inner {
+  width: 7rem;
+  height: 7rem;
+  margin: -3.5rem;
+  border-color: rgba(255, 255, 255, 0.13);
+  transform: rotate(68deg) scaleY(0.64);
+  animation: loading-orbit-inner 5.5s linear infinite;
+}
+
+.loading-orbit-star {
+  position: absolute;
+  top: 50%;
+  right: -0.2rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  margin-top: -0.19rem;
+  border-radius: 50%;
+}
+
+.loading-orbit-star-gold {
+  background: #f5d58a;
+  box-shadow: 0 0 8px #f5d58a, 0 0 20px rgba(245, 213, 138, 0.75);
+}
+
+.loading-orbit-star-violet {
+  background: #b8a8ff;
+  box-shadow: 0 0 8px #b8a8ff, 0 0 18px rgba(184, 168, 255, 0.7);
+}
+
+.loading-orbit-star-white {
+  background: #fff;
+  box-shadow: 0 0 7px #fff, 0 0 15px rgba(255, 255, 255, 0.65);
+}
+
+.loading-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: 4.7rem;
+  height: 4.7rem;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255, 229, 164, 0.24);
+  border-radius: 50%;
+  background: radial-gradient(circle at 42% 36%, rgba(255, 248, 218, 0.14), rgba(35, 28, 52, 0.72) 52%, rgba(7, 7, 16, 0.96));
+  box-shadow:
+    0 0 45px rgba(184, 168, 255, 0.18),
+    inset 0 0 22px rgba(239, 211, 146, 0.06);
+}
+
+.loading-core-halo {
+  position: absolute;
+  inset: -0.42rem;
+  border: 1px solid rgba(239, 211, 146, 0.09);
+  border-radius: 50%;
+  animation: loading-core-pulse 2.8s ease-in-out infinite;
+}
+
+.loading-distant-star {
+  position: absolute;
+  width: 0.2rem;
+  height: 0.2rem;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 8px white;
+  animation: loading-twinkle 2.4s ease-in-out infinite;
+}
+
+.loading-distant-star-one { top: 8%; left: 22%; }
+.loading-distant-star-two { right: 4%; bottom: 28%; animation-delay: -0.8s; }
+.loading-distant-star-three { bottom: 5%; left: 12%; animation-delay: -1.6s; }
+
+.loading-progress-dot {
+  display: block;
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 50%;
+  background: rgba(239, 211, 146, 0.35);
+  animation: loading-progress 1.35s ease-in-out infinite;
+}
+
+.loading-progress-dot-delay-one { animation-delay: 180ms; }
+.loading-progress-dot-delay-two { animation-delay: 360ms; }
+
+@keyframes loading-stars-drift {
+  to { background-position: 173px 86px, -198px 215px, 454px -139px; }
+}
+
+@keyframes loading-aurora-breathe {
+  0%, 100% { opacity: 0.1; transform: scale(0.92); }
+  50% { opacity: 0.18; transform: scale(1.08); }
+}
+
+@keyframes loading-fade-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loading-rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes loading-orbit-outer {
+  to { transform: rotate(376deg) scaleY(0.62); }
+}
+
+@keyframes loading-orbit-middle {
+  to { transform: rotate(318deg) scaleY(0.72); }
+}
+
+@keyframes loading-orbit-inner {
+  to { transform: rotate(428deg) scaleY(0.64); }
+}
+
+@keyframes loading-core-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+@keyframes loading-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes loading-progress {
+  0%, 60%, 100% { background: rgba(239, 211, 146, 0.22); transform: scale(0.75); }
+  30% { background: #efd392; box-shadow: 0 0 9px rgba(239, 211, 146, 0.65); transform: scale(1); }
+}
+
 .landing-stars {
   background-image:
     radial-gradient(circle at 10% 18%, rgba(255, 255, 255, 0.7) 0 0.7px, transparent 0.9px),
@@ -140,6 +351,16 @@ body {
     scroll-behavior: auto;
   }
 
+  .loading-star-field,
+  .loading-aurora,
+  .loading-brand,
+  .loading-celestial,
+  .loading-orbit-outer,
+  .loading-orbit-middle,
+  .loading-orbit-inner,
+  .loading-core-halo,
+  .loading-distant-star,
+  .loading-progress-dot,
   .landing-enter,
   .landing-line-draw,
   .landing-twinkle,
