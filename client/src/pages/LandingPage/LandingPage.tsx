@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@clerk/react';
 import { Link } from '@tanstack/react-router';
 import {
@@ -55,6 +56,89 @@ const emotionStars = [
   { label: 'Tender', color: '#ff9f9f', left: '73%', top: '25%' },
   { label: 'Proud', color: '#f2dfb2', left: '88%', top: '62%' },
 ];
+
+interface ConstellationPoint {
+  x: number;
+  y: number;
+}
+
+interface ConstellationSegment {
+  from: ConstellationPoint;
+  to: ConstellationPoint;
+  fromColor: string;
+  toColor: string;
+}
+
+const ConstellationConnections = ({ segments }: { segments: ConstellationSegment[] }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const bounds = container.getBoundingClientRect();
+      setSize({ width: bounds.width, height: bounds.height });
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {size.width > 0 && segments.map((segment, index) => {
+        const deltaX = ((segment.to.x - segment.from.x) / 100) * size.width;
+        const deltaY = ((segment.to.y - segment.from.y) / 100) * size.height;
+        const length = Math.hypot(deltaX, deltaY);
+        const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+        return (
+          <span
+            key={index}
+            className="absolute h-px origin-left"
+            style={{
+              left: `${segment.from.x}%`,
+              top: `${segment.from.y}%`,
+              width: length,
+              transform: `rotate(${angle}deg)`,
+              background: `linear-gradient(90deg, ${segment.fromColor}, ${segment.toColor})`,
+              boxShadow: `0 0 6px ${segment.fromColor}22`,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+const previewSegments: ConstellationSegment[] = [
+  {
+    from: { x: 27, y: 54 },
+    to: { x: 55, y: 46 },
+    fromColor: 'rgba(184, 168, 255, 0.7)',
+    toColor: 'rgba(255, 210, 117, 0.7)',
+  },
+  {
+    from: { x: 55, y: 46 },
+    to: { x: 84, y: 57 },
+    fromColor: 'rgba(255, 210, 117, 0.7)',
+    toColor: 'rgba(183, 216, 255, 0.55)',
+  },
+];
+
+const featureSegments: ConstellationSegment[] = emotionStars.slice(0, -1).map((star, index) => ({
+  from: { x: Number.parseFloat(star.left), y: Number.parseFloat(star.top) },
+  to: {
+    x: Number.parseFloat(emotionStars[index + 1].left),
+    y: Number.parseFloat(emotionStars[index + 1].top),
+  },
+  fromColor: `${star.color}aa`,
+  toColor: `${emotionStars[index + 1].color}99`,
+}));
 
 const LandingPage = () => {
   const { isSignedIn } = useAuth();
@@ -144,8 +228,7 @@ const LandingPage = () => {
               </div>
               <div className="relative aspect-[1.12/0.78] min-h-[360px] overflow-hidden rounded-[1.45rem] border border-white/[0.07] bg-[radial-gradient(circle_at_50%_120%,#251b46_0%,#0b0d1b_38%,#03040a_76%)]">
                 <div className="landing-preview-grid absolute inset-0 opacity-35" aria-hidden="true" />
-                <div className="absolute left-[27%] top-[54%] h-px w-[30%] origin-left -rotate-[24deg] bg-gradient-to-r from-violet-300/60 to-amber-200/60" />
-                <div className="absolute left-[55%] top-[46%] h-px w-[22%] origin-left rotate-[22deg] bg-gradient-to-r from-amber-200/60 to-blue-200/40" />
+                <ConstellationConnections segments={previewSegments} />
                 {previewStars.map((star, index) => (
                   <span
                     key={index}
@@ -239,10 +322,7 @@ const LandingPage = () => {
               </div>
 
               <div className="relative mt-8 h-[300px]">
-                <div className="absolute left-[11%] top-[58%] h-px w-[24%] origin-left -rotate-[38deg] bg-gradient-to-r from-[#f6cf72]/70 to-[#8fc8ff]/50" />
-                <div className="absolute left-[30%] top-[30%] h-px w-[26%] origin-left rotate-[30deg] bg-gradient-to-r from-[#8fc8ff]/60 to-[#bba5ff]/60" />
-                <div className="absolute left-[52%] top-[52%] h-px w-[25%] origin-left -rotate-[34deg] bg-gradient-to-r from-[#bba5ff]/60 to-[#ff9f9f]/60" />
-                <div className="absolute left-[73%] top-[25%] h-px w-[22%] origin-left rotate-[41deg] bg-gradient-to-r from-[#ff9f9f]/60 to-[#f2dfb2]/50" />
+                <ConstellationConnections segments={featureSegments} />
                 {emotionStars.map((star, index) => (
                   <div key={star.label} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: star.left, top: star.top }}>
                     <span
