@@ -13,6 +13,11 @@ export const dashboardService = {
       method: 'DELETE',
     }),
 
+  deleteAllJournals: () =>
+    apiFetch('/journals', {
+      method: 'DELETE',
+    }),
+
   updateJournal: (id: string, content: string) =>
     apiFetch(`/journals/${id}`, {
       method: 'PUT',
