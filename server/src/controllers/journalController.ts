@@ -151,6 +151,40 @@ export const getJournals = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const deleteAllJournals = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const objectUserId = new mongoose.Types.ObjectId(userId);
+    const user = await User.findById(objectUserId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const result = await Journal.deleteMany({ userId: objectUserId });
+
+    // Constellations cannot exist without their journal entries, so remove the
+    // user's constellation metadata as part of the same account-data reset.
+    await Constellation.deleteMany({ userId: objectUserId });
+
+    user.currentStreak = 0;
+    user.totalStars = 0;
+    user.lastEntryDate = null;
+    await user.save();
+
+    res.json({
+      message: 'All journals deleted',
+      deletedCount: result.deletedCount,
+      user: {
+        currentStreak: user.currentStreak,
+        totalStars: user.totalStars,
+        lastEntryDate: user.lastEntryDate,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting journals', error });
+  }
+};
+
 export const deleteJournal = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;

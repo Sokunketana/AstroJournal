@@ -23,6 +23,7 @@ import EditableContent from "../../components/EditableContent";
 import EditableActions from "../../components/EditableActions";
 import Logo from "../../components/Logo";
 import ConstellationModal from "../../components/ConstellationModal";
+import JournalDataSettings from "../../components/JournalDataSettings";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
@@ -34,7 +35,13 @@ import {
   Search,
   X,
   Share2,
+  Database,
 } from "lucide-react";
+
+interface DeleteAllJournalsResult {
+  deletedCount: number;
+  user: Pick<User, 'currentStreak' | 'totalStars' | 'lastEntryDate'>;
+}
 
 interface AimPoint {
   x: number;
@@ -207,6 +214,23 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       { revalidate: false },
     );
   }, [mutateConstellations]);
+
+  const deleteAllJournals = useCallback(async () => {
+    const result = await dashboardService.deleteAllJournals() as DeleteAllJournalsResult;
+
+    setSelectedJournal(null);
+    setSkySelection(null);
+    await Promise.all([
+      mutateJournals([], { revalidate: false }),
+      mutateConstellations([], { revalidate: false }),
+      mutateUser(
+        (current: User | undefined) => current ? { ...current, ...result.user } : current,
+        { revalidate: false },
+      ),
+    ]);
+
+    return result.deletedCount;
+  }, [mutateConstellations, mutateJournals, mutateUser]);
 
   const applyJournalCreation = useCallback((result: JournalCreationResult) => {
     void mutateJournals(
@@ -544,7 +568,18 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             <UserButton
               appearance={clerkAppearance}
               userProfileProps={{ appearance: clerkAppearance }}
-            />
+            >
+              <UserButton.UserProfilePage
+                label="Journal data"
+                url="journal-data"
+                labelIcon={<Database size={16} />}
+              >
+                <JournalDataSettings
+                  journalCount={journals.length}
+                  onDeleteAll={deleteAllJournals}
+                />
+              </UserButton.UserProfilePage>
+            </UserButton>
           </div>
         </header>
       </div>
