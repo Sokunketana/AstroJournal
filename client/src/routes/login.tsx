@@ -4,7 +4,7 @@ import LoginPage from '../pages/LoginPage';
 export const Route = createFileRoute('/login')({
   beforeLoad: ({ context }) => {
     if (context.auth.isAuthenticated) {
-      throw redirect({ to: '/' });
+      throw redirect({ to: '/app' });
     }
   },
   component: LoginPage,

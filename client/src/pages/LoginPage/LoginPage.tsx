@@ -10,7 +10,7 @@ const LoginPage: React.FC<LoginPageProps> = () => {
       <SignIn
         routing="hash"
         signUpUrl="/sign-up"
-        fallbackRedirectUrl="/"
+        fallbackRedirectUrl="/app"
         appearance={clerkAppearance}
       />
     </AuthShell>

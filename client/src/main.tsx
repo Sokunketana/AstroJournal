@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { ClerkProvider, useAuth } from '@clerk/react'
 import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -23,7 +24,6 @@ function MissingClerkConfiguration() {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 function InnerApp() {
   const { getToken, isLoaded, isSignedIn } = useAuth()
 
@@ -48,7 +48,7 @@ root.render(
     {clerkPublishableKey ? (
       <ClerkProvider
         publishableKey={clerkPublishableKey}
-        afterSignOutUrl="/login"
+        afterSignOutUrl="/"
         appearance={clerkAppearance}
       >
         <InnerApp />

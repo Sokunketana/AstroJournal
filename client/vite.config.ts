@@ -8,7 +8,7 @@ export default defineConfig({
   envDir: '..',
   envPrefix: ['VITE_', 'CLERK_PUBLISHABLE_KEY'],
   plugins: [
-    TanStackRouterVite({ quoteStyle: 'single' }),
+    TanStackRouterVite({ quoteStyle: 'single', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
   ],
