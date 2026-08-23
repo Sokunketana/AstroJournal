@@ -468,18 +468,67 @@ const LandingPage = () => {
         </Reveal>
       </section>
 
-      <footer className="border-t border-white/[0.06] px-5 py-8 sm:px-8 lg:px-10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
-          <div>
-            <Logo className="text-lg" />
-            <p className="mt-1 text-xs text-white/30">A journal written in the stars.</p>
+      <footer className="relative overflow-hidden border-t border-white/[0.07] bg-[#04050b] px-5 pb-8 pt-16 sm:px-8 sm:pt-20 lg:px-10">
+        <div className="landing-stars pointer-events-none absolute inset-x-0 top-0 h-64 opacity-20" aria-hidden="true" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-px w-[70%] -translate-x-1/2 bg-gradient-to-r from-transparent via-violet-200/30 to-transparent" aria-hidden="true" />
+        <span className="pointer-events-none absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ead49f] shadow-[0_0_18px_#ead49f]" aria-hidden="true" />
+
+        <div className="relative mx-auto max-w-7xl">
+          <div className="grid gap-12 border-b border-white/[0.07] pb-14 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8 lg:pb-16">
+            <div className="sm:col-span-2 lg:col-span-5 lg:pr-16">
+              <Logo className="text-2xl sm:text-3xl" />
+              <p className="mt-4 max-w-md text-sm leading-7 text-white/40">
+                A quiet place to turn daily reflections into a universe only you can call your own.
+              </p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200/10 bg-emerald-100/[0.04] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-100/55">
+                <LockKeyhole size={13} />
+                Private by design
+              </div>
+            </div>
+
+            <div className="lg:col-span-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">Explore</p>
+              <div className="mt-5 flex flex-col items-start gap-3.5 text-sm text-white/50">
+                <a href="#how-it-works" className="transition hover:translate-x-0.5 hover:text-white">How it works</a>
+                <a href="#features" className="transition hover:translate-x-0.5 hover:text-white">Features</a>
+                <a href="#privacy" className="transition hover:translate-x-0.5 hover:text-white">Privacy</a>
+              </div>
+            </div>
+
+            <div className="lg:col-span-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25">Your sky</p>
+              <div className="mt-5 flex flex-col items-start gap-3.5 text-sm text-white/50">
+                <Link to={primaryTo} className="transition hover:translate-x-0.5 hover:text-white">
+                  {isSignedIn ? 'Open your journal' : 'Create an account'}
+                </Link>
+                {!isSignedIn && <Link to="/login" className="transition hover:translate-x-0.5 hover:text-white">Sign in</Link>}
+                <a href="#" className="transition hover:translate-x-0.5 hover:text-white">Back to the stars ↑</a>
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 lg:col-span-3">
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.025] p-5">
+                <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-violet-500/10 blur-[36px]" aria-hidden="true" />
+                <div className="relative flex items-center justify-between">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#d8be87]">Tonight’s prompt</p>
+                  <Star size={13} className="text-[#ead49f]" fill="currentColor" />
+                </div>
+                <p className="relative mt-5 text-base font-medium leading-7 text-white/75">
+                  “What felt worth remembering today?”
+                </p>
+                <p className="relative mt-4 text-xs text-white/25">One sentence is enough to begin.</p>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-6 text-xs text-white/35">
-            <a href="#how-it-works" className="transition hover:text-white">How it works</a>
-            <a href="#features" className="transition hover:text-white">Features</a>
-            {!isSignedIn && <Link to="/login" className="transition hover:text-white">Sign in</Link>}
+
+          <div className="flex flex-col items-center justify-between gap-4 pt-7 text-center text-xs text-white/25 sm:flex-row sm:text-left">
+            <p>© {new Date().getFullYear()} AstroJournal. Your story stays yours.</p>
+            <p className="inline-flex items-center gap-2">
+              Made for reflection
+              <span className="h-1 w-1 rounded-full bg-[#d8be87] shadow-[0_0_8px_#d8be87]" aria-hidden="true" />
+              One star at a time
+            </p>
           </div>
-          <p className="text-xs text-white/25">© {new Date().getFullYear()} AstroJournal</p>
         </div>
       </footer>
     </main>
