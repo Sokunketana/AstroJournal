@@ -34,5 +34,33 @@ export const clerkAppearance = {
     footerActionLink: 'font-semibold text-[#f2bd5b] hover:text-[#f7d887]',
     identityPreviewText: 'text-[#f8f5ed]',
     identityPreviewEditButton: 'text-[#f2bd5b]',
+    // UserButton popover
+    userButtonPopoverCard: 'overflow-hidden border border-white/[0.1] bg-[#0b0e17] text-[#f8f5ed] shadow-[0_24px_70px_rgba(0,0,0,0.7),0_0_40px_rgba(96,72,196,0.1)]',
+    userButtonPopoverMain: 'bg-[#0b0e17]',
+    userButtonPopoverActionButton: 'rounded-none text-[#d9dce5] hover:bg-white/[0.07] hover:text-white',
+    userButtonPopoverActionButtonText: 'font-medium',
+    userButtonPopoverActionButtonIcon: 'text-[#969bad]',
+    userButtonPopoverFooter: 'border-t border-white/[0.08] bg-[#101521] text-[#969bad]',
+    userButtonPopoverFooterAction: 'text-[#f2bd5b] hover:text-[#f7d887]',
+
+    // UserProfile modal
+    // Avoid backdrop-filter here: blurring the animated Three.js sky causes a
+    // noticeable pause while the profile modal is opening.
+    modalBackdrop: 'bg-[#03050b]/80',
+    userProfileModal: 'overflow-hidden border border-white/[0.1] bg-[#0b0e17] text-[#f8f5ed] shadow-[0_30px_100px_rgba(0,0,0,0.75)]',
+    userProfileModalCloseButton: 'border border-white/[0.12] bg-white/[0.04] text-[#969bad] hover:bg-white/[0.1] hover:text-white',
+    userProfileModalCloseButtonIcon: 'text-current',
+    userProfileSidebar: 'border-r border-white/[0.08] bg-[#101521]',
+    navbar: 'border-b border-white/[0.08] bg-[#0b0e17]',
+    navbarButton: 'text-[#aeb3c2] hover:bg-white/[0.07] hover:text-white data-[active=true]:bg-white/[0.1] data-[active=true]:text-white',
+    navbarButtonText: 'font-medium',
+    navbarButtonIcon: 'text-current',
+    profileSection: 'border-white/[0.08]',
+    profileSectionTitle: 'text-[#f8f5ed]',
+    profileSectionContent: 'text-[#d9dce5]',
+    profileSectionPrimaryButton: 'text-[#f2bd5b] hover:text-[#f7d887]',
+    profileSectionItem: 'text-[#d9dce5]',
+    profileSectionItem__emailAddress: 'text-[#d9dce5]',
+    profileSectionItem__connectedAccount: 'text-[#d9dce5]',
   },
 };

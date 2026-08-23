@@ -5,6 +5,7 @@ import './index.css'
 import { RouterProvider } from '@tanstack/react-router'
 import { router } from './router'
 import { setAuthTokenGetter } from './services/api'
+import { clerkAppearance } from './config/clerkAppearance'
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
   ?? import.meta.env.CLERK_PUBLISHABLE_KEY
@@ -29,7 +30,11 @@ function InnerApp() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={clerkPublishableKey} afterSignOutUrl="/login">
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      afterSignOutUrl="/login"
+      appearance={clerkAppearance}
+    >
       <InnerApp />
     </ClerkProvider>
   </StrictMode>,
