@@ -53,6 +53,7 @@ root.render(
     {clerkPublishableKey ? (
       <ClerkProvider
         publishableKey={clerkPublishableKey}
+        signInForceRedirectUrl="/app"
         afterSignOutUrl="/"
         appearance={clerkAppearance}
       >
