@@ -12,7 +12,7 @@ interface TimelineCameraControllerProps {
   earliestWeek: number;
   weekWidth: number;
   focusCurrentSignal: number;
-  focusStarRequest?: { weekPosition: number; signal: number } | null;
+  focusTimelineRequest?: { weekPosition: number; zoom: number; signal: number } | null;
   viewRef: { current: TimelineViewState };
   paused?: boolean;
   onViewChange: (view: TimelineViewState) => void;
@@ -22,7 +22,7 @@ const TimelineCameraController: React.FC<TimelineCameraControllerProps> = ({
   earliestWeek,
   weekWidth,
   focusCurrentSignal,
-  focusStarRequest,
+  focusTimelineRequest,
   viewRef,
   paused,
   onViewChange,
@@ -191,10 +191,18 @@ const TimelineCameraController: React.FC<TimelineCameraControllerProps> = ({
   }, [focusCurrentSignal]);
 
   useEffect(() => {
-    if (!focusStarRequest) return;
-    targetWeekRef.current = focusStarRequest.weekPosition;
-    targetZoomRef.current = BASE_CAMERA_Z;
-  }, [focusStarRequest]);
+    if (!focusTimelineRequest) return;
+    targetWeekRef.current = THREE.MathUtils.clamp(
+      focusTimelineRequest.weekPosition,
+      earliestWeek,
+      0,
+    );
+    targetZoomRef.current = THREE.MathUtils.clamp(
+      focusTimelineRequest.zoom,
+      BASE_CAMERA_Z,
+      MAX_CAMERA_Z,
+    );
+  }, [earliestWeek, focusTimelineRequest]);
 
   useFrame((state, delta) => {
     const camera = state.camera;

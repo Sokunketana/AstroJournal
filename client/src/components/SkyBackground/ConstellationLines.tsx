@@ -8,6 +8,7 @@ interface ConstellationLinesProps {
   positionsRef: React.MutableRefObject<Map<string, THREE.Vector3>>;
   weekIndexes: Map<string, number>;
   draft?: { journalIds: string[]; color: string } | null;
+  focusedConstellationId?: string;
 }
 
 interface Segment {
@@ -15,6 +16,7 @@ interface Segment {
   toId: string;
   color: THREE.Color;
   weekSpan: number;
+  focused: boolean;
 }
 
 interface LinePiece extends Segment {
@@ -31,6 +33,7 @@ const ConstellationLines: React.FC<ConstellationLinesProps> = ({
   positionsRef,
   weekIndexes,
   draft,
+  focusedConstellationId,
 }) => {
   const geometryRef = useRef<THREE.BufferGeometry>(null);
   const segments = useMemo<Segment[]>(() => {
@@ -44,10 +47,12 @@ const ConstellationLines: React.FC<ConstellationLinesProps> = ({
           toId,
           color,
           weekSpan: Math.abs((weekIndexes.get(toId) ?? 0) - (weekIndexes.get(fromId) ?? 0)),
+          focused: !!focusedConstellationId && '_id' in constellation
+            && constellation._id === focusedConstellationId,
         };
       });
     });
-  }, [constellations, draft, weekIndexes]);
+  }, [constellations, draft, focusedConstellationId, weekIndexes]);
 
   const pieces = useMemo<LinePiece[]>(() => segments.flatMap((segment) => {
     const steps = segment.weekSpan >= ARC_THRESHOLD_WEEKS
@@ -70,11 +75,14 @@ const ConstellationLines: React.FC<ConstellationLinesProps> = ({
       const endGlow = piece.weekSpan >= ARC_THRESHOLD_WEEKS
         ? 0.4 + Math.sin(piece.endT * Math.PI) * 0.6
         : 1;
-      piece.color.clone().multiplyScalar(startGlow).toArray(values, index * 6);
-      piece.color.clone().multiplyScalar(endGlow).toArray(values, index * 6 + 3);
+      const focusStrength = focusedConstellationId
+        ? (piece.focused ? 1.8 : 0.22)
+        : 1;
+      piece.color.clone().multiplyScalar(startGlow * focusStrength).toArray(values, index * 6);
+      piece.color.clone().multiplyScalar(endGlow * focusStrength).toArray(values, index * 6 + 3);
     });
     return values;
-  }, [pieces]);
+  }, [focusedConstellationId, pieces]);
 
   useFrame(() => {
     const geometry = geometryRef.current;

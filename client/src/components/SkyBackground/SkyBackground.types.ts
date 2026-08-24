@@ -22,6 +22,14 @@ export interface StarFocusRequest {
   signal: number;
 }
 
+export interface ConstellationFocusRequest {
+  constellationId: string;
+  title: string;
+  color: string;
+  journalIds: string[];
+  signal: number;
+}
+
 export interface JournalStarProps {
   position: [number, number, number];
   journal: Journal;
@@ -48,5 +56,6 @@ export interface SkyBackgroundProps {
   ) => void;
   focusCurrentSignal?: number;
   focusStarRequest?: StarFocusRequest | null;
+  focusConstellationRequest?: ConstellationFocusRequest | null;
   paused?: boolean;
 }

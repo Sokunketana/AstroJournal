@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, BookOpen, Check, Link2, MousePointer2, Palette, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Check, Crosshair, Link2, MousePointer2, Palette, Pencil, Plus, Save, Star, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Button from '../Button';
 import ConfirmDialog from '../ConfirmDialog';
@@ -63,6 +63,7 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
   onCreate,
   onUpdate,
   onDelete,
+  onLocate,
   onSelectInSky,
 }) => {
   const [editing, setEditing] = useState<Constellation | 'new' | null>(null);
@@ -448,6 +449,19 @@ const ConstellationModal: React.FC<ConstellationModalProps> = ({
                   <p className="truncate font-semibold text-white">{constellation.title}</p>
                   <p className="text-xs text-gray-500">{constellation.journalIds.length} connected stars</p>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    onLocate(constellation);
+                  }}
+                  className="flex shrink-0 items-center gap-1.5 rounded-xl border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-xs font-semibold text-sky-200 transition hover:border-sky-200/60 hover:bg-sky-200/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-200/50"
+                  aria-label={`Locate ${constellation.title} in the sky`}
+                  title="Frame this constellation in the sky"
+                >
+                  <Crosshair size={14} aria-hidden="true" />
+                  <span className="hidden sm:inline">Locate</span>
+                </button>
                 <button
                   onClick={() => setViewing(constellation)}
                   className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs font-semibold text-gray-300 transition hover:border-white/25 hover:bg-white/10 hover:text-white"

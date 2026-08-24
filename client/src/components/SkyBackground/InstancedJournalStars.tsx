@@ -26,7 +26,8 @@ export interface InstancedJournalStarsProps {
   positionsRef?: React.MutableRefObject<Map<string, THREE.Vector3>>;
   selectedIds?: string[];
   selectionColor?: string;
-  focusedJournalId?: string;
+  focusedJournalIds?: string[];
+  focusedColor?: string;
 }
 
 interface StarEntry {
@@ -84,7 +85,6 @@ const _matrix = new THREE.Matrix4();
 const _quaternion = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _color = new THREE.Color();
-const _focusedColor = new THREE.Color("#0ea5e9");
 const _cameraSpace = new THREE.Vector3();
 const _renderWorld = new THREE.Vector3();
 
@@ -126,7 +126,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   positionsRef,
   selectedIds = [],
   selectionColor = '#ffffff',
-  focusedJournalId,
+  focusedJournalIds = [],
+  focusedColor = '#0ea5e9',
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const entriesRef = useRef<StarEntry[]>([]);
@@ -147,6 +148,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
     () => new Map(selectedIds.map((id, index) => [id, index + 1])),
     [selectedIds],
   );
+  const focusedIds = useMemo(() => new Set(focusedJournalIds), [focusedJournalIds]);
+  const focusColor = useMemo(() => new THREE.Color(focusedColor), [focusedColor]);
 
   useEffect(() => {
     if (!impact?.confirmed || lastImpactIdRef.current === impact.id) return;
@@ -510,7 +513,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         THREE.MathUtils.clamp((tWall - e.birth) / SPAWN_DURATION, 0, 1),
       );
       const isSelected = selectedOrder.has(e.id);
-      const isFocused = e.id === focusedJournalId;
+      const isFocused = focusedIds.has(e.id);
       const focusPulse = isFocused ? (Math.sin(t * 5) + 1) / 2 : 0;
       const focusScale = isFocused ? 1.5 + focusPulse * 0.3 : 1;
       const scale = Math.max(
@@ -536,7 +539,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
       _color
         .set(isSelected ? selectionColor : emotionColor(e.journal.emotion))
-        .lerp(_focusedColor, isFocused ? 0.25 + focusPulse * 0.65 : 0)
+        .lerp(focusColor, isFocused ? 0.25 + focusPulse * 0.65 : 0)
         .multiplyScalar(isSelected || isFocused ? 2 : 1.5);
       mesh.setColorAt(i, _color);
     }
