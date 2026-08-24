@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useAuth } from '@clerk/react';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import {
   ArrowRight,
   BookOpenText,
@@ -17,6 +17,7 @@ import {
   Star,
 } from 'lucide-react';
 import Logo from '../../components/Logo';
+import LoadingScreen from '../../components/LoadingScreen';
 
 const previewStars = [
   { left: '14%', top: '28%', size: 3, glow: '#f8d899' },
@@ -216,7 +217,18 @@ const featureSegments: ConstellationSegment[] = emotionStars.slice(0, -1).map((s
 
 const LandingPage = () => {
   const { isSignedIn } = useAuth();
+  const navigate = useNavigate();
   const primaryTo = isSignedIn ? '/app' : '/sign-up';
+
+  useEffect(() => {
+    if (isSignedIn) {
+      void navigate({ to: '/app', replace: true });
+    }
+  }, [isSignedIn, navigate]);
+
+  if (isSignedIn) {
+    return <LoadingScreen />;
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed]">
