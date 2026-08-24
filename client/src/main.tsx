@@ -7,6 +7,7 @@ import { RouterProvider } from '@tanstack/react-router'
 import { router } from './router'
 import { setAuthTokenGetter } from './services/api'
 import { clerkAppearance } from './config/clerkAppearance'
+import LoadingScreen from './components/LoadingScreen'
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
   ?? import.meta.env.CLERK_PUBLISHABLE_KEY
@@ -32,6 +33,10 @@ function InnerApp() {
   useEffect(() => {
     void router.invalidate()
   }, [isLoaded, isSignedIn])
+
+  if (!isLoaded) {
+    return <LoadingScreen />
+  }
 
   return (
     <RouterProvider
