@@ -1,4 +1,9 @@
 export const clerkAppearance = {
+  options: {
+    // Keep local auth transitions visually consistent while preserving the
+    // warning if development keys are accidentally used in production.
+    unsafe_disableDevelopmentModeWarnings: import.meta.env.DEV,
+  },
   variables: {
     colorPrimary: '#f2bd5b',
     colorPrimaryForeground: '#171008',
