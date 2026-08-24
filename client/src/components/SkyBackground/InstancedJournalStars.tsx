@@ -84,7 +84,7 @@ const _matrix = new THREE.Matrix4();
 const _quaternion = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _color = new THREE.Color();
-const _focusedColor = new THREE.Color("#ffffff");
+const _focusedColor = new THREE.Color("#7dd3fc");
 const _cameraSpace = new THREE.Vector3();
 const _renderWorld = new THREE.Vector3();
 
