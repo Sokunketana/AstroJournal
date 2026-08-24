@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { UserButton } from '@clerk/react';
-import { clerkAppearance } from '../../config/clerkAppearance';
+import { clerkAppearance, clerkUserProfileAppearance } from '../../config/clerkAppearance';
 import {
   useCreateJournal,
   type JournalCreationResult,
@@ -645,7 +645,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
             </div>
             <UserButton
               appearance={clerkAppearance}
-              userProfileProps={{ appearance: clerkAppearance }}
+              userProfileProps={{ appearance: clerkUserProfileAppearance }}
             >
               <UserButton.UserProfilePage
                 label="Journal data"
