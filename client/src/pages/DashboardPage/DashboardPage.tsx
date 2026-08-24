@@ -37,6 +37,7 @@ import {
   Flame,
   Rocket,
   Search,
+  Crosshair,
   X,
   Share2,
   Database,
@@ -366,6 +367,28 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     }));
   }, []);
 
+  const exitStarLocate = useCallback(() => {
+    setFocusStarRequest(null);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !focusStarRequest
+      || selectedJournal
+      || showArchive
+      || showConstellations
+    ) return;
+
+    const handleLocateKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      exitStarLocate();
+    };
+
+    window.addEventListener("keydown", handleLocateKeyDown);
+    return () => window.removeEventListener("keydown", handleLocateKeyDown);
+  }, [exitStarLocate, focusStarRequest, selectedJournal, showArchive, showConstellations]);
+
   const launchToTarget = useCallback(
     async (
       target: { x: number; y: number; z: number },
@@ -540,6 +563,31 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
       />
       <LottieRocketOverlay launch={launch} />
       {aimPreview && <LaunchAimPreview {...aimPreview} />}
+
+      {focusStarRequest && !selectedJournal && !showArchive && !showConstellations && (
+        <div className="pointer-events-none fixed inset-x-0 top-20 z-60 flex justify-center px-4">
+          <div
+            data-star-bounce
+            className="pointer-events-auto flex items-center gap-3 rounded-full border border-sky-200/25 bg-black/75 py-2 pl-3.5 pr-2 text-xs shadow-[0_0_24px_rgba(125,211,252,0.15)] backdrop-blur-xl"
+            role="status"
+          >
+            <span className="flex items-center gap-2 font-semibold text-sky-100">
+              <Crosshair size={14} aria-hidden="true" />
+              Star located
+            </span>
+            <button
+              type="button"
+              onClick={exitStarLocate}
+              className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1.5 font-bold uppercase tracking-wider text-gray-300 transition hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-200/50"
+              aria-label="Exit star locate mode"
+              title="Exit locate mode (Escape)"
+            >
+              <X size={12} aria-hidden="true" />
+              Exit
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Persistent top navigation */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
