@@ -29,8 +29,12 @@ function MissingClerkConfiguration() {
 function InnerApp() {
   const { getToken, isLoaded, isSignedIn } = useAuth()
   const hasResolvedAuthRef = useRef(false)
+  const [lastResolvedSignedIn, setLastResolvedSignedIn] = useState(false)
   const [isFinalizingAuth, setIsFinalizingAuth] = useState(false)
   const shouldPrepareDashboard = Boolean(isLoaded && isSignedIn)
+  const shouldKeepCurrentApp = !isLoaded
+    && lastResolvedSignedIn
+    && window.location.pathname === '/app'
   const { isLoading: userLoading } = useUserData(shouldPrepareDashboard)
   const { isLoading: journalsLoading } = useJournals(shouldPrepareDashboard)
 
@@ -57,11 +61,23 @@ function InnerApp() {
   }, [isFinalizingAuth])
 
   useEffect(() => {
-    void router.invalidate()
-  }, [isLoaded, isSignedIn])
+    if (!isLoaded) return
+
+    if (lastResolvedSignedIn && !isSignedIn) {
+      void router.navigate({ to: '/', replace: true })
+    } else {
+      void router.invalidate()
+    }
+
+    const timeout = window.setTimeout(
+      () => setLastResolvedSignedIn(Boolean(isSignedIn)),
+      0,
+    )
+    return () => window.clearTimeout(timeout)
+  }, [isLoaded, isSignedIn, lastResolvedSignedIn])
 
   if (
-    !isLoaded
+    (!isLoaded && !shouldKeepCurrentApp)
     || (isFinalizingAuth && !isSignedIn)
     || (shouldPrepareDashboard && (userLoading || journalsLoading))
   ) {
@@ -71,7 +87,14 @@ function InnerApp() {
   return (
     <RouterProvider
       router={router}
-      context={{ auth: { isLoaded, isAuthenticated: Boolean(isSignedIn) } }}
+      context={{
+        auth: {
+          isLoaded,
+          isAuthenticated: isLoaded
+            ? Boolean(isSignedIn)
+            : lastResolvedSignedIn,
+        },
+      }}
     />
   )
 }
