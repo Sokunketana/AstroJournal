@@ -69,3 +69,16 @@ export const clerkAppearance = {
     profileSectionItem__connectedAccount: 'text-[#d9dce5]',
   },
 };
+
+// UserProfile uses a wide two-column card. The shared 420px auth-card limit
+// centers its narrow root while the wider profile card overflows to the right.
+export const clerkUserProfileAppearance = {
+  ...clerkAppearance,
+  elements: {
+    ...clerkAppearance.elements,
+    rootBox: {
+      width: '100%',
+      maxWidth: '55rem',
+    },
+  },
+};
