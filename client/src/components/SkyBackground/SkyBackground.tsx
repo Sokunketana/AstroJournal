@@ -88,6 +88,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   onJournalPositionUpdate,
   focusCurrentSignal = 0,
   focusStarRequest,
+  focusConstellationRequest,
   paused,
 }) => {
   const [tooltip, setTooltip] = useState<SkyTooltipData | null>(null);
@@ -192,14 +193,31 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   }, [looseJournals, weekWidth]);
 
   const cameraFocusRequest = useMemo(() => {
+    if (focusConstellationRequest) {
+      const memberIds = new Set(focusConstellationRequest.journalIds);
+      const memberPositions = journalStars
+        .filter((item) => memberIds.has(item.id))
+        .map((item) => item.position[0] / weekWidth);
+      if (memberPositions.length > 0) {
+        const first = Math.min(...memberPositions);
+        const last = Math.max(...memberPositions);
+        const visibleWeeks = Math.max(1, last - first + 1.4);
+        return {
+          weekPosition: (first + last) / 2,
+          zoom: BASE_CAMERA_Z * visibleWeeks,
+          signal: focusConstellationRequest.signal,
+        };
+      }
+    }
     if (!focusStarRequest) return null;
     const star = journalStars.find((item) => item.id === focusStarRequest.journalId);
     if (!star) return null;
     return {
       weekPosition: star.position[0] / weekWidth,
+      zoom: BASE_CAMERA_Z,
       signal: focusStarRequest.signal,
     };
-  }, [focusStarRequest, journalStars, weekWidth]);
+  }, [focusConstellationRequest, focusStarRequest, journalStars, weekWidth]);
 
   return (
     <div className="fixed inset-0 z-0">
@@ -238,7 +256,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           earliestWeek={earliestWeek}
           weekWidth={weekWidth}
           focusCurrentSignal={focusCurrentSignal}
-          focusStarRequest={cameraFocusRequest}
+          focusTimelineRequest={cameraFocusRequest}
           viewRef={timelineViewRef}
           paused={paused}
           onViewChange={setTimelineView}
@@ -254,7 +272,9 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           positionsRef={starPositionsRef}
           selectedIds={selectionDraft?.journalIds}
           selectionColor={selectionDraft?.color}
-          focusedJournalId={focusStarRequest?.journalId}
+          focusedJournalIds={focusConstellationRequest?.journalIds
+            ?? (focusStarRequest ? [focusStarRequest.journalId] : undefined)}
+          focusedColor={focusConstellationRequest?.color}
         />
 
         <ConstellationLines
@@ -264,6 +284,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           positionsRef={starPositionsRef}
           weekIndexes={journalWeekIndexes}
           draft={selectionDraft}
+          focusedConstellationId={focusConstellationRequest?.constellationId}
         />
 
         {quality === "high" && (

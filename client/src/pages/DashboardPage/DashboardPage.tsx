@@ -29,6 +29,7 @@ import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
 import type {
+  ConstellationFocusRequest,
   RocketLaunchData,
   StarFocusRequest,
 } from "../../components/SkyBackground/SkyBackground.types";
@@ -190,6 +191,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
   const [focusCurrentSignal, setFocusCurrentSignal] = useState(0);
   const [focusStarRequest, setFocusStarRequest] = useState<StarFocusRequest | null>(null);
+  const [focusConstellationRequest, setFocusConstellationRequest] = useState<ConstellationFocusRequest | null>(null);
 
   const mutateAll = useCallback(() => {
     mutateUser();
@@ -361,19 +363,34 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const handleArchiveLocate = useCallback((journal: Journal) => {
     setSelectedJournal(null);
     setShowArchive(false);
+    setFocusConstellationRequest(null);
     setFocusStarRequest((current) => ({
       journalId: journal._id,
       signal: (current?.signal ?? 0) + 1,
     }));
   }, []);
 
+  const handleConstellationLocate = useCallback((constellation: Constellation) => {
+    setSelectedJournal(null);
+    setShowConstellations(false);
+    setFocusStarRequest(null);
+    setFocusConstellationRequest((current) => ({
+      constellationId: constellation._id,
+      title: constellation.title,
+      color: constellation.color,
+      journalIds: [...constellation.journalIds],
+      signal: (current?.signal ?? 0) + 1,
+    }));
+  }, []);
+
   const exitStarLocate = useCallback(() => {
     setFocusStarRequest(null);
+    setFocusConstellationRequest(null);
   }, []);
 
   useEffect(() => {
     if (
-      !focusStarRequest
+      (!focusStarRequest && !focusConstellationRequest)
       || selectedJournal
       || showArchive
       || showConstellations
@@ -387,7 +404,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
     window.addEventListener("keydown", handleLocateKeyDown);
     return () => window.removeEventListener("keydown", handleLocateKeyDown);
-  }, [exitStarLocate, focusStarRequest, selectedJournal, showArchive, showConstellations]);
+  }, [exitStarLocate, focusConstellationRequest, focusStarRequest, selectedJournal, showArchive, showConstellations]);
 
   const launchToTarget = useCallback(
     async (
@@ -559,12 +576,13 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onJournalPositionUpdate={handleJournalPositionUpdate}
         focusCurrentSignal={focusCurrentSignal}
         focusStarRequest={focusStarRequest}
+        focusConstellationRequest={focusConstellationRequest}
         paused={!!selectedJournal || showArchive || showConstellations}
       />
       <LottieRocketOverlay launch={launch} />
       {aimPreview && <LaunchAimPreview {...aimPreview} />}
 
-      {focusStarRequest && !selectedJournal && !showArchive && !showConstellations && (
+      {(focusStarRequest || focusConstellationRequest) && !selectedJournal && !showArchive && !showConstellations && (
         <div className="pointer-events-none fixed inset-x-0 top-20 z-60 flex justify-center px-4">
           <div
             data-star-bounce
@@ -573,13 +591,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
           >
             <span className="flex items-center gap-2 font-semibold text-sky-100">
               <Crosshair size={14} aria-hidden="true" />
-              Star located
+              {focusConstellationRequest
+                ? `${focusConstellationRequest.title} located`
+                : 'Star located'}
             </span>
             <button
               type="button"
               onClick={exitStarLocate}
               className="flex cursor-pointer items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1.5 font-bold uppercase tracking-wider text-gray-300 transition hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-200/50"
-              aria-label="Exit star locate mode"
+              aria-label="Exit locate mode"
               title="Exit locate mode (Escape)"
             >
               <X size={12} aria-hidden="true" />
@@ -830,6 +850,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onCreate={createConstellation}
         onUpdate={updateConstellation}
         onDelete={deleteConstellation}
+        onLocate={handleConstellationLocate}
         onSelectInSky={beginSkySelection}
       />
 
