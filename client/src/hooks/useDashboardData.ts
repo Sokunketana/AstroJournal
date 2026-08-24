@@ -4,15 +4,15 @@ import { apiFetch } from '../services/api';
 // SWR fetcher that wraps our existing apiFetch
 const fetcher = (endpoint: string) => apiFetch(endpoint);
 
-export function useUserData() {
-  return useSWR('/users/me', fetcher, {
+export function useUserData(enabled = true) {
+  return useSWR(enabled ? '/users/me' : null, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 5000,
   });
 }
 
-export function useJournals() {
-  return useSWR('/journals', fetcher, {
+export function useJournals(enabled = true) {
+  return useSWR(enabled ? '/journals' : null, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 5000,
   });

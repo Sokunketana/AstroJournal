@@ -8,6 +8,7 @@ import { router } from './router'
 import { setAuthTokenGetter } from './services/api'
 import { clerkAppearance } from './config/clerkAppearance'
 import LoadingScreen from './components/LoadingScreen'
+import { useJournals, useUserData } from './hooks/useDashboardData'
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
   ?? import.meta.env.CLERK_PUBLISHABLE_KEY
@@ -27,6 +28,9 @@ function MissingClerkConfiguration() {
 
 function InnerApp() {
   const { getToken, isLoaded, isSignedIn } = useAuth()
+  const shouldPrepareDashboard = Boolean(isLoaded && isSignedIn)
+  const { isLoading: userLoading } = useUserData(shouldPrepareDashboard)
+  const { isLoading: journalsLoading } = useJournals(shouldPrepareDashboard)
 
   setAuthTokenGetter(getToken)
 
@@ -34,7 +38,7 @@ function InnerApp() {
     void router.invalidate()
   }, [isLoaded, isSignedIn])
 
-  if (!isLoaded) {
+  if (!isLoaded || (shouldPrepareDashboard && (userLoading || journalsLoading))) {
     return <LoadingScreen />
   }
 
