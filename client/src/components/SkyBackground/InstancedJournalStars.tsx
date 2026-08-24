@@ -511,7 +511,8 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
       );
       const isSelected = selectedOrder.has(e.id);
       const isFocused = e.id === focusedJournalId;
-      const focusScale = isFocused ? 1.65 + Math.sin(t * 5) * 0.15 : 1;
+      const focusPulse = isFocused ? (Math.sin(t * 5) + 1) / 2 : 0;
+      const focusScale = isFocused ? 1.5 + focusPulse * 0.3 : 1;
       const scale = Math.max(
         spawn * (1 + 0.3 * e.hover) * (isSelected ? 1.45 : 1) * focusScale,
         0.001,
@@ -535,7 +536,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
 
       _color
         .set(isSelected ? selectionColor : emotionColor(e.journal.emotion))
-        .lerp(_focusedColor, isFocused ? 0.7 : 0)
+        .lerp(_focusedColor, isFocused ? 0.25 + focusPulse * 0.65 : 0)
         .multiplyScalar(isSelected || isFocused ? 2 : 1.5);
       mesh.setColorAt(i, _color);
     }
