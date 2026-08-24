@@ -59,7 +59,7 @@ const TimelineCameraController: React.FC<TimelineCameraControllerProps> = ({
         : event.deltaY;
       const zoomScale = targetZoomRef.current / BASE_CAMERA_Z;
       targetWeekRef.current = THREE.MathUtils.clamp(
-        targetWeekRef.current - movement * 0.0025 * zoomScale,
+        targetWeekRef.current + movement * 0.0025 * zoomScale,
         earliestWeek,
         0,
       );
