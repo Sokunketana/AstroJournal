@@ -5,4 +5,5 @@ export interface ArchiveModalProps {
   onClose: () => void;
   journals: Journal[];
   onSelect: (journal: Journal) => void;
+  onLocate: (journal: Journal) => void;
 }
