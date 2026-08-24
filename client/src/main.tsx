@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { ClerkProvider, useAuth } from '@clerk/react'
-import { StrictMode, useEffect } from 'react'
+import { StrictMode, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { RouterProvider } from '@tanstack/react-router'
@@ -28,6 +28,8 @@ function MissingClerkConfiguration() {
 
 function InnerApp() {
   const { getToken, isLoaded, isSignedIn } = useAuth()
+  const hasResolvedAuthRef = useRef(false)
+  const [isFinalizingAuth, setIsFinalizingAuth] = useState(false)
   const shouldPrepareDashboard = Boolean(isLoaded && isSignedIn)
   const { isLoading: userLoading } = useUserData(shouldPrepareDashboard)
   const { isLoading: journalsLoading } = useJournals(shouldPrepareDashboard)
@@ -35,10 +37,34 @@ function InnerApp() {
   setAuthTokenGetter(getToken)
 
   useEffect(() => {
+    const isAuthRoute = window.location.pathname === '/login'
+      || window.location.pathname === '/sign-up'
+
+    if (!isLoaded && hasResolvedAuthRef.current && isAuthRoute) {
+      setIsFinalizingAuth(true)
+    }
+
+    if (isLoaded) {
+      hasResolvedAuthRef.current = true
+    }
+  }, [isLoaded])
+
+  useEffect(() => {
+    if (!isFinalizingAuth) return
+
+    const timeout = window.setTimeout(() => setIsFinalizingAuth(false), 15_000)
+    return () => window.clearTimeout(timeout)
+  }, [isFinalizingAuth])
+
+  useEffect(() => {
     void router.invalidate()
   }, [isLoaded, isSignedIn])
 
-  if (!isLoaded || (shouldPrepareDashboard && (userLoading || journalsLoading))) {
+  if (
+    !isLoaded
+    || (isFinalizingAuth && !isSignedIn)
+    || (shouldPrepareDashboard && (userLoading || journalsLoading))
+  ) {
     return <LoadingScreen />
   }
 
