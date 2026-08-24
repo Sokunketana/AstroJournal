@@ -17,6 +17,11 @@ export interface RocketLaunchData {
   journalId?: string;
 }
 
+export interface StarFocusRequest {
+  journalId: string;
+  signal: number;
+}
+
 export interface JournalStarProps {
   position: [number, number, number];
   journal: Journal;
@@ -42,5 +47,6 @@ export interface SkyBackgroundProps {
     pos: { x: number; y: number; z: number },
   ) => void;
   focusCurrentSignal?: number;
+  focusStarRequest?: StarFocusRequest | null;
   paused?: boolean;
 }

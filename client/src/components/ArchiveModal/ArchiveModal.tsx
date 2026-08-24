@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { Search, Star, RotateCcw, SearchX } from "lucide-react";
+import { Crosshair, Search, Star, RotateCcw, SearchX } from "lucide-react";
 import Modal from "../Modal";
 import { formatRelativeDate, formatShortDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
@@ -28,6 +28,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
   onClose,
   journals,
   onSelect,
+  onLocate,
 }) => {
   const [query, setQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -155,45 +156,59 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
           </div>
         )}
         {filteredJournals.map((journal) => (
-          <button
+          <div
             key={journal._id}
-            onClick={() => onSelect(journal)}
-            className="w-full text-left bg-white/5 p-4 rounded-xl border border-white/5 hover:border-white/30 hover:bg-white/10 transition-all group cursor-pointer"
+            className="flex items-center gap-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/30 hover:bg-white/10 transition-all group"
             style={{ borderLeft: `2px solid ${emotionColor(journal.emotion)}` }}
           >
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-sm font-semibold text-white">
-                {formatRelativeDate(journal.createdAt)}
-              </span>
-              <span className="text-xs text-gray-500">
-                {formatShortDate(journal.createdAt)}
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-yellow-500/40 text-yellow-400 bg-yellow-500/10 shrink-0">
-                <Star size={10} />
-                Star
-              </span>
-              {journal.emotion && (
-                <span
-                  className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border bg-black/30 shrink-0"
-                  style={{
-                    color: emotionColor(journal.emotion),
-                    borderColor: `${emotionColor(journal.emotion)}66`,
-                  }}
-                >
-                  <span
-                    className="w-1.5 h-1.5 rounded-full"
-                    style={{
-                      backgroundColor: emotionColor(journal.emotion),
-                    }}
-                  />
-                  {journal.emotion}
+            <button
+              type="button"
+              onClick={() => onSelect(journal)}
+              className="min-w-0 flex-1 cursor-pointer p-4 text-left"
+              aria-label={`Open journal entry from ${formatShortDate(journal.createdAt)}`}
+            >
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="text-sm font-semibold text-white">
+                  {formatRelativeDate(journal.createdAt)}
                 </span>
-              )}
-            </div>
-            <p className="text-sm text-gray-300 line-clamp-2">
-              {journal.content}
-            </p>
-          </button>
+                <span className="text-xs text-gray-500">
+                  {formatShortDate(journal.createdAt)}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border border-yellow-500/40 text-yellow-400 bg-yellow-500/10 shrink-0">
+                  <Star size={10} />
+                  Star
+                </span>
+                {journal.emotion && (
+                  <span
+                    className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border bg-black/30 shrink-0"
+                    style={{
+                      color: emotionColor(journal.emotion),
+                      borderColor: `${emotionColor(journal.emotion)}66`,
+                    }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: emotionColor(journal.emotion) }}
+                    />
+                    {journal.emotion}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-300 line-clamp-2">
+                {journal.content}
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => onLocate(journal)}
+              className="mr-3 flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-sky-200 transition hover:border-sky-200/60 hover:bg-sky-200/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-200/50"
+              aria-label={`Locate star from ${formatShortDate(journal.createdAt)} in the sky`}
+              title="Go directly to this star"
+            >
+              <Crosshair size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">Locate</span>
+            </button>
+          </div>
         ))}
       </div>
     </Modal>

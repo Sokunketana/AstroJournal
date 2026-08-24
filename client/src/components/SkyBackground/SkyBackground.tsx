@@ -87,6 +87,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
   onStarClick,
   onJournalPositionUpdate,
   focusCurrentSignal = 0,
+  focusStarRequest,
   paused,
 }) => {
   const [tooltip, setTooltip] = useState<SkyTooltipData | null>(null);
@@ -190,6 +191,16 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
     });
   }, [looseJournals, weekWidth]);
 
+  const cameraFocusRequest = useMemo(() => {
+    if (!focusStarRequest) return null;
+    const star = journalStars.find((item) => item.id === focusStarRequest.journalId);
+    if (!star) return null;
+    return {
+      weekPosition: star.position[0] / weekWidth,
+      signal: focusStarRequest.signal,
+    };
+  }, [focusStarRequest, journalStars, weekWidth]);
+
   return (
     <div className="fixed inset-0 z-0">
       <Canvas
@@ -227,6 +238,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           earliestWeek={earliestWeek}
           weekWidth={weekWidth}
           focusCurrentSignal={focusCurrentSignal}
+          focusStarRequest={cameraFocusRequest}
           viewRef={timelineViewRef}
           paused={paused}
           onViewChange={setTimelineView}
@@ -242,6 +254,7 @@ const SkyBackground: React.FC<SkyBackgroundProps> = ({
           positionsRef={starPositionsRef}
           selectedIds={selectionDraft?.journalIds}
           selectionColor={selectionDraft?.color}
+          focusedJournalId={focusStarRequest?.journalId}
         />
 
         <ConstellationLines

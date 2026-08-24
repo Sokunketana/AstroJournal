@@ -26,6 +26,7 @@ export interface InstancedJournalStarsProps {
   positionsRef?: React.MutableRefObject<Map<string, THREE.Vector3>>;
   selectedIds?: string[];
   selectionColor?: string;
+  focusedJournalId?: string;
 }
 
 interface StarEntry {
@@ -83,6 +84,7 @@ const _matrix = new THREE.Matrix4();
 const _quaternion = new THREE.Quaternion();
 const _scale = new THREE.Vector3();
 const _color = new THREE.Color();
+const _focusedColor = new THREE.Color("#ffffff");
 const _cameraSpace = new THREE.Vector3();
 const _renderWorld = new THREE.Vector3();
 
@@ -124,6 +126,7 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
   positionsRef,
   selectedIds = [],
   selectionColor = '#ffffff',
+  focusedJournalId,
 }) => {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const entriesRef = useRef<StarEntry[]>([]);
@@ -507,7 +510,12 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         THREE.MathUtils.clamp((tWall - e.birth) / SPAWN_DURATION, 0, 1),
       );
       const isSelected = selectedOrder.has(e.id);
-      const scale = Math.max(spawn * (1 + 0.3 * e.hover) * (isSelected ? 1.45 : 1), 0.001);
+      const isFocused = e.id === focusedJournalId;
+      const focusScale = isFocused ? 1.65 + Math.sin(t * 5) * 0.15 : 1;
+      const scale = Math.max(
+        spawn * (1 + 0.3 * e.hover) * (isSelected ? 1.45 : 1) * focusScale,
+        0.001,
+      );
 
       _quaternion.setFromAxisAngle(
         THREE.Object3D.DEFAULT_UP,
@@ -525,7 +533,10 @@ const InstancedJournalStars: React.FC<InstancedJournalStarsProps> = ({
         else positionsRef.current.set(e.id, _renderWorld.clone());
       }
 
-      _color.set(isSelected ? selectionColor : emotionColor(e.journal.emotion)).multiplyScalar(isSelected ? 2 : 1.5);
+      _color
+        .set(isSelected ? selectionColor : emotionColor(e.journal.emotion))
+        .lerp(_focusedColor, isFocused ? 0.7 : 0)
+        .multiplyScalar(isSelected || isFocused ? 2 : 1.5);
       mesh.setColorAt(i, _color);
     }
     mesh.instanceMatrix.needsUpdate = true;

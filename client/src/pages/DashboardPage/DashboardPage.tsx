@@ -28,7 +28,10 @@ import LoadingScreen from "../../components/LoadingScreen";
 import { formatLongDate } from "../../utils/dateUtils";
 import { emotionColor } from "../../utils/emotion";
 import type { DashboardPageProps } from "./DashboardPage.types";
-import type { RocketLaunchData } from "../../components/SkyBackground/SkyBackground.types";
+import type {
+  RocketLaunchData,
+  StarFocusRequest,
+} from "../../components/SkyBackground/SkyBackground.types";
 import {
   Star,
   Flame,
@@ -185,6 +188,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
   const [launch, setLaunch] = useState<RocketLaunchData | null>(null);
   const [aimPreview, setAimPreview] = useState<AimPreview | null>(null);
   const [focusCurrentSignal, setFocusCurrentSignal] = useState(0);
+  const [focusStarRequest, setFocusStarRequest] = useState<StarFocusRequest | null>(null);
 
   const mutateAll = useCallback(() => {
     mutateUser();
@@ -352,6 +356,15 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
     },
     [],
   );
+
+  const handleArchiveLocate = useCallback((journal: Journal) => {
+    setSelectedJournal(null);
+    setShowArchive(false);
+    setFocusStarRequest((current) => ({
+      journalId: journal._id,
+      signal: (current?.signal ?? 0) + 1,
+    }));
+  }, []);
 
   const launchToTarget = useCallback(
     async (
@@ -522,6 +535,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onStarClick={handleStarClick}
         onJournalPositionUpdate={handleJournalPositionUpdate}
         focusCurrentSignal={focusCurrentSignal}
+        focusStarRequest={focusStarRequest}
         paused={!!selectedJournal || showArchive || showConstellations}
       />
       <LottieRocketOverlay launch={launch} />
@@ -757,6 +771,7 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         onClose={() => setShowArchive(false)}
         journals={journals}
         onSelect={handleArchiveSelect}
+        onLocate={handleArchiveLocate}
       />
 
       <ConstellationModal
