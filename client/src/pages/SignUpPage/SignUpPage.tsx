@@ -7,6 +7,7 @@ const SignUpPage = () => (
     <SignUp
       routing="hash"
       signInUrl="/login"
+      forceRedirectUrl="/app"
       fallbackRedirectUrl="/app"
       appearance={clerkAppearance}
     />
