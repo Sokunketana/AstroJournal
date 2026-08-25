@@ -3,11 +3,7 @@ import AuthShell from '../../components/AuthShell';
 import { clerkAppearance } from '../../config/clerkAppearance';
 
 const SignUpPage = () => (
-  <AuthShell
-    eyebrow="Your story starts here"
-    title="Give your thoughts a place to shine."
-    description="Create your own quiet corner of the universe. Write freely, trace the patterns, and watch your story become a sky that is uniquely yours."
-  >
+  <AuthShell subtitle="Create an account and launch your first star.">
     <SignUp
       routing="hash"
       signInUrl="/login"

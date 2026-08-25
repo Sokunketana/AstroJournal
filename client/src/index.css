@@ -175,108 +175,6 @@ body {
 .loading-progress-dot-delay-one { animation-delay: 180ms; }
 .loading-progress-dot-delay-two { animation-delay: 360ms; }
 
-.auth-screen {
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 28% 48%, rgba(27, 22, 58, 0.76), transparent 32%),
-    linear-gradient(145deg, #050610 0%, #020308 48%, #070610 100%);
-}
-
-.auth-grid {
-  opacity: 0.22;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(circle at 28% 48%, black, transparent 52%);
-}
-
-.auth-constellation {
-  position: relative;
-  width: 13rem;
-  color: rgba(184, 168, 255, 0.72);
-}
-
-@media (min-width: 64rem) {
-  .auth-constellation {
-    position: absolute;
-    top: -8.25rem;
-    right: auto;
-    bottom: auto;
-    left: 0;
-    margin-bottom: 0;
-    transform: none;
-  }
-}
-
-.auth-constellation svg {
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-
-.auth-constellation-line {
-  stroke: currentColor;
-  stroke-width: 1;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 4px rgba(184, 168, 255, 0.25));
-  animation: auth-constellation-pulse 4.2s ease-in-out infinite;
-}
-
-.auth-constellation-line-delay {
-  animation-delay: -1.4s;
-}
-
-.auth-constellation-stars circle {
-  fill: #c8beff;
-  filter: drop-shadow(0 0 5px rgba(200, 190, 255, 0.8));
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: auth-constellation-twinkle 3.2s ease-in-out infinite;
-}
-
-.auth-constellation-stars circle:nth-child(2n) { animation-delay: -1.15s; }
-.auth-constellation-stars circle:nth-child(3n) { animation-delay: -2.1s; }
-
-.auth-constellation-stars .auth-constellation-star-gold {
-  fill: #efd392;
-  filter: drop-shadow(0 0 6px rgba(239, 211, 146, 0.85));
-}
-
-.auth-constellation-label {
-  display: block;
-  margin-top: -0.25rem;
-  text-align: left;
-  font-size: 0.52rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.22);
-}
-
-@keyframes auth-constellation-pulse {
-  0%, 100% { opacity: 0.52; }
-  50% { opacity: 1; filter: drop-shadow(0 0 7px rgba(184, 168, 255, 0.48)); }
-}
-
-@keyframes auth-constellation-twinkle {
-  0%, 100% { opacity: 0.45; transform: scale(0.82); }
-  50% { opacity: 1; transform: scale(1.18); }
-}
-
-.auth-enter {
-  animation: auth-enter 750ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.auth-enter-copy { animation-delay: 80ms; }
-.auth-enter-card { animation-delay: 170ms; }
-
-@keyframes auth-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes loading-stars-drift {
   to { background-position: 173px 86px, -198px 215px, 454px -139px; }
 }
@@ -644,9 +542,6 @@ body {
   .loading-core-halo,
   .loading-distant-star,
   .loading-progress-dot,
-  .auth-constellation-line,
-  .auth-constellation-stars circle,
-  .auth-enter,
   .landing-enter,
   .landing-line-draw,
   .landing-twinkle,
