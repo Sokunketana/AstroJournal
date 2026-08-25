@@ -230,15 +230,13 @@ const meteorParticles = [
 ];
 
 const meteorCracks = [
-  { angle: '-168deg', length: '31vmin', delay: '0ms', branch: '-32deg' },
-  { angle: '-132deg', length: '38vmin', delay: '50ms', branch: '38deg' },
-  { angle: '-94deg', length: '28vmin', delay: '95ms', branch: '-42deg' },
-  { angle: '-48deg', length: '39vmin', delay: '25ms', branch: '31deg' },
-  { angle: '-12deg', length: '34vmin', delay: '80ms', branch: '-36deg' },
-  { angle: '32deg', length: '35vmin', delay: '120ms', branch: '40deg' },
-  { angle: '73deg', length: '29vmin', delay: '65ms', branch: '-34deg' },
-  { angle: '116deg', length: '37vmin', delay: '110ms', branch: '36deg' },
-  { angle: '151deg', length: '30vmin', delay: '145ms', branch: '-39deg' },
+  { angle: '-168deg', length: '31vmin', branch: '-32deg' },
+  { angle: '-132deg', length: '38vmin', branch: '38deg' },
+  { angle: '-94deg', length: '28vmin', branch: '-42deg' },
+  { angle: '-48deg', length: '39vmin', branch: '31deg' },
+  { angle: '-12deg', length: '34vmin', branch: '-36deg' },
+  { angle: '32deg', length: '35vmin', branch: '40deg' },
+  { angle: '73deg', length: '29vmin', branch: '-34deg' },
 ];
 
 const shouldPlayMeteorIntro = () => {
@@ -263,7 +261,7 @@ const MeteorIntro = () => (
       </div>
 
       <div className="meteor-intro-shards">
-        {Array.from({ length: 8 }, (_, index) => (
+        {Array.from({ length: 4 }, (_, index) => (
           <span key={index} className={`meteor-intro-shard meteor-intro-shard-${index + 1}`} />
         ))}
       </div>
@@ -306,7 +304,6 @@ const MeteorIntro = () => (
             style={{
               '--meteor-crack-angle': crack.angle,
               '--meteor-crack-length': crack.length,
-              '--meteor-crack-delay': crack.delay,
               '--meteor-branch-angle': crack.branch,
             } as CSSProperties}
           >
@@ -356,7 +353,7 @@ const LandingPage = () => {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed]">
+    <main className={`min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed] ${showMeteorIntro ? 'meteor-is-playing' : ''}`}>
       {showMeteorIntro && <MeteorIntro />}
       <section className="landing-hero relative isolate min-h-screen border-b border-white/[0.06]">
         <div className="landing-stars pointer-events-none absolute inset-0" aria-hidden="true" />

@@ -228,16 +228,15 @@ body {
   contain: strict;
   isolation: isolate;
   overflow: hidden;
-  cursor: wait;
+  cursor: default;
   background: transparent;
-  animation: meteor-intro-finish 2900ms step-end both;
 }
 
 .meteor-intro-stage {
   position: absolute;
   inset: -3%;
   overflow: hidden;
-  animation: meteor-intro-shake 2900ms linear both;
+  animation: meteor-intro-shake 420ms 1100ms linear both;
   will-change: transform;
 }
 
@@ -249,6 +248,7 @@ body {
     radial-gradient(circle at 50% 50%, rgba(62, 43, 103, 0.24), transparent 32%),
     #020308;
   animation: meteor-intro-space-break 420ms 1370ms ease-in forwards;
+  will-change: opacity;
 }
 
 .meteor-intro-stars {
@@ -261,7 +261,6 @@ body {
     radial-gradient(circle at 35% 74%, rgba(255, 222, 157, 0.66) 0 0.8px, transparent 1.1px),
     radial-gradient(circle at 88% 61%, rgba(255, 255, 255, 0.58) 0 0.7px, transparent 1px);
   background-size: 181px 181px, 239px 239px, 311px 311px, 397px 397px;
-  animation: meteor-intro-stars-in 500ms ease-out both;
 }
 
 .meteor-intro-shards {
@@ -273,23 +272,18 @@ body {
 
 .meteor-intro-shard {
   position: absolute;
-  inset: 0;
+  width: 51%;
+  height: 51%;
   opacity: 0;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(38, 27, 68, 0.28), transparent 42%),
-    #020308;
+  background: #020308;
   animation: meteor-intro-shard 1300ms 1390ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity;
 }
 
-.meteor-intro-shard-1 { --meteor-shard-x: -13vw; --meteor-shard-y: -16vh; --meteor-shard-rotate: -5deg; clip-path: polygon(0 0, 50% 0, 50% 50%); }
-.meteor-intro-shard-2 { --meteor-shard-x: -17vw; --meteor-shard-y: -2vh; --meteor-shard-rotate: 4deg; clip-path: polygon(0 0, 50% 50%, 0 50%); }
-.meteor-intro-shard-3 { --meteor-shard-x: 10vw; --meteor-shard-y: -17vh; --meteor-shard-rotate: 6deg; clip-path: polygon(50% 0, 100% 0, 50% 50%); }
-.meteor-intro-shard-4 { --meteor-shard-x: 17vw; --meteor-shard-y: -3vh; --meteor-shard-rotate: -4deg; clip-path: polygon(100% 0, 100% 50%, 50% 50%); }
-.meteor-intro-shard-5 { --meteor-shard-x: 16vw; --meteor-shard-y: 7vh; --meteor-shard-rotate: 5deg; clip-path: polygon(100% 50%, 100% 100%, 50% 50%); }
-.meteor-intro-shard-6 { --meteor-shard-x: 9vw; --meteor-shard-y: 17vh; --meteor-shard-rotate: -6deg; clip-path: polygon(100% 100%, 50% 100%, 50% 50%); }
-.meteor-intro-shard-7 { --meteor-shard-x: -10vw; --meteor-shard-y: 17vh; --meteor-shard-rotate: 5deg; clip-path: polygon(50% 100%, 0 100%, 50% 50%); }
-.meteor-intro-shard-8 { --meteor-shard-x: -17vw; --meteor-shard-y: 6vh; --meteor-shard-rotate: -5deg; clip-path: polygon(0 100%, 0 50%, 50% 50%); }
+.meteor-intro-shard-1 { top: 0; left: 0; --meteor-shard-x: -16vw; --meteor-shard-y: -18vh; --meteor-shard-rotate: -5deg; clip-path: polygon(0 0, 100% 0, 100% 72%, 74% 100%, 0 100%); }
+.meteor-intro-shard-2 { top: 0; right: 0; --meteor-shard-x: 16vw; --meteor-shard-y: -18vh; --meteor-shard-rotate: 5deg; clip-path: polygon(0 0, 100% 0, 100% 100%, 24% 100%, 0 72%); }
+.meteor-intro-shard-3 { right: 0; bottom: 0; --meteor-shard-x: 16vw; --meteor-shard-y: 18vh; --meteor-shard-rotate: -5deg; clip-path: polygon(24% 0, 100% 0, 100% 100%, 0 100%, 0 28%); }
+.meteor-intro-shard-4 { bottom: 0; left: 0; --meteor-shard-x: -16vw; --meteor-shard-y: 18vh; --meteor-shard-rotate: 5deg; clip-path: polygon(0 0, 74% 0, 100% 28%, 100% 100%, 0 100%); }
 
 .meteor-intro-ambient {
   position: absolute;
@@ -343,7 +337,6 @@ body {
   box-shadow:
     0 0 3rem rgba(255, 187, 92, 0.7),
     0 0 8rem rgba(117, 75, 213, 0.42);
-  animation: meteor-intro-fire-pulse 180ms ease-in-out infinite alternate;
 }
 
 .meteor-intro-core {
@@ -359,7 +352,7 @@ body {
   box-shadow:
     inset -2rem -2rem 5rem rgba(18, 10, 25, 0.68),
     inset 1.4rem 1rem 3rem rgba(255, 192, 105, 0.24);
-  animation: meteor-intro-rock-turn 1160ms 80ms linear both;
+  transform: rotate(14deg);
 }
 
 .meteor-intro-crater {
@@ -387,7 +380,9 @@ body {
 
 .meteor-intro-cracks {
   z-index: 5;
-  animation: meteor-intro-cracks-out 720ms 1950ms ease-in forwards;
+  transform-origin: center;
+  animation: meteor-intro-cracks-sequence 1450ms 1180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
 }
 
 .meteor-intro-flash,
@@ -462,11 +457,9 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  transform: scaleX(0);
+  transform: scaleX(1);
   transform-origin: left;
   background: linear-gradient(90deg, rgba(255, 249, 224, 0.98), rgba(235, 205, 255, 0.76) 45%, rgba(255, 255, 255, 0.22));
-  box-shadow: 0 0 8px rgba(255, 239, 198, 0.62);
-  animation: meteor-intro-crack-draw 520ms calc(1210ms + var(--meteor-crack-delay)) cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .meteor-intro-crack::after {
@@ -476,11 +469,9 @@ body {
   width: 36%;
   height: 1px;
   content: '';
-  transform: rotate(var(--meteor-branch-angle)) scaleX(0);
+  transform: rotate(var(--meteor-branch-angle)) scaleX(1);
   transform-origin: left;
   background: rgba(238, 220, 255, 0.62);
-  box-shadow: 0 0 5px rgba(255, 239, 198, 0.46);
-  animation: meteor-intro-crack-branch 360ms calc(1390ms + var(--meteor-crack-delay)) ease-out both;
 }
 
 .meteor-intro-copy {
@@ -499,16 +490,6 @@ body {
   text-transform: uppercase;
   color: rgba(255, 238, 197, 0.76);
   animation: meteor-intro-copy 820ms 1510ms ease-out both;
-}
-
-@keyframes meteor-intro-finish {
-  0%, 99% { visibility: visible; }
-  100% { visibility: hidden; }
-}
-
-@keyframes meteor-intro-stars-in {
-  from { opacity: 0; }
-  to { opacity: 0.72; }
 }
 
 @keyframes meteor-intro-space-break {
@@ -535,24 +516,14 @@ body {
   100% { opacity: 0; transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1.12); }
 }
 
-@keyframes meteor-intro-rock-turn {
-  from { transform: rotate(-34deg); }
-  to { transform: rotate(22deg); }
-}
-
-@keyframes meteor-intro-fire-pulse {
-  from { opacity: 0.82; transform: scale(0.97) rotate(-2deg); }
-  to { opacity: 1; transform: scale(1.03) rotate(2deg); }
-}
-
 @keyframes meteor-intro-shake {
-  0%, 38%, 52%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-  39% { transform: translate3d(-11px, 7px, 0) rotate(-0.2deg); }
-  41% { transform: translate3d(12px, -8px, 0) rotate(0.22deg); }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
+  12% { transform: translate3d(-11px, 7px, 0) rotate(-0.2deg); }
+  27% { transform: translate3d(12px, -8px, 0) rotate(0.22deg); }
   43% { transform: translate3d(-9px, -5px, 0) rotate(-0.15deg); }
-  45% { transform: translate3d(8px, 7px, 0) rotate(0.13deg); }
-  47% { transform: translate3d(-5px, 3px, 0) rotate(-0.08deg); }
-  49% { transform: translate3d(4px, -3px, 0) rotate(0.06deg); }
+  59% { transform: translate3d(8px, 7px, 0) rotate(0.13deg); }
+  75% { transform: translate3d(-5px, 3px, 0) rotate(-0.08deg); }
+  89% { transform: translate3d(4px, -3px, 0) rotate(0.06deg); }
 }
 
 @keyframes meteor-intro-flash {
@@ -579,25 +550,29 @@ body {
   100% { opacity: 0; transform: translate(var(--meteor-particle-x), var(--meteor-particle-y)) scale(0); }
 }
 
-@keyframes meteor-intro-crack-draw {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
-@keyframes meteor-intro-crack-branch {
-  from { opacity: 0; transform: rotate(var(--meteor-branch-angle)) scaleX(0); }
-  to { opacity: 1; transform: rotate(var(--meteor-branch-angle)) scaleX(1); }
-}
-
-@keyframes meteor-intro-cracks-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+@keyframes meteor-intro-cracks-sequence {
+  0% { opacity: 0; transform: scale(0.16); }
+  18%, 64% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.04); }
 }
 
 @keyframes meteor-intro-copy {
   0% { opacity: 0; transform: translateY(8px); }
   30%, 66% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-5px); }
+}
+
+.meteor-is-playing .landing-enter,
+.meteor-is-playing .landing-line-draw,
+.meteor-is-playing .landing-twinkle,
+.meteor-is-playing .landing-rocket-idle,
+.meteor-is-playing .landing-float-chip,
+.meteor-is-playing .landing-cta-star,
+.meteor-is-playing .landing-live-dot::after,
+.meteor-is-playing .landing-memory-word::after,
+.meteor-is-playing .landing-shooting-star,
+.meteor-is-playing .landing-primary-cta::after {
+  animation: none !important;
 }
 
 .landing-stars {
