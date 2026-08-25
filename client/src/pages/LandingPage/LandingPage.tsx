@@ -216,26 +216,39 @@ const featureSegments: ConstellationSegment[] = emotionStars.slice(0, -1).map((s
 }));
 
 const METEOR_INTRO_KEY = 'astrojournal-meteor-intro-seen';
-const METEOR_INTRO_DURATION = 1850;
+const METEOR_INTRO_DURATION = 2900;
 
 const meteorParticles = [
-  { x: '-7.5rem', y: '-1.8rem', delay: '0ms' },
-  { x: '-5.2rem', y: '3.5rem', delay: '35ms' },
-  { x: '-2.2rem', y: '-5.8rem', delay: '70ms' },
-  { x: '1rem', y: '6rem', delay: '20ms' },
-  { x: '4.5rem', y: '-4.2rem', delay: '55ms' },
-  { x: '7.2rem', y: '1.3rem', delay: '90ms' },
-  { x: '3.4rem', y: '4.8rem', delay: '110ms' },
-  { x: '-4.4rem', y: '-4rem', delay: '125ms' },
+  { x: '-13rem', y: '-3rem', delay: '0ms' },
+  { x: '-10rem', y: '7rem', delay: '35ms' },
+  { x: '-4rem', y: '-11rem', delay: '70ms' },
+  { x: '1rem', y: '12rem', delay: '20ms' },
+  { x: '9rem', y: '-8rem', delay: '55ms' },
+  { x: '14rem', y: '2rem', delay: '90ms' },
+  { x: '7rem', y: '10rem', delay: '110ms' },
+  { x: '-8rem', y: '-8rem', delay: '125ms' },
+];
+
+const meteorCracks = [
+  { angle: '-168deg', length: '31vmin', delay: '0ms', branch: '-32deg' },
+  { angle: '-132deg', length: '38vmin', delay: '50ms', branch: '38deg' },
+  { angle: '-94deg', length: '28vmin', delay: '95ms', branch: '-42deg' },
+  { angle: '-48deg', length: '39vmin', delay: '25ms', branch: '31deg' },
+  { angle: '-12deg', length: '34vmin', delay: '80ms', branch: '-36deg' },
+  { angle: '32deg', length: '35vmin', delay: '120ms', branch: '40deg' },
+  { angle: '73deg', length: '29vmin', delay: '65ms', branch: '-34deg' },
+  { angle: '116deg', length: '37vmin', delay: '110ms', branch: '36deg' },
+  { angle: '151deg', length: '30vmin', delay: '145ms', branch: '-39deg' },
 ];
 
 const shouldPlayMeteorIntro = () => {
   if (typeof window === 'undefined') return false;
 
   try {
+    const replayRequested = new URLSearchParams(window.location.search).get('meteor') === '1';
     return (
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      && window.sessionStorage.getItem(METEOR_INTRO_KEY) !== 'true'
+      && (replayRequested || window.sessionStorage.getItem(METEOR_INTRO_KEY) !== 'true')
     );
   } catch {
     return true;
@@ -244,33 +257,66 @@ const shouldPlayMeteorIntro = () => {
 
 const MeteorIntro = () => (
   <div className="meteor-intro" aria-hidden="true">
-    <div className="meteor-intro-stars" />
-    <div className="meteor-intro-ambient" />
+    <div className="meteor-intro-stage">
+      <div className="meteor-intro-space">
+        <div className="meteor-intro-stars" />
+      </div>
 
-    <div className="meteor-intro-body">
-      <span className="meteor-intro-tail" />
-      <span className="meteor-intro-core" />
+      <div className="meteor-intro-shards">
+        {Array.from({ length: 8 }, (_, index) => (
+          <span key={index} className={`meteor-intro-shard meteor-intro-shard-${index + 1}`} />
+        ))}
+      </div>
+
+      <div className="meteor-intro-ambient" />
+
+      <div className="meteor-intro-body">
+        <span className="meteor-intro-tail" />
+        <span className="meteor-intro-fire" />
+        <span className="meteor-intro-core">
+          <span className="meteor-intro-crater meteor-intro-crater-one" />
+          <span className="meteor-intro-crater meteor-intro-crater-two" />
+          <span className="meteor-intro-crater meteor-intro-crater-three" />
+        </span>
+      </div>
+
+      <div className="meteor-intro-impact">
+        <span className="meteor-intro-flash" />
+        <span className="meteor-intro-ring meteor-intro-ring-one" />
+        <span className="meteor-intro-ring meteor-intro-ring-two" />
+        <span className="meteor-intro-impact-star" />
+        {meteorParticles.map((particle, index) => (
+          <span
+            key={index}
+            className="meteor-intro-particle"
+            style={{
+              '--meteor-particle-x': particle.x,
+              '--meteor-particle-y': particle.y,
+              '--meteor-particle-delay': particle.delay,
+            } as CSSProperties}
+          />
+        ))}
+      </div>
+
+      <div className="meteor-intro-cracks">
+        {meteorCracks.map((crack, index) => (
+          <span
+            key={index}
+            className="meteor-intro-crack"
+            style={{
+              '--meteor-crack-angle': crack.angle,
+              '--meteor-crack-length': crack.length,
+              '--meteor-crack-delay': crack.delay,
+              '--meteor-branch-angle': crack.branch,
+            } as CSSProperties}
+          >
+            <span />
+          </span>
+        ))}
+      </div>
     </div>
 
-    <div className="meteor-intro-impact">
-      <span className="meteor-intro-flash" />
-      <span className="meteor-intro-ring meteor-intro-ring-one" />
-      <span className="meteor-intro-ring meteor-intro-ring-two" />
-      <span className="meteor-intro-impact-star" />
-      {meteorParticles.map((particle, index) => (
-        <span
-          key={index}
-          className="meteor-intro-particle"
-          style={{
-            '--meteor-particle-x': particle.x,
-            '--meteor-particle-y': particle.y,
-            '--meteor-particle-delay': particle.delay,
-          } as CSSProperties}
-        />
-      ))}
-    </div>
-
-    <p className="meteor-intro-copy">A moment becomes a star</p>
+    <p className="meteor-intro-copy">Impact becomes memory</p>
   </div>
 );
 
