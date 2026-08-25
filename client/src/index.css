@@ -221,6 +221,225 @@ body {
   30% { background: #efd392; box-shadow: 0 0 9px rgba(239, 211, 146, 0.65); transform: scale(1); }
 }
 
+.meteor-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  contain: strict;
+  isolation: isolate;
+  overflow: hidden;
+  cursor: wait;
+  background: #020308;
+  animation: meteor-intro-screen 1850ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.meteor-intro-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.6;
+  background-image:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.75) 0 0.7px, transparent 1px),
+    radial-gradient(circle at 68% 12%, rgba(209, 198, 255, 0.68) 0 0.6px, transparent 0.95px),
+    radial-gradient(circle at 35% 74%, rgba(255, 222, 157, 0.62) 0 0.7px, transparent 1px),
+    radial-gradient(circle at 88% 61%, rgba(255, 255, 255, 0.55) 0 0.6px, transparent 0.95px);
+  background-size: 181px 181px, 239px 239px, 311px 311px, 397px 397px;
+  animation: meteor-intro-stars-in 500ms ease-out both;
+}
+
+.meteor-intro-ambient {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 54% 54%, rgba(245, 217, 158, 0.14), transparent 8%),
+    radial-gradient(circle at 54% 54%, rgba(130, 99, 214, 0.12), transparent 29%);
+  animation: meteor-intro-ambient 720ms 960ms ease-out both;
+}
+
+.meteor-intro-body {
+  position: absolute;
+  top: -12vh;
+  left: 82vw;
+  width: 1rem;
+  height: 1rem;
+  opacity: 0;
+  animation: meteor-intro-fall 980ms 120ms cubic-bezier(0.34, 0.05, 0.68, 0.96) both;
+  will-change: transform, opacity;
+}
+
+.meteor-intro-tail {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(13rem, 28vw, 28rem);
+  height: 3px;
+  transform: translateY(-50%) rotate(-59deg);
+  transform-origin: left center;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 247, 220, 0.95), rgba(245, 191, 103, 0.56) 22%, rgba(153, 117, 242, 0.2) 62%, transparent);
+  box-shadow: 0 0 10px rgba(245, 217, 158, 0.48);
+}
+
+.meteor-intro-tail::after {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  width: 62%;
+  height: 8px;
+  border-radius: inherit;
+  content: '';
+  transform: scaleY(0.35);
+  transform-origin: left center;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.62), rgba(168, 143, 244, 0.16), transparent);
+}
+
+.meteor-intro-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, white 0 16%, #ffe2a1 32%, #e59646 62%, #8f4e33 100%);
+  box-shadow:
+    0 0 9px #fff7dc,
+    0 0 25px rgba(255, 203, 111, 0.9),
+    0 0 58px rgba(140, 96, 229, 0.48);
+}
+
+.meteor-intro-impact {
+  position: absolute;
+  top: 54vh;
+  left: 54vw;
+  width: 1px;
+  height: 1px;
+}
+
+.meteor-intro-flash,
+.meteor-intro-ring,
+.meteor-intro-impact-star,
+.meteor-intro-particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+}
+
+.meteor-intro-flash {
+  width: min(52rem, 95vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.05);
+  background: radial-gradient(circle, rgba(255, 250, 227, 0.95) 0%, rgba(245, 207, 132, 0.4) 9%, rgba(131, 96, 224, 0.16) 27%, transparent 62%);
+  animation: meteor-intro-flash 760ms 1020ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.meteor-intro-ring {
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid rgba(255, 232, 179, 0.8);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.15);
+  animation: meteor-intro-ring 650ms 1040ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.meteor-intro-ring-two {
+  border-color: rgba(177, 151, 247, 0.55);
+  animation-delay: 1120ms;
+}
+
+.meteor-intro-impact-star {
+  width: 1.1rem;
+  height: 1.1rem;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(45deg) scale(0.2);
+  background: #fff5d3;
+  box-shadow: 0 0 24px #ffe3a5, 0 0 54px rgba(176, 143, 247, 0.8);
+  animation: meteor-intro-impact-star 640ms 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.meteor-intro-particle {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  opacity: 0;
+  background: #ffe3a5;
+  box-shadow: 0 0 8px rgba(255, 227, 165, 0.8);
+  animation: meteor-intro-particle 620ms calc(1030ms + var(--meteor-particle-delay)) cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
+.meteor-intro-copy {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 2rem;
+  left: 1.5rem;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255, 238, 197, 0.72);
+  animation: meteor-intro-copy 600ms 1090ms ease-out both;
+}
+
+@keyframes meteor-intro-screen {
+  0%, 68% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@keyframes meteor-intro-stars-in {
+  from { opacity: 0; }
+  to { opacity: 0.6; }
+}
+
+@keyframes meteor-intro-ambient {
+  0% { opacity: 0; transform: scale(0.7); }
+  45% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+@keyframes meteor-intro-fall {
+  0% { opacity: 0; transform: translate3d(0, 0, 0) scale(0.55); }
+  7% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(-28vw, 66vh, 0) scale(1.08); }
+}
+
+@keyframes meteor-intro-flash {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.05); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes meteor-intro-ring {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.15); }
+  25% { opacity: 0.85; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(7); }
+}
+
+@keyframes meteor-intro-impact-star {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) scale(0.2); }
+  30% { opacity: 1; transform: translate(-50%, -50%) rotate(45deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(80deg) scale(0.35); }
+}
+
+@keyframes meteor-intro-particle {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--meteor-particle-x), var(--meteor-particle-y)) scale(0); }
+}
+
+@keyframes meteor-intro-copy {
+  0% { opacity: 0; transform: translateY(8px); }
+  35%, 72% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
 .landing-stars {
   contain: paint;
   background-image:
@@ -530,6 +749,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .meteor-intro {
+    display: none;
   }
 
   .loading-star-field,

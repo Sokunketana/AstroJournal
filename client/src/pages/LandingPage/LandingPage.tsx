@@ -215,10 +215,70 @@ const featureSegments: ConstellationSegment[] = emotionStars.slice(0, -1).map((s
   toColor: `${emotionStars[index + 1].color}99`,
 }));
 
+const METEOR_INTRO_KEY = 'astrojournal-meteor-intro-seen';
+const METEOR_INTRO_DURATION = 1850;
+
+const meteorParticles = [
+  { x: '-7.5rem', y: '-1.8rem', delay: '0ms' },
+  { x: '-5.2rem', y: '3.5rem', delay: '35ms' },
+  { x: '-2.2rem', y: '-5.8rem', delay: '70ms' },
+  { x: '1rem', y: '6rem', delay: '20ms' },
+  { x: '4.5rem', y: '-4.2rem', delay: '55ms' },
+  { x: '7.2rem', y: '1.3rem', delay: '90ms' },
+  { x: '3.4rem', y: '4.8rem', delay: '110ms' },
+  { x: '-4.4rem', y: '-4rem', delay: '125ms' },
+];
+
+const shouldPlayMeteorIntro = () => {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    return (
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      && window.sessionStorage.getItem(METEOR_INTRO_KEY) !== 'true'
+    );
+  } catch {
+    return true;
+  }
+};
+
+const MeteorIntro = () => (
+  <div className="meteor-intro" aria-hidden="true">
+    <div className="meteor-intro-stars" />
+    <div className="meteor-intro-ambient" />
+
+    <div className="meteor-intro-body">
+      <span className="meteor-intro-tail" />
+      <span className="meteor-intro-core" />
+    </div>
+
+    <div className="meteor-intro-impact">
+      <span className="meteor-intro-flash" />
+      <span className="meteor-intro-ring meteor-intro-ring-one" />
+      <span className="meteor-intro-ring meteor-intro-ring-two" />
+      <span className="meteor-intro-impact-star" />
+      {meteorParticles.map((particle, index) => (
+        <span
+          key={index}
+          className="meteor-intro-particle"
+          style={{
+            '--meteor-particle-x': particle.x,
+            '--meteor-particle-y': particle.y,
+            '--meteor-particle-delay': particle.delay,
+          } as CSSProperties}
+        />
+      ))}
+    </div>
+
+    <p className="meteor-intro-copy">A moment becomes a star</p>
+  </div>
+);
+
 const LandingPage = () => {
   const { isSignedIn } = useAuth();
   const navigate = useNavigate();
   const primaryTo = isSignedIn ? '/app' : '/sign-up';
+  const [showMeteorIntro, setShowMeteorIntro] = useState(shouldPlayMeteorIntro);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -226,12 +286,32 @@ const LandingPage = () => {
     }
   }, [isSignedIn, navigate]);
 
+  useEffect(() => {
+    if (!showMeteorIntro) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    try {
+      window.sessionStorage.setItem(METEOR_INTRO_KEY, 'true');
+    } catch {
+      // The intro still works when session storage is unavailable.
+    }
+
+    const timer = window.setTimeout(() => setShowMeteorIntro(false), METEOR_INTRO_DURATION);
+    return () => {
+      window.clearTimeout(timer);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showMeteorIntro]);
+
   if (isSignedIn) {
     return <LoadingScreen />;
   }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed]">
+      {showMeteorIntro && <MeteorIntro />}
       <section className="landing-hero relative isolate min-h-screen border-b border-white/[0.06]">
         <div className="landing-stars pointer-events-none absolute inset-0" aria-hidden="true" />
         <div className="landing-glow landing-glow-violet pointer-events-none absolute -left-28 top-12 h-[34rem] w-[34rem] rounded-full" aria-hidden="true" />
