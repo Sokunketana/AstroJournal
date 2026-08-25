@@ -236,8 +236,6 @@ body {
   position: absolute;
   inset: -3%;
   overflow: hidden;
-  animation: meteor-intro-shake 420ms 1100ms linear both;
-  will-change: transform;
 }
 
 .meteor-intro-space {
@@ -247,8 +245,10 @@ body {
   background:
     radial-gradient(circle at 50% 50%, rgba(62, 43, 103, 0.24), transparent 32%),
     #020308;
-  animation: meteor-intro-space-break 420ms 1370ms ease-in forwards;
-  will-change: opacity;
+  animation:
+    meteor-intro-shake 260ms 1110ms linear both,
+    meteor-intro-space-break 320ms 1540ms ease-in forwards;
+  will-change: transform, opacity;
 }
 
 .meteor-intro-stars {
@@ -276,7 +276,7 @@ body {
   height: 51%;
   opacity: 0;
   background: #020308;
-  animation: meteor-intro-shard 1300ms 1390ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: meteor-intro-shard 1100ms 1560ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity;
 }
 
@@ -284,18 +284,6 @@ body {
 .meteor-intro-shard-2 { top: 0; right: 0; --meteor-shard-x: 16vw; --meteor-shard-y: -18vh; --meteor-shard-rotate: 5deg; clip-path: polygon(0 0, 100% 0, 100% 100%, 24% 100%, 0 72%); }
 .meteor-intro-shard-3 { right: 0; bottom: 0; --meteor-shard-x: 16vw; --meteor-shard-y: 18vh; --meteor-shard-rotate: -5deg; clip-path: polygon(24% 0, 100% 0, 100% 100%, 0 100%, 0 28%); }
 .meteor-intro-shard-4 { bottom: 0; left: 0; --meteor-shard-x: -16vw; --meteor-shard-y: 18vh; --meteor-shard-rotate: 5deg; clip-path: polygon(0 0, 74% 0, 100% 28%, 100% 100%, 0 100%); }
-
-.meteor-intro-ambient {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  opacity: 0;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 246, 215, 0.28), transparent 9%),
-    radial-gradient(circle at 50% 50%, rgba(130, 99, 214, 0.2), transparent 34%);
-  animation: meteor-intro-ambient 850ms 1080ms ease-out both;
-  pointer-events: none;
-}
 
 .meteor-intro-body {
   position: absolute;
@@ -322,7 +310,6 @@ body {
   border-radius: 50%;
   background:
     linear-gradient(90deg, rgba(255, 243, 199, 0.92), rgba(238, 149, 65, 0.56) 18%, rgba(137, 91, 227, 0.2) 52%, transparent 78%);
-  box-shadow: 0 0 4rem rgba(235, 135, 60, 0.28);
   opacity: 0.92;
 }
 
@@ -334,9 +321,6 @@ body {
   background:
     radial-gradient(circle at 30% 28%, rgba(255, 249, 216, 0.95), transparent 25%),
     radial-gradient(circle, #f7b45e 0 46%, #d86b3d 62%, rgba(125, 76, 213, 0.38) 76%, transparent 78%);
-  box-shadow:
-    0 0 3rem rgba(255, 187, 92, 0.7),
-    0 0 8rem rgba(117, 75, 213, 0.42);
 }
 
 .meteor-intro-core {
@@ -381,7 +365,7 @@ body {
 .meteor-intro-cracks {
   z-index: 5;
   transform-origin: center;
-  animation: meteor-intro-cracks-sequence 1450ms 1180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: meteor-intro-cracks-sequence 1050ms 1250ms cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
@@ -396,14 +380,13 @@ body {
 }
 
 .meteor-intro-flash {
-  width: min(76rem, 140vw);
-  aspect-ratio: 1;
-  border-radius: 50%;
+  width: 70vmax;
+  height: 70vmax;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.03);
-  background: radial-gradient(circle, white 0%, rgba(255, 238, 190, 0.88) 7%, rgba(199, 133, 76, 0.32) 19%, rgba(115, 78, 203, 0.16) 38%, transparent 64%);
-  animation: meteor-intro-flash 740ms 1120ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.98) 0%, rgba(255, 238, 190, 0.76) 7%, rgba(199, 133, 76, 0.24) 20%, rgba(115, 78, 203, 0.1) 38%, transparent 62%);
+  animation: meteor-intro-flash 430ms 1120ms ease-out both;
+  will-change: opacity;
 }
 
 .meteor-intro-ring {
@@ -413,13 +396,8 @@ body {
   border-radius: 50%;
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.1);
-  animation: meteor-intro-ring 760ms 1160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: meteor-intro-ring 620ms 1180ms cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
-}
-
-.meteor-intro-ring-two {
-  border-color: rgba(177, 151, 247, 0.65);
-  animation-delay: 1240ms;
 }
 
 .meteor-intro-impact-star {
@@ -428,8 +406,7 @@ body {
   opacity: 0;
   transform: translate(-50%, -50%) rotate(45deg) scale(0.2);
   background: #fff7dc;
-  box-shadow: 0 0 3rem #ffe3a5, 0 0 8rem rgba(176, 143, 247, 0.9);
-  animation: meteor-intro-impact-star 680ms 1110ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: meteor-intro-impact-star 520ms 1120ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .meteor-intro-particle {
@@ -438,8 +415,7 @@ body {
   border-radius: 50%;
   opacity: 0;
   background: #ffe3a5;
-  box-shadow: 0 0 12px rgba(255, 227, 165, 0.9);
-  animation: meteor-intro-particle 720ms calc(1170ms + var(--meteor-particle-delay)) cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: meteor-intro-particle 620ms calc(1200ms + var(--meteor-particle-delay)) cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
@@ -489,7 +465,7 @@ body {
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgba(255, 238, 197, 0.76);
-  animation: meteor-intro-copy 820ms 1510ms ease-out both;
+  animation: meteor-intro-copy 700ms 1570ms ease-out both;
 }
 
 @keyframes meteor-intro-space-break {
@@ -503,12 +479,6 @@ body {
   100% { opacity: 0; transform: translate3d(var(--meteor-shard-x), var(--meteor-shard-y), 0) rotate(var(--meteor-shard-rotate)) scale(1.08); }
 }
 
-@keyframes meteor-intro-ambient {
-  0% { opacity: 0; transform: scale(0.55); }
-  30% { opacity: 1; }
-  100% { opacity: 0; transform: scale(1.35); }
-}
-
 @keyframes meteor-intro-approach {
   0% { opacity: 0; transform: translate(-50%, -50%) translate3d(58vw, -66vh, 0) scale(0.13); }
   7% { opacity: 1; }
@@ -518,18 +488,16 @@ body {
 
 @keyframes meteor-intro-shake {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(0); }
-  12% { transform: translate3d(-11px, 7px, 0) rotate(-0.2deg); }
-  27% { transform: translate3d(12px, -8px, 0) rotate(0.22deg); }
-  43% { transform: translate3d(-9px, -5px, 0) rotate(-0.15deg); }
-  59% { transform: translate3d(8px, 7px, 0) rotate(0.13deg); }
-  75% { transform: translate3d(-5px, 3px, 0) rotate(-0.08deg); }
-  89% { transform: translate3d(4px, -3px, 0) rotate(0.06deg); }
+  18% { transform: translate3d(-9px, 6px, 0) rotate(-0.16deg); }
+  38% { transform: translate3d(10px, -7px, 0) rotate(0.18deg); }
+  58% { transform: translate3d(-7px, -4px, 0) rotate(-0.12deg); }
+  78% { transform: translate3d(6px, 5px, 0) rotate(0.1deg); }
 }
 
 @keyframes meteor-intro-flash {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.03); }
-  18% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+  0% { opacity: 0; }
+  16% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes meteor-intro-ring {

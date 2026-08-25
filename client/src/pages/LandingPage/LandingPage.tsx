@@ -216,7 +216,7 @@ const featureSegments: ConstellationSegment[] = emotionStars.slice(0, -1).map((s
 }));
 
 const METEOR_INTRO_KEY = 'astrojournal-meteor-intro-seen';
-const METEOR_INTRO_DURATION = 2900;
+const METEOR_INTRO_DURATION = 2750;
 
 const meteorParticles = [
   { x: '-13rem', y: '-3rem', delay: '0ms' },
@@ -224,9 +224,6 @@ const meteorParticles = [
   { x: '-4rem', y: '-11rem', delay: '70ms' },
   { x: '1rem', y: '12rem', delay: '20ms' },
   { x: '9rem', y: '-8rem', delay: '55ms' },
-  { x: '14rem', y: '2rem', delay: '90ms' },
-  { x: '7rem', y: '10rem', delay: '110ms' },
-  { x: '-8rem', y: '-8rem', delay: '125ms' },
 ];
 
 const meteorCracks = [
@@ -266,8 +263,6 @@ const MeteorIntro = () => (
         ))}
       </div>
 
-      <div className="meteor-intro-ambient" />
-
       <div className="meteor-intro-body">
         <span className="meteor-intro-tail" />
         <span className="meteor-intro-fire" />
@@ -281,7 +276,6 @@ const MeteorIntro = () => (
       <div className="meteor-intro-impact">
         <span className="meteor-intro-flash" />
         <span className="meteor-intro-ring meteor-intro-ring-one" />
-        <span className="meteor-intro-ring meteor-intro-ring-two" />
         <span className="meteor-intro-impact-star" />
         {meteorParticles.map((particle, index) => (
           <span
