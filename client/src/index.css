@@ -265,8 +265,18 @@ body {
 }
 
 .landing-live-dot {
-  box-shadow: 0 0 0 0 rgba(242, 209, 139, 0.45);
+  position: relative;
+  box-shadow: 0 0 7px rgba(242, 209, 139, 0.55);
+}
+
+.landing-live-dot::after {
+  position: absolute;
+  inset: -4px;
+  border: 1px solid rgba(242, 209, 139, 0.5);
+  border-radius: inherit;
+  content: '';
   animation: landing-live-pulse 2.4s ease-out infinite;
+  will-change: transform, opacity;
 }
 
 .landing-shooting-star {
@@ -277,8 +287,9 @@ body {
   opacity: 0;
   transform: rotate(-34deg);
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8));
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+  box-shadow: 2px 0 5px rgba(255, 255, 255, 0.4);
   animation: landing-shoot 8s ease-in-out infinite;
+  will-change: transform, opacity;
   pointer-events: none;
 }
 
@@ -351,10 +362,30 @@ body {
 
 .landing-float-chip {
   animation: landing-float-chip 5s ease-in-out infinite;
+  will-change: transform;
 }
 
 .landing-float-chip:nth-of-type(2) {
   animation-delay: -2.4s;
+}
+
+.landing-preview-star,
+.landing-feature-star,
+.landing-rocket-idle,
+.landing-cta-star {
+  will-change: transform, opacity;
+}
+
+.landing-deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+.landing-reveal:not([data-visible='true']) .landing-twinkle,
+.landing-reveal:not([data-visible='true']) .landing-line-draw,
+.landing-reveal:not([data-visible='true']) .landing-cta-star,
+.landing-reveal:not([data-visible='true']) .landing-primary-cta::after {
+  animation-play-state: paused;
 }
 
 .landing-preview-grid {
@@ -468,8 +499,8 @@ body {
 }
 
 @keyframes landing-live-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(242, 209, 139, 0.45); }
-  70%, 100% { box-shadow: 0 0 0 8px rgba(242, 209, 139, 0); }
+  0% { opacity: 0.8; transform: scale(0.55); }
+  70%, 100% { opacity: 0; transform: scale(1.65); }
 }
 
 @keyframes landing-shoot {
@@ -481,6 +512,19 @@ body {
 @keyframes landing-float-chip {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-7px); }
+}
+
+@media (max-width: 767px) {
+  .landing-shooting-star,
+  .landing-preview-star,
+  .landing-float-chip,
+  .landing-rocket-idle {
+    animation: none !important;
+  }
+
+  .landing-enter-product {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -503,7 +547,7 @@ body {
   .landing-twinkle,
   .landing-rocket-idle,
   .landing-cta-star,
-  .landing-live-dot,
+  .landing-live-dot::after,
   .landing-shooting-star,
   .landing-float-chip,
   .landing-memory-word::after,

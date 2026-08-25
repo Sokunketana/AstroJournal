@@ -305,7 +305,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          <div className="landing-enter landing-enter-delay-3 relative mx-auto w-full max-w-[46rem] lg:mx-0">
+          <div className="landing-enter landing-enter-product landing-enter-delay-3 relative mx-auto w-full max-w-[46rem] lg:mx-0">
             <div className="landing-glow landing-glow-violet-soft absolute -inset-14 rounded-full" aria-hidden="true" />
             <div className="landing-sky-window relative rotate-[1.25deg] overflow-hidden rounded-[2.2rem] border border-white/[0.12] bg-[#070912]/95 p-3 shadow-[0_42px_120px_rgba(0,0,0,0.64)] transition duration-700 hover:rotate-0 sm:p-4">
               <div className="flex items-center justify-between px-3 pb-3 pt-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/35 sm:text-[10px]">
@@ -326,7 +326,7 @@ const LandingPage = () => {
                 {previewStars.map((star, index) => (
                   <span
                     key={index}
-                    className="landing-twinkle absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    className="landing-preview-star landing-twinkle absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
                     style={{
                       left: star.left,
                       top: star.top,
@@ -339,11 +339,11 @@ const LandingPage = () => {
                     }}
                   />
                 ))}
-                <div className="landing-memory-card absolute left-[8%] top-[12%] max-w-[11rem] rounded-2xl border border-white/10 bg-[#0b0d18]/90 px-3.5 py-3 text-left shadow-2xl backdrop-blur-md sm:max-w-[14rem] sm:px-4">
+                <div className="landing-memory-card absolute left-[8%] top-[12%] max-w-[11rem] rounded-2xl border border-white/10 bg-[#0b0d18]/95 px-3.5 py-3 text-left shadow-2xl sm:max-w-[14rem] sm:px-4">
                   <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a89cf6]">May 06 · hope</p>
                   <p className="mt-1.5 text-[11px] leading-5 text-white/70 sm:text-xs">“I said yes before I could talk myself out of it.”</p>
                 </div>
-                <div className="landing-memory-card absolute right-[5%] top-[46%] max-w-[11.5rem] rounded-2xl border border-[#f2d18b]/15 bg-[#0b0d18]/90 px-3.5 py-3 text-left shadow-2xl backdrop-blur-md sm:max-w-[15rem] sm:px-4">
+                <div className="landing-memory-card absolute right-[5%] top-[46%] max-w-[11.5rem] rounded-2xl border border-[#f2d18b]/15 bg-[#0b0d18]/95 px-3.5 py-3 text-left shadow-2xl sm:max-w-[15rem] sm:px-4">
                   <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#f2d18b]">Tonight · calm</p>
                   <p className="mt-1.5 text-[11px] leading-5 text-white/75 sm:text-xs">“The quiet walk home was the best part of my day.”</p>
                 </div>
@@ -367,7 +367,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="why" className="relative border-b border-white/[0.06] px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
+      <section id="why" className="landing-deferred-section relative border-b border-white/[0.06] px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
         <div className="landing-stars pointer-events-none absolute inset-0 opacity-20" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl">
           <Reveal className="grid items-end gap-8 lg:grid-cols-[1.35fr_0.65fr] lg:gap-20">
@@ -403,7 +403,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="how-it-works" className="relative border-b border-white/[0.06] px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
+      <section id="how-it-works" className="landing-deferred-section relative border-b border-white/[0.06] px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
         <div className="landing-glow landing-glow-violet-soft pointer-events-none absolute left-1/2 top-1/3 h-80 w-[60%] -translate-x-1/2 rounded-full" aria-hidden="true" />
         <div className="relative mx-auto max-w-7xl">
           <Reveal className="mx-auto max-w-2xl text-center">
@@ -434,7 +434,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="features" className="relative px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
+      <section id="features" className="landing-deferred-section relative px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
         <div className="mx-auto max-w-7xl">
           <div className="grid items-center gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-24">
             <Reveal>
@@ -468,7 +468,7 @@ const LandingPage = () => {
                 {emotionStars.map((star, index) => (
                   <div key={star.label} className="absolute" style={{ left: star.left, top: star.top }}>
                     <span
-                      className={`landing-twinkle absolute left-0 top-0 block -translate-x-1/2 -translate-y-1/2 rounded-full ${index === 2 ? 'h-3 w-3' : 'h-2 w-2'}`}
+                      className={`landing-feature-star landing-twinkle absolute left-0 top-0 block -translate-x-1/2 -translate-y-1/2 rounded-full ${index === 2 ? 'h-3 w-3' : 'h-2 w-2'}`}
                       style={{
                         backgroundColor: star.color,
                         boxShadow: `0 0 20px ${star.color}`,
@@ -514,7 +514,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section id="privacy" className="px-5 py-12 sm:px-8 lg:px-10">
+      <section id="privacy" className="landing-deferred-section px-5 py-12 sm:px-8 lg:px-10">
         <Reveal className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-emerald-200/10 bg-[linear-gradient(120deg,rgba(10,22,24,0.95),rgba(10,12,22,0.95))] px-7 py-12 sm:px-12 lg:flex lg:items-center lg:justify-between lg:gap-16 lg:px-16 lg:py-14">
           <div className="landing-glow landing-glow-emerald absolute -left-20 top-0 h-52 w-52 rounded-full" aria-hidden="true" />
           <div className="relative max-w-2xl">
@@ -534,7 +534,7 @@ const LandingPage = () => {
         </Reveal>
       </section>
 
-      <section className="relative px-5 py-28 text-center sm:px-8 sm:py-36 lg:px-10">
+      <section className="landing-deferred-section relative px-5 py-28 text-center sm:px-8 sm:py-36 lg:px-10">
         <div className="landing-stars pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
         <div className="landing-glow landing-glow-violet pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full" aria-hidden="true" />
         <Reveal className="relative mx-auto max-w-3xl">
