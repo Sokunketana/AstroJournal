@@ -1,4 +1,4 @@
-import { Orbit, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import Logo from '../Logo';
 
 const LoadingScreen = () => (
@@ -13,10 +13,7 @@ const LoadingScreen = () => (
     <div className="loading-star-field absolute inset-0" aria-hidden="true" />
 
     <div className="relative z-10 flex min-h-screen w-full flex-col px-6 py-7 sm:px-10 sm:py-9">
-      <div className="loading-brand flex items-center gap-3 self-start">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[#efd392] shadow-[0_0_24px_rgba(239,211,146,0.12)] backdrop-blur-sm">
-          <Orbit size={17} strokeWidth={1.7} aria-hidden="true" />
-        </span>
+      <div className="loading-brand flex items-center self-start">
         <Logo className="text-sm tracking-[0.16em] sm:text-base" />
       </div>
 
