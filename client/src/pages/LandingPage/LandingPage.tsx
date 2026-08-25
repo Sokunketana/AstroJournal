@@ -251,20 +251,8 @@ const MeteorIntro = () => (
         <div className="meteor-intro-stars" />
       </div>
 
-      <div className="meteor-intro-shards">
-        {Array.from({ length: 4 }, (_, index) => (
-          <span key={index} className={`meteor-intro-shard meteor-intro-shard-${index + 1}`} />
-        ))}
-      </div>
-
       <div className="meteor-intro-body">
         <span className="meteor-intro-tail" />
-        <span className="meteor-intro-fire" />
-        <span className="meteor-intro-core">
-          <span className="meteor-intro-crater meteor-intro-crater-one" />
-          <span className="meteor-intro-crater meteor-intro-crater-two" />
-          <span className="meteor-intro-crater meteor-intro-crater-three" />
-        </span>
       </div>
 
       <div className="meteor-intro-impact">
