@@ -232,20 +232,22 @@ const LandingPage = () => {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#03040a] text-[#f8f5ed]">
-      <section className="relative isolate min-h-screen border-b border-white/[0.06]">
+      <section className="landing-hero relative isolate min-h-screen border-b border-white/[0.06]">
         <div className="landing-stars pointer-events-none absolute inset-0" aria-hidden="true" />
-        <div className="landing-glow landing-glow-violet pointer-events-none absolute left-[10%] top-24 h-72 w-72 rounded-full" aria-hidden="true" />
-        <div className="landing-glow landing-glow-amber pointer-events-none absolute right-[4%] top-[28%] h-96 w-96 rounded-full" aria-hidden="true" />
+        <div className="landing-glow landing-glow-violet pointer-events-none absolute -left-28 top-12 h-[34rem] w-[34rem] rounded-full" aria-hidden="true" />
+        <div className="landing-glow landing-glow-amber pointer-events-none absolute -right-32 top-[16%] h-[40rem] w-[40rem] rounded-full" aria-hidden="true" />
+        <div className="landing-shooting-star landing-shooting-star-one" aria-hidden="true" />
+        <div className="landing-shooting-star landing-shooting-star-two" aria-hidden="true" />
 
-        <nav className="landing-enter relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-5 py-6 sm:px-8 lg:px-10">
+        <nav className="landing-enter relative z-30 mx-auto flex w-full max-w-[90rem] items-center justify-between gap-3 px-5 py-6 sm:px-8 lg:px-12">
           <Link to="/" aria-label="AstroJournal home">
             <Logo className="text-base min-[380px]:text-lg sm:text-2xl" />
           </Link>
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
             <div className="mr-3 hidden items-center gap-7 text-sm text-white/50 lg:flex">
+              <a href="#why" className="transition hover:text-white">Why AstroJournal</a>
               <a href="#how-it-works" className="transition hover:text-white">How it works</a>
-              <a href="#features" className="transition hover:text-white">Features</a>
-              <a href="#privacy" className="transition hover:text-white">Privacy</a>
+              <a href="#features" className="transition hover:text-white">Inside your sky</a>
             </div>
             {!isSignedIn && (
               <Link
@@ -257,7 +259,7 @@ const LandingPage = () => {
             )}
             <Link
               to={primaryTo}
-              className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-white/15 bg-white px-3 py-2 text-xs font-bold text-[#06070d] transition hover:bg-[#f1dfb8] sm:gap-2 sm:px-5 sm:text-sm"
+              className="group inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-[#f6d487]/30 bg-[#f4d18a] px-3 py-2 text-xs font-black text-[#09080d] shadow-[0_0_24px_rgba(244,209,138,0.14)] transition hover:bg-[#ffe5a9] sm:gap-2 sm:px-5 sm:text-sm"
             >
               <span className="sm:hidden">{isSignedIn ? 'Open' : 'Start'}</span>
               <span className="hidden sm:inline">{isSignedIn ? 'Open your sky' : 'Start journaling'}</span>
@@ -266,55 +268,60 @@ const LandingPage = () => {
           </div>
         </nav>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100vh-92px)] w-full max-w-7xl items-center gap-14 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:px-10 lg:pb-24 lg:pt-8">
-          <div className="min-w-0 max-w-2xl">
-            <div className="landing-enter landing-enter-delay-1 mb-7 inline-flex items-center gap-2 rounded-full border border-amber-200/15 bg-amber-100/[0.05] px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#e6c98e]">
-              <Sparkles size={14} />
-              A journal written in the stars
+        <div className="relative z-10 mx-auto grid min-h-[calc(100vh-88px)] w-full max-w-[90rem] items-center gap-16 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:px-12 lg:pb-20 lg:pt-4 xl:gap-24">
+          <div className="min-w-0 max-w-[44rem]">
+            <div className="landing-enter landing-enter-delay-1 mb-7 inline-flex items-center gap-2 rounded-full border border-[#f2d18b]/20 bg-[#f2d18b]/[0.06] px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#f2d18b] sm:text-[11px]">
+              <span className="landing-live-dot h-1.5 w-1.5 rounded-full bg-[#f2d18b]" />
+              Your life is already a story
             </div>
-            <h1 className="landing-enter landing-enter-delay-2 text-balance text-5xl font-black leading-[0.95] tracking-[-0.055em] sm:text-6xl lg:text-[5.3rem]">
-              Write your day.
-              <span className="mt-2 block bg-gradient-to-r from-[#f4dfb7] via-white to-[#a89cf6] bg-clip-text text-transparent">
-                Build your universe.
+            <h1 className="landing-enter landing-enter-delay-2 text-balance text-[3.45rem] font-black leading-[0.88] tracking-[-0.07em] sm:text-[5rem] lg:text-[5.65rem] xl:text-[6.5rem]">
+              Don’t let today
+              <span className="landing-memory-word relative mt-2 block w-fit text-[#f5d99e]">
+                disappear.
               </span>
             </h1>
-            <p className="landing-enter landing-enter-delay-3 mt-7 max-w-xl text-pretty text-base leading-7 text-[#9ca1b3] sm:text-lg sm:leading-8">
-              Turn honest reflections into a living night sky. Every entry becomes a star, every streak builds momentum, and every constellation preserves a chapter of your life.
+            <p className="landing-enter landing-enter-delay-3 mt-8 max-w-[38rem] text-pretty text-base leading-7 text-[#a5a9b8] sm:text-lg sm:leading-8">
+              AstroJournal turns the moments you write down into a living night sky — one entry, one star, one unforgettable chapter at a time.
             </p>
             <div className="landing-enter landing-enter-delay-4 mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 to={primaryTo}
-                className="landing-primary-cta group inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#f8f5ed] px-6 py-3.5 text-sm font-black text-[#080910] shadow-[0_0_45px_rgba(248,245,237,0.12)] transition hover:bg-[#f1dfb8]"
+                className="landing-primary-cta group inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#f5d99e] px-7 py-4 text-sm font-black text-[#09080d] shadow-[0_0_48px_rgba(245,217,158,0.16)] transition hover:-translate-y-0.5 hover:bg-[#ffe7b3]"
               >
-                {isSignedIn ? 'Return to your universe' : 'Create your first star'}
+                {isSignedIn ? 'Return to your universe' : 'Remember tonight'}
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <a
-                href="#how-it-works"
-                className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white/65 transition hover:text-white"
+                href="#why"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.025] px-5 py-4 text-sm font-bold text-white/65 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
               >
-                See how it works
-                <span aria-hidden="true">↓</span>
+                Discover the idea
+                <span className="transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span>
               </a>
             </div>
-            <div className="landing-enter landing-enter-delay-5 mt-10 flex flex-wrap gap-x-6 gap-y-3 text-xs text-white/45">
-              <span className="inline-flex items-center gap-2"><Star size={14} className="text-[#e8c87c]" /> Every meaningful entry becomes a star</span>
-              <span className="inline-flex items-center gap-2"><Flame size={14} className="text-[#f08d5d]" /> Gentle streaks, no noisy feeds</span>
+            <div className="landing-enter landing-enter-delay-5 mt-9 flex flex-wrap gap-x-6 gap-y-3 text-[11px] font-semibold text-white/40 sm:text-xs">
+              <span className="inline-flex items-center gap-2"><LockKeyhole size={13} className="text-emerald-200/60" /> Private by design</span>
+              <span className="inline-flex items-center gap-2"><BookOpenText size={13} className="text-[#e8c87c]" /> One honest sentence is enough</span>
             </div>
           </div>
 
-          <div className="landing-enter landing-enter-delay-3 relative mx-auto min-w-0 w-full max-w-[650px] lg:mx-0">
-            <div className="landing-glow landing-glow-violet-soft absolute -inset-10 rounded-full" aria-hidden="true" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#070912]/95 p-3 shadow-[0_32px_100px_rgba(0,0,0,0.55)] sm:p-4">
-              <div className="flex items-center justify-between px-3 pb-3 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
-                <span>Your night sky</span>
+          <div className="landing-enter landing-enter-delay-3 relative mx-auto w-full max-w-[46rem] lg:mx-0">
+            <div className="landing-glow landing-glow-violet-soft absolute -inset-14 rounded-full" aria-hidden="true" />
+            <div className="landing-sky-window relative rotate-[1.25deg] overflow-hidden rounded-[2.2rem] border border-white/[0.12] bg-[#070912]/95 p-3 shadow-[0_42px_120px_rgba(0,0,0,0.64)] transition duration-700 hover:rotate-0 sm:p-4">
+              <div className="flex items-center justify-between px-3 pb-3 pt-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/35 sm:text-[10px]">
+                <div className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_rgba(110,231,183,0.75)]" />
+                  Your sky · live
+                </div>
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex items-center gap-1 text-orange-300/70"><Flame size={12} /> 12</span>
-                  <span className="inline-flex items-center gap-1 text-amber-200/70"><Star size={12} /> 48</span>
+                  <span className="inline-flex items-center gap-1 text-orange-300/70"><Flame size={12} /> 12 day streak</span>
+                  <span className="hidden items-center gap-1 text-amber-200/70 sm:inline-flex"><Star size={12} /> 48 memories</span>
                 </div>
               </div>
-              <div className="relative aspect-[1.12/0.78] min-h-[280px] overflow-hidden rounded-[1.45rem] border border-white/[0.07] bg-[radial-gradient(circle_at_50%_120%,#251b46_0%,#0b0d1b_38%,#03040a_76%)] sm:min-h-[360px]">
-                <div className="landing-preview-grid absolute inset-0 opacity-35" aria-hidden="true" />
+              <div className="relative aspect-[1.22/0.86] min-h-[330px] overflow-hidden rounded-[1.55rem] border border-white/[0.07] bg-[radial-gradient(circle_at_52%_118%,#392458_0%,#101225_35%,#04050b_75%)] sm:min-h-[440px]">
+                <div className="landing-preview-grid absolute inset-0 opacity-25" aria-hidden="true" />
+                <div className="landing-orbit-ring landing-orbit-ring-one" aria-hidden="true" />
+                <div className="landing-orbit-ring landing-orbit-ring-two" aria-hidden="true" />
                 <ConstellationConnections segments={previewSegments} />
                 {previewStars.map((star, index) => (
                   <span
@@ -332,22 +339,66 @@ const LandingPage = () => {
                     }}
                   />
                 ))}
-                <div className="absolute left-[55%] top-[46%] -translate-x-1/2 translate-y-5 rounded-xl border border-white/10 bg-[#05060c]/90 px-3 py-2 text-center">
-                  <p className="text-[9px] font-bold uppercase tracking-widest text-amber-200/70">Tonight</p>
-                  <p className="mt-0.5 text-xs text-white/80">I finally made time to breathe.</p>
+                <div className="landing-memory-card absolute left-[8%] top-[12%] max-w-[11rem] rounded-2xl border border-white/10 bg-[#0b0d18]/90 px-3.5 py-3 text-left shadow-2xl backdrop-blur-md sm:max-w-[14rem] sm:px-4">
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#a89cf6]">May 06 · hope</p>
+                  <p className="mt-1.5 text-[11px] leading-5 text-white/70 sm:text-xs">“I said yes before I could talk myself out of it.”</p>
                 </div>
-                <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#171923]/95 p-2 pl-4 sm:inset-x-6 sm:bottom-6">
-                  <span className="flex-1 text-xs text-white/40 sm:text-sm">Reflect on your day across the universe…</span>
-                  <span className="landing-rocket-idle flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                <div className="landing-memory-card absolute right-[5%] top-[46%] max-w-[11.5rem] rounded-2xl border border-[#f2d18b]/15 bg-[#0b0d18]/90 px-3.5 py-3 text-left shadow-2xl backdrop-blur-md sm:max-w-[15rem] sm:px-4">
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#f2d18b]">Tonight · calm</p>
+                  <p className="mt-1.5 text-[11px] leading-5 text-white/75 sm:text-xs">“The quiet walk home was the best part of my day.”</p>
+                </div>
+                <div className="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#171923]/95 p-2 pl-4 shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:inset-x-6 sm:bottom-6 sm:p-2.5 sm:pl-5">
+                  <span className="flex-1 text-xs text-white/40 sm:text-sm">What felt worth remembering today?</span>
+                  <span className="landing-rocket-idle flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f5d99e] text-black shadow-[0_0_24px_rgba(245,217,158,0.25)]">
                     <Rocket size={17} className="-rotate-45" />
                   </span>
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-5 -left-4 rounded-2xl border border-white/10 bg-[#0c0e17]/95 px-4 py-3 shadow-2xl sm:-left-8">
-              <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-white/35">Current chapter</p>
-              <p className="mt-1 text-sm font-semibold text-[#e7ddff]">Finding my orbit · 7 stars</p>
+            <div className="landing-float-chip absolute -bottom-5 -left-1 rounded-2xl border border-white/10 bg-[#0c0e17]/95 px-4 py-3 shadow-2xl sm:-left-8">
+              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30">A chapter taking shape</p>
+              <p className="mt-1 text-xs font-bold text-[#e7ddff] sm:text-sm">Finding my orbit · 7 stars</p>
             </div>
+            <div className="landing-float-chip absolute -right-2 top-20 hidden rounded-2xl border border-white/10 bg-[#0c0e17]/95 px-4 py-3 shadow-2xl sm:block lg:-right-6">
+              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30">This month</p>
+              <p className="mt-1 inline-flex items-center gap-2 text-sm font-bold text-[#f5d99e]"><Sparkles size={13} /> 14 moments kept</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="why" className="relative border-b border-white/[0.06] px-5 py-24 sm:px-8 sm:py-32 lg:px-10">
+        <div className="landing-stars pointer-events-none absolute inset-0 opacity-20" aria-hidden="true" />
+        <div className="relative mx-auto max-w-7xl">
+          <Reveal className="grid items-end gap-8 lg:grid-cols-[1.35fr_0.65fr] lg:gap-20">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.24em] text-[#a89cf6]">Why AstroJournal exists</p>
+              <h2 className="mt-6 text-balance text-4xl font-black leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
+                Most days blur.<br />The ones you write down become <span className="text-[#f2d18b]">coordinates.</span>
+              </h2>
+            </div>
+            <p className="max-w-xl text-base leading-8 text-[#999eae] lg:pb-2">
+              This isn’t another blank page asking for a perfect essay. AstroJournal gives every small reflection a place in the bigger picture, so your memories feel connected instead of buried.
+            </p>
+          </Reveal>
+
+          <div className="mt-16 grid overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.025] md:grid-cols-3">
+            {[
+              ['01', 'Notice', 'Pause long enough to name one thing that mattered.'],
+              ['02', 'Remember', 'Watch that moment become a star you can return to.'],
+              ['03', 'Understand', 'Connect the stars and see the story you are living.'],
+            ].map(([number, title, copy], index) => (
+              <Reveal key={number} delay={index * 100} className="h-full">
+                <article className="group relative h-full border-b border-white/[0.07] p-7 transition duration-500 hover:bg-white/[0.035] last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 sm:p-9">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black tracking-[0.25em] text-white/25">{number}</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#f2d18b] opacity-40 shadow-[0_0_12px_#f2d18b] transition group-hover:opacity-100" />
+                  </div>
+                  <h3 className="mt-12 text-2xl font-black tracking-tight">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#858b9d]">{copy}</p>
+                </article>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
