@@ -218,22 +218,16 @@ const featureSegments: ConstellationSegment[] = emotionStars.slice(0, -1).map((s
 const METEOR_INTRO_KEY = 'astrojournal-meteor-intro-seen';
 const METEOR_INTRO_DURATION = 2750;
 
-const meteorParticles = [
-  { x: '-13rem', y: '-3rem', delay: '0ms' },
-  { x: '-10rem', y: '7rem', delay: '35ms' },
-  { x: '-4rem', y: '-11rem', delay: '70ms' },
-  { x: '1rem', y: '12rem', delay: '20ms' },
-  { x: '9rem', y: '-8rem', delay: '55ms' },
-];
-
 const meteorCracks = [
-  { angle: '-168deg', length: '31vmin', branch: '-32deg' },
-  { angle: '-132deg', length: '38vmin', branch: '38deg' },
-  { angle: '-94deg', length: '28vmin', branch: '-42deg' },
-  { angle: '-48deg', length: '39vmin', branch: '31deg' },
-  { angle: '-12deg', length: '34vmin', branch: '-36deg' },
-  { angle: '32deg', length: '35vmin', branch: '40deg' },
-  { angle: '73deg', length: '29vmin', branch: '-34deg' },
+  { angle: '-174deg', length: '55vmax', branch: '-32deg' },
+  { angle: '-138deg', length: '62vmax', branch: '38deg' },
+  { angle: '-96deg', length: '54vmax', branch: '-42deg' },
+  { angle: '-52deg', length: '64vmax', branch: '31deg' },
+  { angle: '-10deg', length: '58vmax', branch: '-36deg' },
+  { angle: '34deg', length: '60vmax', branch: '40deg' },
+  { angle: '78deg', length: '56vmax', branch: '-34deg' },
+  { angle: '124deg', length: '62vmax', branch: '36deg' },
+  { angle: '158deg', length: '56vmax', branch: '-39deg' },
 ];
 
 const shouldPlayMeteorIntro = () => {
@@ -275,19 +269,6 @@ const MeteorIntro = () => (
 
       <div className="meteor-intro-impact">
         <span className="meteor-intro-flash" />
-        <span className="meteor-intro-ring meteor-intro-ring-one" />
-        <span className="meteor-intro-impact-star" />
-        {meteorParticles.map((particle, index) => (
-          <span
-            key={index}
-            className="meteor-intro-particle"
-            style={{
-              '--meteor-particle-x': particle.x,
-              '--meteor-particle-y': particle.y,
-              '--meteor-particle-delay': particle.delay,
-            } as CSSProperties}
-          />
-        ))}
       </div>
 
       <div className="meteor-intro-cracks">
@@ -307,7 +288,6 @@ const MeteorIntro = () => (
       </div>
     </div>
 
-    <p className="meteor-intro-copy">Impact becomes memory</p>
   </div>
 );
 
