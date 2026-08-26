@@ -39,7 +39,7 @@ const Modal: React.FC<ModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-100 flex items-center justify-center p-6 bg-black/80"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-3 sm:p-6"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}
@@ -49,7 +49,7 @@ const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className={`bg-[#111] border border-white/10 p-8 rounded-3xl w-full relative shadow-2xl overflow-hidden flex flex-col ${maxWidthClass} ${className}`}
+            className={`relative flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#111] p-5 shadow-2xl sm:max-h-[calc(100dvh-3rem)] sm:p-8 ${maxWidthClass} ${className}`}
           >
             {/* Close button */}
             <button

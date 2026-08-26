@@ -101,7 +101,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-64">
+          <div className="flex w-full min-w-0 items-center gap-2 sm:flex-1 sm:min-w-64">
             <input
               type="date"
               value={dateFrom}
@@ -201,7 +201,7 @@ const ArchiveModal: React.FC<ArchiveModalProps> = ({
             <button
               type="button"
               onClick={() => onLocate(journal)}
-              className="mr-3 flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-sky-300/25 bg-sky-300/10 px-3 py-2 text-xs font-bold uppercase tracking-wider text-sky-200 transition hover:border-sky-200/60 hover:bg-sky-200/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-200/50"
+              className="mr-2 flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-sky-300/25 bg-sky-300/10 px-2.5 py-2 text-xs font-bold uppercase tracking-wider text-sky-200 transition hover:border-sky-200/60 hover:bg-sky-200/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-sky-200/50 sm:mr-3 sm:px-3"
               aria-label={`Locate star from ${formatShortDate(journal.createdAt)} in the sky`}
               title="Go directly to this star"
             >
