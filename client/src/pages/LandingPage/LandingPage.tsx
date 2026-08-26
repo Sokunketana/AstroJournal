@@ -268,7 +268,7 @@ const LandingPage = () => {
           </div>
         </nav>
 
-        <div className="relative z-10 mx-auto grid min-h-[calc(100vh-88px)] w-full max-w-[90rem] items-center gap-16 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:px-12 lg:pb-20 lg:pt-4 xl:gap-24">
+        <div className="relative z-10 mx-auto grid min-h-[calc(100vh-88px)] w-full max-w-[90rem] grid-cols-[minmax(0,1fr)] items-center gap-14 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-16 lg:px-12 lg:pb-20 lg:pt-4 xl:gap-24">
           <div className="min-w-0 max-w-[44rem]">
             <div className="landing-enter landing-enter-delay-1 mb-7 inline-flex items-center gap-2 rounded-full border border-[#f2d18b]/20 bg-[#f2d18b]/[0.06] px-3.5 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#f2d18b] sm:text-[11px]">
               <span className="landing-live-dot h-1.5 w-1.5 rounded-full bg-[#f2d18b]" />
@@ -288,14 +288,14 @@ const LandingPage = () => {
                 to={primaryTo}
                 className="landing-primary-cta group inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-[#f5d99e] px-7 py-4 text-sm font-black text-[#09080d] shadow-[0_0_48px_rgba(245,217,158,0.16)] transition hover:-translate-y-0.5 hover:bg-[#ffe7b3]"
               >
-                {isSignedIn ? 'Return to your universe' : 'Remember tonight'}
+                {isSignedIn ? 'Return to your universe' : 'Start your journal'}
                 <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
               </Link>
               <a
                 href="#why"
                 className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.025] px-5 py-4 text-sm font-bold text-white/65 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
               >
-                Discover the idea
+                See how it works
                 <span className="transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span>
               </a>
             </div>
@@ -305,7 +305,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          <div className="landing-enter landing-enter-product landing-enter-delay-3 relative mx-auto w-full max-w-[46rem] lg:mx-0">
+          <div className="landing-enter landing-enter-product landing-enter-delay-3 relative mx-auto min-w-0 w-full max-w-[46rem] lg:mx-0">
             <div className="landing-glow landing-glow-violet-soft absolute -inset-14 rounded-full" aria-hidden="true" />
             <div className="landing-sky-window relative rotate-[1.25deg] overflow-hidden rounded-[2.2rem] border border-white/[0.12] bg-[#070912]/95 p-3 shadow-[0_42px_120px_rgba(0,0,0,0.64)] transition duration-700 hover:rotate-0 sm:p-4">
               <div className="flex items-center justify-between px-3 pb-3 pt-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/35 sm:text-[10px]">

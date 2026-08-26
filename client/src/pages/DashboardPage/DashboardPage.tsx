@@ -42,6 +42,7 @@ import {
   X,
   Share2,
   Database,
+  PenLine,
 } from "lucide-react";
 
 interface DeleteAllJournalsResult {
@@ -611,17 +612,17 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
 
       {/* Persistent top navigation */}
       <div className="fixed top-0 inset-x-0 z-50 pointer-events-none">
-        <header className="flex justify-between items-start p-6 from-black/80 to-transparent pointer-events-auto">
-          <div className="flex items-center gap-4 h-11.5" data-star-bounce>
-            <Logo className="text-2xl" />
+        <header className="flex items-start justify-between gap-3 p-3 sm:p-6 from-black/80 to-transparent pointer-events-auto">
+          <div className="flex h-10 min-w-0 items-center sm:h-11.5" data-star-bounce>
+            <Logo className="text-base min-[380px]:text-lg sm:text-2xl" />
 
           </div>
 
-          <div className="flex items-center gap-4 h-11.5" data-star-bounce>
+          <div className="flex h-10 shrink-0 items-center gap-1.5 sm:h-11.5 sm:gap-3" data-star-bounce>
             <button
               onClick={() => setShowConstellations(true)}
               disabled={!!skySelection}
-              className={`p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm transition-all ${
+              className={`flex h-10 items-center gap-2 rounded-full border border-white/5 bg-black/50 px-2.5 text-sm font-semibold backdrop-blur-sm transition-all sm:px-3 ${
                 skySelection
                   ? 'cursor-not-allowed text-gray-700 opacity-45'
                   : 'cursor-pointer text-gray-400 hover:bg-white/10 hover:text-violet-200'
@@ -630,16 +631,18 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
               title={skySelection ? 'Finish or cancel star selection first' : 'Constellations'}
             >
               <Share2 size={18} />
+              <span className="hidden lg:inline">Constellations</span>
             </button>
             <button
               onClick={() => setShowArchive(true)}
-              className="p-2.5 rounded-full bg-black/40 border border-white/5 backdrop-blur-sm text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-full border border-white/5 bg-black/50 px-2.5 text-sm font-semibold text-gray-400 backdrop-blur-sm transition-all hover:bg-white/10 hover:text-white sm:px-3"
               aria-label="Search entries"
               title="Search Entries"
             >
               <Search size={18} />
+              <span className="hidden lg:inline">Archive</span>
             </button>
-            <div className="flex items-center gap-4 bg-black/40 px-4 py-2 rounded-full border border-white/5 backdrop-blur-sm">
+            <div className="hidden items-center gap-4 rounded-full border border-white/5 bg-black/50 px-4 py-2 backdrop-blur-sm sm:flex">
               <StatBadge icon={Flame} value={userData?.currentStreak || 0} colorClass="text-orange-500" tooltip="Current Daily Journal Streak" />
               <StatBadge icon={Star} value={userData?.totalStars || 0} colorClass="text-yellow-500" showBorder={false} tooltip="Total Stars Earned" />
             </div>
@@ -662,6 +665,26 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
         </header>
       </div>
 
+      {journals.length === 0 && !newEntry && !skySelection && (
+        <section className="pointer-events-none fixed inset-x-0 top-[22%] z-30 flex justify-center px-5 text-center sm:top-1/4">
+          <div className="pointer-events-auto max-w-sm rounded-3xl border border-white/10 bg-black/45 px-6 py-5 shadow-2xl backdrop-blur-md sm:px-8 sm:py-6" data-star-bounce>
+            <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-[#f5d99e]/25 bg-[#f5d99e]/10 text-[#f5d99e]">
+              <PenLine size={19} aria-hidden="true" />
+            </span>
+            <p className="mt-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#f5d99e]/80">Your sky is ready</p>
+            <h2 className="mt-2 text-xl font-bold tracking-tight text-white sm:text-2xl">Begin with one honest sentence.</h2>
+            <p className="mt-2 text-sm leading-6 text-gray-400">Write down one moment worth keeping. It will become the first star in your journal.</p>
+            <button
+              type="button"
+              onClick={() => textareaRef.current?.focus()}
+              className="mt-4 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-black transition hover:bg-[#f5d99e] focus:outline-none focus:ring-2 focus:ring-[#f5d99e]/60"
+            >
+              Write your first memory
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* Bottom composer: entries launch upward into the sky. */}
       {!skySelection && <div className="fixed bottom-0 inset-x-0 z-50 pointer-events-none px-4 pb-6 sm:px-6">
         <form
@@ -681,7 +704,8 @@ const DashboardPage: React.FC<DashboardPageProps> = () => {
                   void handleLaunchSubmit(e as unknown as React.FormEvent);
                 }
               }}
-              placeholder="Reflect on your day across the universe..."
+              placeholder="What felt worth remembering today?"
+              aria-label="New journal entry"
               className="w-full block bg-white/5 border border-white/10 rounded-2xl py-3 px-6 pr-14 focus:outline-none focus:bg-white/10 focus:border-white/40 transition-all duration-300 ease-in-out backdrop-blur-md text-sm resize-none max-h-64 overflow-y-auto disabled:opacity-50 no-scrollbar"
               rows={1}
               disabled={isSubmitting}
